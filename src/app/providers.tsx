@@ -7,6 +7,8 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { SnackbarProvider } from 'notistack';
 import 'dayjs/locale/en-gb';
 import { theme } from '@/theme/theme';
+import { MockProvider } from '@/mocks/MockProvider';
+import { StoreProvider } from '@/store/StoreProvider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -18,7 +20,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           transitionDuration={{ enter: 225, exit: 195 }}
           maxSnack={3}
         >
-          {children}
+          <MockProvider>
+            <StoreProvider>{children}</StoreProvider>
+          </MockProvider>
         </SnackbarProvider>
       </LocalizationProvider>
     </ThemeProvider>

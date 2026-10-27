@@ -4,7 +4,7 @@
 
 Coverage: only routes visited so far (Verticals, Dashboard grid, Practice Management list, Onboard form, Login). Template Library, Roles, ROTA, CQC, System Feed, Notifications and Settings are **not yet inventoried**, so expect additions.
 
-Status: `observed` = seen rendered on a page · `bundle-only` = found in the bundle, not yet seen on screen.
+Status: `observed` = seen rendered on a page · `bundle-only` = found in the bundle, not yet seen on screen. · `**built**` = implemented in this repo.
 
 All components use MUI (`@mui/material`) with `sx` styling and the theme in `src/theme/`. See `docs/design-tokens.md`.
 
@@ -21,7 +21,7 @@ Thin wrappers or theme overrides around MUI. Prefer the MUI component with the t
 | `AppIcon` | Renders an SVG icon by name or src | `icon`, `color`, `size` | `src/components/primitives/AppIcon.tsx` | bundle-only |
 | `BrandLogo` | Aqlios logo; also used for "QuantumLoopAI" | `src`, `size`, `width`, `height`, `color`, `sx` | `src/components/primitives/BrandLogo.tsx` | observed |
 | `EntityAvatar` | Practice logo or initials circle | `name`, `logoSrc`, `size`, `borderRadius`, `framed`, `sx` | `src/components/primitives/EntityAvatar.tsx` | observed |
-| `LoadingSpinner` | Spinner with optional message | `message` (default "Loading..."), `fullScreen`, `size`, `thickness`, `color` | `src/components/feedback/LoadingSpinner.tsx` | bundle-only |
+| `LoadingSpinner` | Spinner with optional message | `message` (default "Loading..."), `fullScreen`, `size`, `thickness`, `color` | `src/components/feedback/LoadingSpinner.tsx` | **built** (phase 1) |
 | `StepIndicator` | Numbered step dot | `index`, `isCompleted`, `isUpcoming`, `size` | `src/components/primitives/StepIndicator.tsx` | bundle-only |
 | `GoBackLink` | "‹ Go Back" text button | `onClick`, `children` | `src/components/primitives/GoBackLink.tsx` | observed |
 
