@@ -1,0 +1,46 @@
+{
+  "name": "aqlios-crm",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "npx serve@14 out",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run typecheck && npm run lint && npm run format:check",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.5.0",
+    "@mui/material": "^9.5.0",
+    "@mui/material-nextjs": "^9.5.0",
+    "@mui/x-date-pickers": "^9.16.0",
+    "@reduxjs/toolkit": "^2.13.0",
+    "dayjs": "^1.11.23",
+    "formik": "^2.4.9",
+    "next": "16.4.3",
+    "notistack": "^3.0.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-redux": "^9.3.0",
+    "redux-persist": "^6.0.0",
+    "yup": "^1.7.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.3",
+    "msw": "^3.0.3",
+    "prettier": "^3.9.10",
+    "typescript": "^5"
+  }
+}
