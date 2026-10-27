@@ -14,6 +14,8 @@ export const palette = {
     contrastText: '#255A5C',
     soft: 'rgba(92,225,230,0.16)',
   },
+  // COMING SOON pill text (docs/super-admin/07-payroll.md).
+  accent: { teal: '#2DD4BF' },
 } as const;
 
 export const neutral = {
@@ -38,6 +40,9 @@ export const surface = {
   canvas: '#FCFCFC',
   panel: '#F5F5F5', // ds.canvas: grey page panel
   subtleFill: '#FAFAFA',
+  // Observed page backgrounds: Verticals fades white → mint; the login page is light grey.
+  mintWash: '#EFFCFC',
+  authPage: '#F5F5F5',
 } as const;
 
 export const text = {
@@ -45,6 +50,7 @@ export const text = {
   secondary: 'rgba(0,0,0,0.55)',
   disabled: 'rgba(0,0,0,0.38)',
   strong: 'rgba(0,0,0,0.87)',
+  muted: 'rgba(0,0,0,0.6)', // login subtitle, "Coming soon" subtitle
   iconDark: '#112744',
   asterisk: '#D32F2F',
 } as const;
@@ -87,6 +93,13 @@ export const sidebar = {
   profileCardBg: '#DEF9FA',
   avatarBg: '#4AB4B8',
   avatarText: '#EFFCFC',
+} as const;
+
+// Header user pill (light lavender avatar, observed on /verticals; exact hex approximated from tone.secondary).
+export const userPill = {
+  avatarBg: '#F1ECFA',
+  avatarText: '#5E35B1',
+  border: 'rgba(0,0,0,0.06)',
 } as const;
 
 // Feature-scoped colour maps (ROTA). Other feature groups are added when their module is built.
@@ -133,6 +146,7 @@ export const tokens = {
   status,
   tone,
   sidebar,
+  userPill,
   dutyType,
   radius,
   shadow,

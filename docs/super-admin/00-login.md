@@ -24,3 +24,6 @@ Captured 2026-10-27 (seen after the session expired and the app redirected here)
 - [ ] Empty-submit and wrong-credential errors
 - [ ] Password show/hide toggle state
 - [ ] Redirect after login (to `/verticals`)
+
+## Rebuilt (phase 1)
+`src/app/auth/login/page.tsx`. Differences from live: Forgot Password? shows an info toast instead of linking back to the login page; the error copy "Invalid email or password." is a placeholder (the live copy wasn't captured); the "auth" watermark is a stand-in SVG; a demo box (mock mode only) explains the `demo` password and offers a "Sign in as" role select.

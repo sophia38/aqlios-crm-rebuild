@@ -19,7 +19,7 @@ Thin wrappers or theme overrides around MUI. Prefer the MUI component with the t
 | `TextField` (MUI, themed) | Text inputs | always outlined, fullWidth, 12px radius, floating label, `required`, `error`, `helperText` | MUI + theme | observed |
 | `Switch` (themed) | On/off toggles (operating hours) | iOS style, teal track when on | `src/components/primitives/AppSwitch.tsx` | observed |
 | `AppIcon` | Renders an SVG icon by name or src | `icon`, `color`, `size` | `src/components/primitives/AppIcon.tsx` | bundle-only |
-| `BrandLogo` | Aqlios logo; also used for "QuantumLoopAI" | `src`, `size`, `width`, `height`, `color`, `sx` | `src/components/primitives/BrandLogo.tsx` | observed |
+| `BrandLogo` | Aqlios logo; also used for "QuantumLoopAI" | `src`, `size`, `width`, `height`, `color`, `sx` | `src/components/primitives/BrandLogo.tsx` | **built** (phase 1) |
 | `EntityAvatar` | Practice logo or initials circle | `name`, `logoSrc`, `size`, `borderRadius`, `framed`, `sx` | `src/components/primitives/EntityAvatar.tsx` | observed |
 | `LoadingSpinner` | Spinner with optional message | `message` (default "Loading..."), `fullScreen`, `size`, `thickness`, `color` | `src/components/feedback/LoadingSpinner.tsx` | **built** (phase 1) |
 | `StepIndicator` | Numbered step dot | `index`, `isCompleted`, `isUpcoming`, `size` | `src/components/primitives/StepIndicator.tsx` | bundle-only |
@@ -50,13 +50,13 @@ Thin wrappers or theme overrides around MUI. Prefer the MUI component with the t
 | `PillTabs` | Pill-button tab row (active is teal filled, others outlined) | `activeTab`, `onChange`, `showArchivedTab` → "Practice List" / "Archived Practice" (business variant: "Business List") | `src/components/navigation/PillTabs.tsx` | observed |
 | `ViewModeToggle` | List/Grid icon toggle (`role=tablist`) | `value`, `onChange` | `src/components/navigation/ViewModeToggle.tsx` | observed |
 | `HubCard` | Grid card: avatar, divider, name and ↗ button | `hub`, `label`, `onSelect`, `disabled` (aria "Open business") | `src/components/practice/HubCard.tsx` | observed |
-| `VerticalCard` | Lightbulb card on `/verticals` | `label`, `onClick`, `logoSrc`; disabled = faded | `src/components/practice/VerticalCard.tsx` | observed |
+| `VerticalCard` | Lightbulb card on `/verticals` | `label`, `onClick`, `logoSrc`; disabled = faded | `src/components/practice/VerticalCard.tsx` | **built** (phase 1) |
 | `DataTable` | MUI Table with sortable headers, row states and `TablePagination` | columns, rows, `ordering`, `onSortChange`, `page`, `rowsPerPage`, `totalCount`, `onPageChange`, `onRowsPerPageChange`, `getRowState` (e.g. incomplete) | `src/components/data/DataTable.tsx` | observed |
 | `ResultListWithPagination` | List with pagination and a "Go to Dashboard" action | `items`, `onGoToDashboard`, `actionLabel`, `page`, `rowsPerPage`, `totalCount`, `onPageChange`, `onRowsPerPageChange` | `src/components/data/ResultListWithPagination.tsx` | bundle-only |
 | `ArchiveConfirmModal` | Confirm archive with a reason | `open`, `practiceName`, `entityLabelSingular`, `onClose`, `onConfirm` ("Reason Of Archiving") | `src/components/modals/ArchiveConfirmModal.tsx` | bundle-only (not reachable on screen; see `docs/practice/09-confirmation-popups.md`) |
 | `ConfirmDialog` | The one confirm for delete, archive, claim and status changes (replaces the 5 live variants) | `open`, `title`, `message`, `warning?`, `alternative?`, `subtitle?`, `confirmButtonText`, `cancelButtonText`, `confirmButtonVariant` (`error`, `warning`, `success`, `primary`), `confirmButtonLoading`, `confirmButtonDisabled`, `onClose`, `onConfirm` | `src/components/modals/ConfirmDialog.tsx` | live (practice level, design A) |
 | `OnboardHubModal` | Choose how to onboard a hub (Public/Private) | `open`, `onClose`, `hubType` | `src/components/modals/OnboardHubModal.tsx` | bundle-only |
-| `UserMenu` | Header user pill (avatar, name, role, chevron) | user, role | `src/components/layout/UserMenu.tsx` | observed |
+| `UserMenu` | Header user pill (avatar, name, role, chevron) | user, role | `src/components/layout/UserMenu.tsx` | **built** (phase 1): Logout + demo role switch and reset |
 | `TemplateCard` | Template card: type and status chips, ⋮ menu, name, subject, body preview with blue placeholders, created-by and date | `template`, `onAction`, `actions` | `src/features/templates/components/TemplateCard.tsx` | observed |
 | `RichTextEditor` | Message editor: formatting toolbar, Insert Placeholder menu, Ask AI, character counter | `value`, `onChange`, `placeholders`, `maxLength`, `onAskAi`, `readOnly` | `src/components/forms/RichTextEditor.tsx` | observed |
 | `MessagePreview` | Phone-style preview of a message with sample data | `practiceName`, `body`, `emptyText` | `src/features/templates/components/MessagePreview.tsx` | observed |
@@ -99,7 +99,7 @@ Thin wrappers or theme overrides around MUI. Prefer the MUI component with the t
 | `VerticalShell` | Page shell: floating header (☰, Back to Verticals, logo with vertical label, 🔔, UserMenu), sidebar drawer, content | `children` | `src/components/layout/VerticalShell.tsx` | observed |
 | `HubManagementLayout` | Breadcrumbs plus grey rounded page panel | `hubManagementBreadcrumbs`, `children` | `src/components/layout/HubManagementLayout.tsx` | observed |
 | `ModulePageHeader` | Icon tile, title and subtitle, right-side actions | `icon`, `title`, `subtitle`, `actions` | `src/components/layout/ModulePageHeader.tsx` | observed |
-| `ComingSoonPlaceholder` | Placeholder for unbuilt modules: header plus a centred icon circle, title, message and "COMING SOON" pill | `title`, `icon`, `message` | `src/app/verticals/[vertical]/coming-soon/[module]/page.tsx` | observed |
+| `ComingSoonPlaceholder` | Placeholder for unbuilt modules: header plus a centred icon circle, title, message and "COMING SOON" pill | `title`, `icon`, `message` | `src/components/feedback/ComingSoonPlaceholder.tsx` | **built** (phase 1): centred body only; the header comes from the shell |
 | `RouteErrorBoundary` | Next.js `error.tsx`: "Something went wrong" + Try again | `error`, `reset` | `src/app/**/error.tsx` | bundle-only |
 | `LoadingBoundary` | Suspense wrapper | `loading`, `children` | `src/app/**/loading.tsx` | bundle-only |
 
@@ -113,6 +113,12 @@ Thin wrappers or theme overrides around MUI. Prefer the MUI component with the t
   <DataTable ... />
 </HubManagementLayout>
 ```
+
+## Added during the rebuild
+| Component | Purpose | Props | Path | Status |
+|---|---|---|---|---|
+| `AuthGate` | Wraps signed-in routes: loads `/api/auth/me` once, shows "Verifying session...", sends signed-out visitors to `/auth/login` and remembers where they were going | `children` | `src/components/auth/AuthGate.tsx` | **built** (phase 1) |
+| `DevRoleSwitcher` | Mock mode only: "Sign in as" select on the login page, and Demo items in `UserMenu` (switch role, reset demo data). Renders nothing in live mode | `DevRoleSwitcherSelect { value, onChange }` · `DevRoleSwitcherMenuItems { onDone }` | `src/components/dev/DevRoleSwitcher.tsx` | **built** (phase 1) |
 
 ## Feedback patterns (no dedicated component yet)
 - **Toasts:** `notistack` `enqueueSnackbar(msg, { variant: 'success' | 'error' | 'warning' })`, bottom-left.

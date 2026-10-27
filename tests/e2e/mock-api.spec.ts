@@ -19,7 +19,7 @@ async function call(page: Page, path: string, body?: unknown) {
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   // The app renders only once the mock worker is running.
-  await expect(page.getByRole('heading', { name: 'Aqlios rebuild: theme check' })).toBeVisible();
+  await expect(page).toHaveURL(/\/auth\/login\/$/);
   await call(page, '/api/mock/reset', {});
   await call(page, '/api/auth/logout', {});
 });

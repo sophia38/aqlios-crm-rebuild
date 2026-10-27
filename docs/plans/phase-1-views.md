@@ -1,6 +1,6 @@
 # Phase 1 view plans: Login and Verticals
 
-**Status: awaiting approval** (CLAUDE.md rule 6). The data layer for these screens is already built and tested: mock auth, `/api/auth/me`, `/api/auth/sub-apps` and profile (`src/mocks/`, `tests/e2e/mock-api.spec.ts`).
+**Status: approved and built 2026-10-27.** Decisions: Private Business opens a placeholder; Forgot Password shows an info toast; logo and card SVGs copied from the dev app (the watermark is a stand-in because the 31G sign-in page wasn't reachable). Correction: practice users are redirected from `/verticals` to `/verticals/public/practices`, as the live app does, rather than seeing the cards. The data layer for these screens is already built and tested: mock auth, `/api/auth/me`, `/api/auth/sub-apps` and profile (`src/mocks/`, `tests/e2e/mock-api.spec.ts`).
 
 ---
 

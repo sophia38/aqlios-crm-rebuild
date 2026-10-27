@@ -133,3 +133,13 @@ MUI defaults (xs 0, sm 600, md 900, lg 1200, xl 1536). Grid usage is mostly `xs:
 - `MuiInputBase`: `autoComplete="off"`.
 - Date/time pickers: teal selected state, `surface.tealLight` hover, 10px items, Poppins.
 - Toasts: notistack, anchored **bottom-left**, enter 225ms and exit 195ms, variants success, error and warning.
+
+## Added during the rebuild (observed, not in the live token modules)
+| Token | Value | Source |
+|---|---|---|
+| `palette.accent.teal` | `#2DD4BF` | COMING SOON pill text |
+| `text.muted` | `rgba(0,0,0,0.6)` | Login subtitle, "Coming soon" subtitle |
+| `surface.mintWash` | `#EFFCFC` | Verticals page gradient end, card gradient |
+| `surface.authPage` | `#F5F5F5` | Login page background |
+| `userPill.avatarBg` / `avatarText` | `#F1ECFA` / `#5E35B1` | User pill avatar ("light lavender"; hex approximated) |
+| `tone.error.strongBg` / `strongInk` | `#FDEDED` / `#5F2120` | MUI's standard error Alert colours (the live app defines only `tone.error.main`) |
