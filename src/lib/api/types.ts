@@ -126,7 +126,7 @@ export interface Practice {
   uses_connect: boolean;
   commission_percentage: number | null;
   payout_eligibility_days: number | null;
-  points_of_contact: { name: string; email: string; phone_number: string; role: string }[];
+  points_of_contact: PointOfContact[];
   slug: string | null;
   tenant_id: string | null;
   app_id: string | null;
@@ -134,6 +134,113 @@ export interface Practice {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  // Profile fields below were not seen in a list response; they come from the profile screen (inferred).
+  practice_manager?: string | null;
+  rota_group_ids?: string[];
+  linked_practice_ids?: string[];
+  succession_start_date?: string | null;
+  succession_ongoing?: boolean;
+  succession_end_date?: string | null;
+  workforce_allocations?: WorkforceAllocation[];
+}
+
+// Inferred from the onboard form (docs/super-admin/03-onboard-new-practice.md).
+export interface PointOfContact {
+  name: string;
+  phone_number: string;
+  email: string;
+  designation: string;
+  description: string;
+}
+
+export interface WorkforceAllocation {
+  staff_type: string;
+  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  hours: number;
+}
+
+/** Create/update payload (inferred; the live save wasn't captured). */
+export type PracticeInput = Pick<
+  Practice,
+  | 'practice_name'
+  | 'ods_code'
+  | 'pcn_name'
+  | 'phone_number'
+  | 'email_address'
+  | 'website'
+  | 'description'
+  | 'address_line_1'
+  | 'address_line_2'
+  | 'postcode'
+  | 'logo_url'
+  | 'points_of_contact'
+> & {
+  practice_type: 'PUBLIC';
+  practice_manager: string | null;
+  operating_hours: Pick<OperatingHours, 'day' | 'opening_time' | 'closing_time' | 'practice_state'>[];
+} & Partial<
+    Pick<
+      Practice,
+      | 'rota_group_ids'
+      | 'linked_practice_ids'
+      | 'succession_start_date'
+      | 'succession_ongoing'
+      | 'succession_end_date'
+      | 'workforce_allocations'
+    >
+  >;
+
+/** Practice manager option (URL captured; shape inferred from the two-line dropdown). */
+export interface PracticeManager {
+  id: string;
+  full_name: string;
+  email: string;
+}
+
+/** NHS ODS directory entry (URL captured; shape inferred from the options and autofill). */
+export interface PublicPractice {
+  name: string;
+  ods_code: string;
+  pcn_code: string;
+  phone_number: string;
+  website: string;
+  address_line_1: string;
+  postcode: string;
+  opening_time: string;
+  closing_time: string;
+}
+
+/** URL captured; shape inferred. */
+export interface RotaGroup {
+  id: string;
+  name: string;
+  status: 'ACTIVE' | 'INACTIVE';
+}
+
+export type AppointmentTypeKey =
+  'FACE_TO_FACE_SURGERY' | 'TELEPHONE_OR_AUDIO' | 'FACE_TO_FACE_HOME_VISIT' | 'WRITTEN_INCLUDING_ONLINE' | 'ADMIN_WORK';
+
+export type BookingChannel = 'BOTH' | 'ADMIN_STAFF' | 'AI_VOICE_AGENT';
+
+/** `…/clinical-system/appointment-configuration/` (URL captured; shape inferred). */
+export interface AppointmentConfiguration {
+  appointment_types: { type: AppointmentTypeKey; enabled: boolean; is_default: boolean; locked: boolean }[];
+  slot_durations: { role_id: string; appointment_type: AppointmentTypeKey; duration_minutes: number }[];
+  urgent_booking: BookingChannel;
+  routine_booking: BookingChannel;
+}
+
+export type ExtraAppointments =
+  | 'SIGNPOST_TO_PHARMACY'
+  | 'REDIRECT_OOH_CLINIC'
+  | 'REDIRECT_NHS_111'
+  | 'FORWARD_TO_AE'
+  | 'CREATE_SAME_DAY_APPOINTMENTS';
+
+/** `…/practice/{id}/sla-configuration` (URL captured; shape inferred). */
+export interface SlaConfiguration {
+  urgent_capacity: Pick<OperatingHours, 'day' | 'opening_time' | 'closing_time' | 'practice_state'>[];
+  extra_appointments: ExtraAppointments;
 }
 
 export interface Role {

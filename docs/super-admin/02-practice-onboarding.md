@@ -64,3 +64,6 @@ Edge cases visible in data: missing email (`—`), invalid email text (`sfasfasf
 - [ ] **View (👁)** → practice detail page
 - [ ] **Onboard New Practice** → form/stepper, all fields, dropdowns, validation errors, success/cancel popups
 - [ ] Refresh loading state
+
+## Rebuilt (phase 3)
+`src/features/practices/PracticeManagementListPage.tsx`. Search sends `search` (param name inferred). No Archived tab or Archive action (off in the live app too).

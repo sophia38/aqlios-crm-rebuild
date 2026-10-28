@@ -95,6 +95,13 @@ export const sidebar = {
   avatarText: '#EFFCFC',
 } as const;
 
+// Form controls (docs/super-admin/03-onboard-new-practice.md, measured).
+export const control = {
+  switchOffTrack: '#E9E9EA',
+  textareaFill: '#F5F5F5',
+  sectionDividerPill: '#F3F4F6',
+} as const;
+
 // Table row states (Practice Management list, docs/super-admin/02-practice-onboarding.md).
 export const rowState = {
   incomplete: { bg: '#FDF1EC', border: '#E8774A' },
@@ -153,6 +160,7 @@ export const tokens = {
   sidebar,
   userPill,
   rowState,
+  control,
   dutyType,
   radius,
   shadow,

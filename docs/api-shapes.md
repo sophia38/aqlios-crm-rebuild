@@ -68,3 +68,19 @@ results: [{
 | `POST /api/auth/logout` | Clears the mock session (the live app has this path too) |
 | `POST /api/mock/persona` `{ persona: "super-admin" \| "practice-user" }` | Dev role switcher |
 | `POST /api/mock/reset` | Restores the fixtures ("Reset demo data") |
+
+## Phase 3 endpoints (URLs captured, shapes inferred unless noted)
+| Endpoint | Mock response `data` |
+|---|---|
+| `GET /practice-management/v1/public-practices?search=` | `PublicPractice[]`: `name, ods_code, pcn_code, phone_number, website, address_line_1, postcode, opening_time, closing_time` |
+| `GET /users/v1/sub-apps/{id}/practice-managers/?page&page_size&search` | paginated `{ id, full_name, email }` |
+| `GET …/practices/name-availability?practice_name&practice_type&exclude_practice_id` | `{ is_available }` |
+| `POST …/practices` (inferred) | created practice (201); 400 `errors: [{ field, message }]` |
+| `PATCH …/practices/{id}` (inferred) | updated practice |
+| `POST …/practices/logo` (inferred, multipart `file`) | `{ logo_url }` |
+| `GET/PUT /public/v1/…/practices/{id}/clinical-system/appointment-configuration/` | `{ appointment_types[{type, enabled, is_default, locked}], slot_durations[{role_id, appointment_type, duration_minutes}], urgent_booking, routine_booking }` |
+| `GET/PUT /practice-management/v1/…/practice/{id}/sla-configuration` | `{ urgent_capacity[{day, opening_time, closing_time, practice_state}], extra_appointments }` (extra_appointments values captured) |
+| `GET /public/v1/sub-apps/{id}/rota-groups/?status=active` | `{ id, name, status }[]` |
+| `POST /public/v1/…/practices/{id}/rota/same-rota-practices/` | `{ id, practice_name }[]` |
+
+Practice records gained (inferred): `practice_manager` (id), `rota_group_ids`, `linked_practice_ids`, `succession_start_date`, `succession_ongoing`, `succession_end_date`, `workforce_allocations[{staff_type, frequency, hours}]`. `status` is computed (`ACTIVE` / `INCOMPLETE`).

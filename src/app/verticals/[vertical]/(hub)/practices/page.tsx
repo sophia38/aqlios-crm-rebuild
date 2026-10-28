@@ -1,9 +1,9 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { InterimPracticeList } from '@/features/shell/InterimPracticeList';
+import { PracticeGridPage } from '@/features/practices/PracticeGridPage';
 
 export default function PracticesPage() {
   const { vertical } = useParams<{ vertical: string }>();
-  return <InterimPracticeList vertical={vertical} />;
+  return <PracticeGridPage vertical={vertical} />;
 }

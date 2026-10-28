@@ -94,3 +94,6 @@ Sample data on page 1:
 - [ ] Practice detail (click ↗)
 - [ ] Notifications page
 - [ ] Empty / loading / error states
+
+## Rebuilt (phase 3)
+Practice grid: `src/features/practices/PracticeGridPage.tsx`. List view reuses the Practice Management columns (live list view not captured). Rows per page 12/24/48 (not captured). Practice users: own practices only, no Onboard button.

@@ -35,7 +35,11 @@ export function ModulePageHeader({ icon, title, subtitle, actions }: ModulePageH
           {icon}
         </Box>
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="moduleTitle" component="h1">
+          <Typography
+            variant="moduleTitle"
+            component="h1"
+            sx={(theme) => ({ fontSize: { xs: 22, sm: theme.typography.moduleTitle.fontSize } })}
+          >
             {title}
           </Typography>
           {subtitle && (

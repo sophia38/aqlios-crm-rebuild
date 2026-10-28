@@ -1,5 +1,6 @@
 import { PUBLIC_SUB_APP_ID } from '@/lib/api/config';
 import type { OperatingHours, Practice } from '@/lib/api/types';
+import { buildPracticeManagers, buildRotaGroups } from './lookups';
 import { createRandom, isoDaysAgo, mockId } from './random';
 
 // Fictional practices. Place names are generic English towns and streets; no data is copied from the dev app.
@@ -51,10 +52,12 @@ const SUFFIXES = ['Medical Centre', 'Surgery', 'Medical Practice', 'Health Centr
 const CITIES = ['Leeds', 'Bradford', 'York', 'Sheffield', 'Manchester', 'Nottingham', 'Leicester', 'Coventry'] as const;
 const PCNS = ['North Leeds PCN', 'Central PCN', 'Riverside PCN', 'Valley Health PCN', 'Eastside PCN'] as const;
 const SUB_ICBS = ['NHS West Yorkshire ICB', 'NHS South Yorkshire ICB', 'NHS Greater Manchester ICB'] as const;
-const MANAGERS = ['Jordan Hale', 'Priya Nair', 'Tom Ellis', 'Grace Okafor', 'Liam Carter', 'Hannah Moss'] as const;
 const DAYS: OperatingHours['day'][] = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
 export const PRACTICE_COUNT = 155;
+
+/** The demo practices with rich data in later phases (practice user has the first two). */
+export const DEMO_PRACTICE_INDEXES = [0, 1, 2];
 
 function practiceNames(count: number) {
   const names: string[] = [];
@@ -84,13 +87,28 @@ function operatingHours(practiceId: string, createdAt: string, weekdaysOnly: boo
   });
 }
 
+/**
+ * Practices whose profile was never finished. Their status is worked out from their configuration
+ * (see `practiceStatus` in src/mocks/store.ts), so finishing the profile clears the orange row.
+ */
+export function isUnconfiguredFixture(index: number) {
+  return index % 7 === 3 || index % 11 === 5;
+}
+
 export function buildPractices(): Practice[] {
   const random = createRandom(155);
+  const managers = buildPracticeManagers();
+  const rotaGroups = buildRotaGroups();
   return practiceNames(PRACTICE_COUNT).map((name, index) => {
     const id = mockId('practice', index);
     const createdAt = isoDaysAgo(index * 2 + random.int(0, 1), random.int(8, 17));
-    // Some practices have incomplete profiles (empty PCN or phone), like the live list's orange rows.
-    const incomplete = random.bool(0.12);
+    // Some unfinished practices are also missing required details (empty PCN or phone).
+    const incomplete = isUnconfiguredFixture(index) && random.bool(0.5);
+    const manager = random.bool(0.75) ? random.pick(managers) : null;
+    const emailUser = name
+      .toLowerCase()
+      .replace(/[^a-z]+/g, '.')
+      .replace(/\.$/, '');
     return {
       id,
       auth31_id: mockId('auth31-practice', index),
@@ -106,14 +124,16 @@ export function buildPractices(): Practice[] {
       postcode: `LS${random.int(1, 29)} ${random.int(1, 9)}${random.pick(['AB', 'DF', 'HQ', 'NR', 'TX'])}`,
       country: null,
       phone_number: incomplete ? '' : `+44 113 ${random.int(200, 999)} ${random.int(1000, 9999)}`,
-      email_address: null,
+      email_address: random.bool(0.8) ? `${emailUser}@nhs.demo` : null,
       website: null,
       description: null,
-      logo_url: '',
+      // A few practices have an uploaded logo, so the grid shows both the logo and initials variants.
+      logo_url: index % 9 === 4 ? '/aqlios_logo.svg' : '',
       cqc_no: null,
-      practice_manager_name: random.pick(MANAGERS),
+      practice_manager_name: manager?.full_name ?? '',
+      practice_manager: manager?.id ?? null,
       associated_users_count: random.int(0, 60),
-      status: incomplete ? 'INCOMPLETE' : 'ACTIVE',
+      status: 'ACTIVE',
       is_active: true,
       sla_status: random.bool(0.7),
       activity_tracker_enabled: random.bool(0.4),
@@ -130,6 +150,12 @@ export function buildPractices(): Practice[] {
       created_at: createdAt,
       updated_at: createdAt,
       deleted_at: null,
+      rota_group_ids: index % 4 === 0 ? [rotaGroups[0].id] : [],
+      linked_practice_ids: [],
+      succession_start_date: isUnconfiguredFixture(index) ? null : createdAt.slice(0, 10),
+      succession_ongoing: true,
+      succession_end_date: null,
+      workforce_allocations: isUnconfiguredFixture(index) ? [] : [{ staff_type: 'GP', frequency: 'DAILY', hours: 8 }],
     };
   });
 }

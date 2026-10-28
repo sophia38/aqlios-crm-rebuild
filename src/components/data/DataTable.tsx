@@ -51,6 +51,8 @@ export interface DataTableProps<Row> {
   labelDisplayedRows?: (info: { from: number; to: number; count: number; page: number }) => React.ReactNode;
   'aria-label': string;
   minWidth?: number;
+  /** Makes rows clickable (and focusable, Enter opens), e.g. the practice grid's list view. */
+  onRowClick?: (row: Row) => void;
 }
 
 /**
@@ -77,6 +79,7 @@ export function DataTable<Row>({
   labelDisplayedRows,
   'aria-label': ariaLabel,
   minWidth = 720,
+  onRowClick,
 }: DataTableProps<Row>) {
   const sortField = ordering?.replace(/^-/, '');
   const sortDirection: 'asc' | 'desc' = ordering?.startsWith('-') ? 'desc' : 'asc';
@@ -153,16 +156,24 @@ export function DataTable<Row>({
                   <TableRow
                     key={getRowId(row)}
                     hover
-                    sx={(theme) =>
-                      incomplete
-                        ? {
-                            bgcolor: theme.tokens.rowState.incomplete.bg,
-                            '& > td:first-of-type': {
-                              boxShadow: `inset 3px 0 0 ${theme.tokens.rowState.incomplete.border}`,
-                            },
+                    onClick={onRowClick ? () => onRowClick(row) : undefined}
+                    onKeyDown={
+                      onRowClick
+                        ? (event) => {
+                            if (event.key === 'Enter') onRowClick(row);
                           }
-                        : {}
+                        : undefined
                     }
+                    tabIndex={onRowClick ? 0 : undefined}
+                    sx={(theme) => ({
+                      ...(onRowClick && { cursor: 'pointer' }),
+                      ...(incomplete && {
+                        bgcolor: theme.tokens.rowState.incomplete.bg,
+                        '& > td:first-of-type': {
+                          boxShadow: `inset 3px 0 0 ${theme.tokens.rowState.incomplete.border}`,
+                        },
+                      }),
+                    })}
                   >
                     {columns.map((column, index) => (
                       <TableCell key={column.id} align={column.align}>

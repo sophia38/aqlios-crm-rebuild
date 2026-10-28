@@ -1,21 +1,56 @@
-import type { Practice, Role } from '@/lib/api/types';
-import { buildPractices } from './fixtures/practices';
+import type {
+  AppointmentConfiguration,
+  Practice,
+  PracticeManager,
+  PublicPractice,
+  Role,
+  RotaGroup,
+  SlaConfiguration,
+} from '@/lib/api/types';
+import {
+  buildAppointmentConfiguration,
+  buildOdsDirectory,
+  buildPracticeManagers,
+  buildRotaGroups,
+  buildSlaConfiguration,
+  emptyAppointmentConfiguration,
+} from './fixtures/lookups';
+import { buildPractices, isUnconfiguredFixture } from './fixtures/practices';
 import { buildRoles, PERSONAS, type PersonaId } from './fixtures/users';
 
 // In-browser mock database. Each visitor has their own copy in localStorage; "Reset demo data" restores the fixtures.
-const STORAGE_KEY = 'aqlios-mock-db-v1';
+// Bump the key when the shape changes so old copies are replaced instead of breaking.
+const STORAGE_KEY = 'aqlios-mock-db-v2';
 
 export interface MockDb {
   session: { signedIn: boolean; persona: PersonaId };
   practices: Practice[];
   roles: Role[];
+  practiceManagers: PracticeManager[];
+  odsDirectory: PublicPractice[];
+  rotaGroups: RotaGroup[];
+  appointmentConfigs: Record<string, AppointmentConfiguration>;
+  slaConfigs: Record<string, SlaConfiguration>;
 }
 
 function seed(): MockDb {
+  const practices = buildPractices();
+  const roles = buildRoles();
+  const clinician = roles.find((role) => role.name === 'Clinician') ?? roles[0];
   return {
     session: { signedIn: false, persona: 'super-admin' },
-    practices: buildPractices(),
-    roles: buildRoles(),
+    practices,
+    roles,
+    practiceManagers: buildPracticeManagers(),
+    odsDirectory: buildOdsDirectory(),
+    rotaGroups: buildRotaGroups(),
+    appointmentConfigs: Object.fromEntries(
+      practices.map((practice, index) => [
+        practice.id,
+        isUnconfiguredFixture(index) ? emptyAppointmentConfiguration() : buildAppointmentConfiguration(clinician.id),
+      ]),
+    ),
+    slaConfigs: Object.fromEntries(practices.map((practice) => [practice.id, buildSlaConfiguration()])),
   };
 }
 
@@ -54,9 +89,24 @@ export function currentPersona() {
   return PERSONAS[getDb().session.persona];
 }
 
-/** Practices the signed-in persona may see (super-admin: all; practice user: their own). */
+/**
+ * "Incomplete" (inferred rule, phase 3 plan): required details missing, or the Additional
+ * Configuration not done (no default appointment type, no slot duration, no succession date).
+ */
+export function practiceStatus(practice: Practice): 'ACTIVE' | 'INCOMPLETE' {
+  const config = getDb().appointmentConfigs[practice.id];
+  const configured =
+    Boolean(config?.appointment_types.some((type) => type.enabled && type.is_default)) &&
+    Boolean(config?.slot_durations.length) &&
+    Boolean(practice.succession_start_date);
+  const detailsComplete = Boolean(practice.pcn_name && practice.phone_number && practice.address_line_1);
+  return configured && detailsComplete ? 'ACTIVE' : 'INCOMPLETE';
+}
+
+/** Practices the signed-in persona may see (super-admin: all; practice user: their own), with live status. */
 export function visiblePractices(): Practice[] {
   const { practices } = getDb();
   const indexes = currentPersona().practiceIndexes;
-  return indexes === null ? practices : indexes.map((index) => practices[index]).filter(Boolean);
+  const visible = indexes === null ? practices : indexes.map((index) => practices[index]).filter(Boolean);
+  return visible.map((practice) => ({ ...practice, status: practiceStatus(practice) }));
 }

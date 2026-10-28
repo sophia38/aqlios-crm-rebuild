@@ -121,3 +121,6 @@ Captured 2026-10-27 on a freshly loaded (blank) form. **Validation is client-sid
 - [ ] Time validation (to < from)
 - [ ] Description > 500 chars
 - [ ] Hover states: buttons, dropdown options, section chevrons
+
+## Rebuilt (phase 3)
+`src/features/practices/OnboardPracticePage.tsx`. Differences: "JPEG or PNG up to 10MB" (typo fixed); UK phone/postcode format checks; "Closing time must be after opening time"; one error red; first error focused on submit; POC description placeholder "Notes about this contact (optional)". After saving it opens the new practice's profile. Placeholder copy: "Practice onboarded successfully", "A practice with this name already exists.".

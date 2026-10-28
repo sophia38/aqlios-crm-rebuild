@@ -108,3 +108,6 @@ Two selects side by side:
 - [ ] "Practice Onboard Setup Method" page (breadcrumb)
 - [ ] An incomplete practice's profile (which fields are flagged)
 - [x] Archive practice flow: read from code, not reachable on screen. See `docs/practice/09-confirmation-popups.md`
+
+## Rebuilt (phase 3)
+`src/features/practices/PracticeProfilePage.tsx`. Differences: breadcrumb drops the uncaptured "Practice Onboard Setup Method" crumb; Urgent/Routine share one option list; Urgent Capacity uses the same switch as Operating Hours; End Date appears when Ongoing is off (must be after Start Date). Saves practice + appointment configuration + SLA configuration together; "incomplete" clears once a default type, a slot duration and a start date exist (inferred rule).

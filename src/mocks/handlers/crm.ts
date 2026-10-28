@@ -1,6 +1,6 @@
 import { http } from 'msw/http';
 import { CRM_API } from '@/lib/api/config';
-import { currentPersona, getDb, visiblePractices } from '../store';
+import { currentPersona, getDb } from '../store';
 import { forbidden, ok, order, paginate, unauthorized } from '../respond';
 
 const crm = (path: string) => `*${CRM_API}${path}`;
@@ -27,22 +27,6 @@ export const crmHandlers = [
         roles: persona.role ? [persona.role] : [],
       },
     });
-  }),
-
-  http.get(crm('/practice-management/v1/sub-apps/:subAppId/practices'), ({ request }) => {
-    if (!signedIn()) return unauthorized();
-    const search = new URL(request.url).searchParams.get('search')?.trim().toLowerCase();
-    const matching = search
-      ? visiblePractices().filter((practice) => practice.practice_name.toLowerCase().includes(search))
-      : visiblePractices();
-    return ok(paginate(request, order(request, matching)));
-  }),
-
-  http.get(crm('/practice-management/v1/sub-apps/:subAppId/practices/:practiceId'), ({ params }) => {
-    if (!signedIn()) return unauthorized();
-    // Like the live API, an unknown id and a practice the user can't see both return 403.
-    const practice = visiblePractices().find((item) => item.id === params.practiceId);
-    return practice ? ok(practice) : forbidden();
   }),
 
   http.get(crm('/users/sub-apps/:subAppId/roles'), ({ request }) => {
