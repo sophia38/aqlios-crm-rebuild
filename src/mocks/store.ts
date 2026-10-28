@@ -1,5 +1,6 @@
 import type {
   AppointmentConfiguration,
+  Permission,
   Practice,
   PracticeManager,
   PublicPractice,
@@ -16,16 +17,21 @@ import {
   emptyAppointmentConfiguration,
 } from './fixtures/lookups';
 import { buildPractices, isUnconfiguredFixture } from './fixtures/practices';
-import { buildRoles, PERSONAS, type PersonaId } from './fixtures/users';
+import { buildPermissionCatalog, defaultRolePermissions } from './fixtures/permissions';
+import { buildRoles, buildStaff, PERSONAS, type PersonaId, type StaffMember } from './fixtures/users';
 
 // In-browser mock database. Each visitor has their own copy in localStorage; "Reset demo data" restores the fixtures.
 // Bump the key when the shape changes so old copies are replaced instead of breaking.
-const STORAGE_KEY = 'aqlios-mock-db-v2';
+const STORAGE_KEY = 'aqlios-mock-db-v3';
 
 export interface MockDb {
   session: { signedIn: boolean; persona: PersonaId };
   practices: Practice[];
   roles: Role[];
+  permissions: Permission[];
+  /** Role id → granted permission ids. */
+  rolePermissions: Record<string, string[]>;
+  staff: StaffMember[];
   practiceManagers: PracticeManager[];
   odsDirectory: PublicPractice[];
   rotaGroups: RotaGroup[];
@@ -37,10 +43,17 @@ function seed(): MockDb {
   const practices = buildPractices();
   const roles = buildRoles();
   const clinician = roles.find((role) => role.name === 'Clinician') ?? roles[0];
+  const permissions = buildPermissionCatalog();
   return {
     session: { signedIn: false, persona: 'super-admin' },
     practices,
     roles,
+    permissions,
+    rolePermissions: Object.fromEntries(roles.map((role) => [role.id, defaultRolePermissions(role.name, permissions)])),
+    staff: buildStaff(
+      roles,
+      practices.map((practice) => practice.id),
+    ),
     practiceManagers: buildPracticeManagers(),
     odsDirectory: buildOdsDirectory(),
     rotaGroups: buildRotaGroups(),
@@ -109,4 +122,13 @@ export function visiblePractices(): Practice[] {
   const indexes = currentPersona().practiceIndexes;
   const visible = indexes === null ? practices : indexes.map((index) => practices[index]).filter(Boolean);
   return visible.map((practice) => ({ ...practice, status: practiceStatus(practice) }));
+}
+
+/** Roles with their user count worked out from the staff, so reassigning and deleting stay consistent. */
+export function rolesWithCounts(): Role[] {
+  const { roles, staff } = getDb();
+  return roles.map((role) => ({
+    ...role,
+    assigned_users_count: staff.filter((member) => member.role_id === role.id).length,
+  }));
 }

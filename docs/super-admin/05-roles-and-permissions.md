@@ -3,6 +3,8 @@
 Captured 2026-10-27. Nothing was created, edited or deleted.
 Sidebar: HUB → Role and Permissions → `/verticals/public/roles`
 
+**Rebuilt (phase 4, 2026-10-28):** all four screens and Delete Role, per `docs/plans/phase-4-vertical-modules.md` §1. Fixes: DD/MM/YYYY dates, MUI pagination wording, Esc in Delete Role closes only the open role list, the Role Name cell has real text. Staff 👁 in Associated Users shows a "rebuilt in phase 5" note. Success copy and the duplicate-name error are placeholders (not captured).
+
 ## 1. Roles List — `/verticals/public/roles`
 
 ### Layout

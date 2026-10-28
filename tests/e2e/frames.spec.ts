@@ -83,10 +83,11 @@ test.describe('practice frame', () => {
     await expect(page.getByText(/building the public practice support center/)).toBeVisible();
   });
 
-  test('a practice that was not pre-built shows the not-found page', async ({ page }) => {
+  test('an unknown practice URL shows the practice not-found state', async ({ page }) => {
     await logIn(page);
     await page.goto('/verticals/public/practices/does-not-exist/dashboard/');
-    await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
+    // The static fallback renders practice dashboards that weren't pre-built (newly onboarded ones).
+    await expect(page.getByRole('heading', { name: "Practice not found or you don't have access" })).toBeVisible();
   });
 });
 

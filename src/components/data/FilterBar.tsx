@@ -33,6 +33,10 @@ export interface FilterBarProps {
   onClear: () => void;
   onRefresh?: () => void;
   refreshing?: boolean;
+  /** Custom filter controls after the selects, e.g. a server-searched practice picker. */
+  children?: React.ReactNode;
+  /** Hide the "☰ Filters:" label (pages with only a search, e.g. the Roles List). */
+  hideLabel?: boolean;
   /** Debounce for search, in ms (live CQC uses 400ms). */
   searchDebounceMs?: number;
 }
@@ -49,6 +53,8 @@ export function FilterBar({
   onClear,
   onRefresh,
   refreshing = false,
+  hideLabel = false,
+  children,
   searchDebounceMs = 400,
 }: FilterBarProps) {
   const [draft, setDraft] = useState(search?.value ?? '');
@@ -81,13 +87,15 @@ export function FilterBar({
         border: `1px solid ${theme.tokens.border.medium}`,
       })}
     >
-      <Typography
-        component="span"
-        sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 14, fontWeight: 600 }}
-      >
-        <FilterList fontSize="small" aria-hidden />
-        Filters:
-      </Typography>
+      {!hideLabel && (
+        <Typography
+          component="span"
+          sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 14, fontWeight: 600 }}
+        >
+          <FilterList fontSize="small" aria-hidden />
+          Filters:
+        </Typography>
+      )}
       {filters.map((filter) => (
         <TextField
           key={filter.id}
@@ -108,6 +116,7 @@ export function FilterBar({
           ))}
         </TextField>
       ))}
+      {children}
       {search && (
         <TextField
           size="small"

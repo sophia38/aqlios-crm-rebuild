@@ -33,6 +33,8 @@ export interface ConfirmDialogProps {
   confirmButtonVariant?: ConfirmVariant;
   confirmButtonDisabled?: boolean;
   confirmButtonLoading?: boolean;
+  /** Extra content under the callouts, e.g. Delete Role's per-user reassign cards. */
+  children?: React.ReactNode;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -54,6 +56,7 @@ export function ConfirmDialog({
   confirmButtonVariant = 'error',
   confirmButtonDisabled = false,
   confirmButtonLoading = false,
+  children,
   onClose,
   onConfirm,
 }: ConfirmDialogProps) {
@@ -164,6 +167,7 @@ export function ConfirmDialog({
             <ErrorOutline />,
           )}
         {alternative && callout(alternative, theme.palette.primary.main, <ArchiveOutlined />)}
+        {children}
       </Box>
       <Divider />
       <Stack direction="row" spacing={1.5} sx={{ px: 3, py: 2, justifyContent: 'flex-end' }}>

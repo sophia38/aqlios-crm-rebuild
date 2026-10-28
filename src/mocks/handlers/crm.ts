@@ -1,7 +1,7 @@
 import { http } from 'msw/http';
 import { CRM_API } from '@/lib/api/config';
 import { currentPersona, getDb } from '../store';
-import { forbidden, ok, order, paginate, unauthorized } from '../respond';
+import { ok, unauthorized } from '../respond';
 
 const crm = (path: string) => `*${CRM_API}${path}`;
 
@@ -27,13 +27,5 @@ export const crmHandlers = [
         roles: persona.role ? [persona.role] : [],
       },
     });
-  }),
-
-  http.get(crm('/users/sub-apps/:subAppId/roles'), ({ request }) => {
-    if (!signedIn()) return unauthorized();
-    if (!currentPersona().isAdmin) return forbidden();
-    const search = new URL(request.url).searchParams.get('search')?.trim().toLowerCase();
-    const roles = search ? getDb().roles.filter((role) => role.name.toLowerCase().includes(search)) : getDb().roles;
-    return ok(paginate(request, order(request, roles)));
   }),
 ];

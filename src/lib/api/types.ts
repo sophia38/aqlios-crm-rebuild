@@ -252,6 +252,42 @@ export interface Role {
   updated_at: string;
 }
 
+/**
+ * One permission from `users/v1/permissions` (URL captured; shape inferred). `name` is stored as
+ * `Module:Parent:Child`; the UI shows `description` and indents children under `parent`.
+ */
+export interface Permission {
+  id: string;
+  name: string;
+  description: string;
+  module: string;
+  parent: string | null;
+}
+
+export interface RoleInput {
+  name: string;
+  description: string;
+  permission_ids: string[];
+}
+
+export type StaffStatus = 'ACTIVE' | 'PENDING_INVITE' | null;
+
+/** A row of `roles/{roleId}/users` (URL captured; shape inferred). */
+export interface RoleUser {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  practices: { id: string; practice_name: string }[];
+  role: { id: string; name: string };
+  status: StaffStatus;
+}
+
+/** Body of `DELETE …/roles/{roleId}` (inferred): where each assigned user moves to. */
+export interface RoleDeleteInput {
+  reassignments: { user_id: string; role_id: string }[];
+}
+
 export type ListParams = {
   page?: number;
   page_size?: number;

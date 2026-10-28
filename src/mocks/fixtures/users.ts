@@ -1,6 +1,6 @@
 import { PUBLIC_SUB_APP_ID } from '@/lib/api/config';
-import type { Role } from '@/lib/api/types';
-import { isoDaysAgo, mockId } from './random';
+import type { Role, StaffStatus } from '@/lib/api/types';
+import { createRandom, isoDaysAgo, mockId } from './random';
 
 export type PersonaId = 'super-admin' | 'practice-user';
 
@@ -84,4 +84,89 @@ export function buildRoles(): Role[] {
     created_at: isoDaysAgo(createdDaysAgo),
     updated_at: isoDaysAgo(updatedDaysAgo),
   }));
+}
+
+/** A staff member in the mock database (the users behind `roles/{roleId}/users`). */
+export interface StaffMember {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role_id: string;
+  practice_ids: string[];
+  status: StaffStatus;
+}
+
+const STAFF_FIRST = [
+  'Aisha',
+  'Callum',
+  'Dev',
+  'Erin',
+  'Femi',
+  'Georgia',
+  'Harvey',
+  'Imogen',
+  'Jamal',
+  'Keira',
+  'Lewis',
+  'Megan',
+  'Nadia',
+  'Owen',
+  'Poppy',
+  'Rohan',
+  'Sian',
+  'Theo',
+  'Usha',
+  'Wes',
+  'Yasmin',
+  'Zac',
+] as const;
+const STAFF_LAST = [
+  'Ahmed',
+  'Brook',
+  'Chowdhury',
+  'Dixon',
+  'Edwards',
+  'Fraser',
+  'Grant',
+  'Hussain',
+  'Ingram',
+  'Kerr',
+  'Lloyd',
+  'Mensah',
+  'Nolan',
+  'Parry',
+  'Rahman',
+  'Stone',
+  'Turner',
+  'Vaughan',
+  'Webb',
+  'Young',
+] as const;
+
+/** Assigned-user counts as captured: HR 1, Care navigator 1, Nurse 2, Practice Manager 49, Clinician 45. */
+export function buildStaff(roles: Role[], practiceIds: string[]): StaffMember[] {
+  const random = createRandom(4242);
+  const staff: StaffMember[] = [];
+  for (const role of roles) {
+    for (let n = 0; n < role.assigned_users_count; n += 1) {
+      const index = staff.length;
+      const first = STAFF_FIRST[index % STAFF_FIRST.length];
+      const last = STAFF_LAST[(index * 7) % STAFF_LAST.length];
+      const practiceCount = random.int(1, 3);
+      const practices = new Set<string>();
+      while (practices.size < practiceCount) practices.add(practiceIds[random.int(0, 39)]);
+      const roll = random.next();
+      staff.push({
+        id: mockId('staff', index),
+        first_name: first,
+        last_name: last,
+        email: `${first}.${last}${index}`.toLowerCase() + '@nhs.demo',
+        role_id: role.id,
+        practice_ids: [...practices],
+        status: roll < 0.7 ? 'ACTIVE' : roll < 0.9 ? 'PENDING_INVITE' : null,
+      });
+    }
+  }
+  return staff;
 }

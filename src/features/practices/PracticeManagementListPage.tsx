@@ -16,16 +16,12 @@ import { HubManagementLayout } from '@/components/layout/HubManagementLayout';
 import { ModulePageHeader } from '@/components/layout/ModulePageHeader';
 import { PracticeListToolbar } from '@/components/practice/PracticeListToolbar';
 import type { Practice } from '@/lib/api/types';
+import { formatDate } from '@/lib/format';
 import { profileHref } from './OnboardPracticePage';
 import { PRACTICE_LIST_HREF } from './PracticeFormFrame';
 import { usePracticeList } from './usePracticeList';
 
 export const ONBOARD_HREF = `${PRACTICE_LIST_HREF}/practice-management/onboard`;
-
-export function formatDate(iso: string) {
-  const [year, month, day] = iso.slice(0, 10).split('-');
-  return `${day}/${month}/${year}`;
-}
 
 /** Shared columns: the Practice Management table and the grid's list view. */
 export function practiceColumns(): DataTableColumn<Practice>[] {

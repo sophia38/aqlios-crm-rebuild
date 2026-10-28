@@ -3,8 +3,9 @@ import { setupWorker } from 'msw/browser';
 import { authHandlers } from './handlers/auth';
 import { crmHandlers } from './handlers/crm';
 import { practiceHandlers } from './handlers/practices';
+import { roleHandlers } from './handlers/roles';
 
-const handlers = [...authHandlers, ...practiceHandlers, ...crmHandlers];
+const handlers = [...authHandlers, ...practiceHandlers, ...roleHandlers, ...crmHandlers];
 
 export const worker = setupWorker(...handlers);
 
