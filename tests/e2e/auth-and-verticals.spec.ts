@@ -62,7 +62,7 @@ test('super-admin sees the verticals picker', async ({ page }) => {
   await expect(page).toHaveURL(/\/verticals\/private\/$/);
   await expect(page.getByText('Private Business is not part of this rebuild.', { exact: false })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Back to Verticals' }).click();
+  await page.getByRole('link', { name: 'Back to Verticals' }).click();
   await page
     .getByRole('navigation', { name: 'Verticals' })
     .getByRole('button', { name: 'Public Primary Care' })
@@ -76,7 +76,7 @@ test('practice user skips the picker and has no role line', async ({ page }) => 
   const pill = page.getByRole('button', { name: 'Account menu for Sam Patel' });
   await expect(pill).toBeVisible();
   await expect(pill).not.toContainText('super-admin');
-  await expect(page.getByRole('button', { name: 'Back to Verticals' })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Back to Verticals' })).toHaveCount(0);
 });
 
 test('logout returns to the login page and protects routes again', async ({ page }) => {

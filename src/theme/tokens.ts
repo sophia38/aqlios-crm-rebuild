@@ -95,6 +95,11 @@ export const sidebar = {
   avatarText: '#EFFCFC',
 } as const;
 
+// Table row states (Practice Management list, docs/super-admin/02-practice-onboarding.md).
+export const rowState = {
+  incomplete: { bg: '#FDF1EC', border: '#E8774A' },
+} as const;
+
 // Header user pill (light lavender avatar, observed on /verticals; exact hex approximated from tone.secondary).
 export const userPill = {
   avatarBg: '#F1ECFA',
@@ -147,6 +152,7 @@ export const tokens = {
   tone,
   sidebar,
   userPill,
+  rowState,
   dutyType,
   radius,
   shadow,

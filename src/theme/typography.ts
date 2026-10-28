@@ -24,6 +24,8 @@ export const typography: ThemeOptions['typography'] = {
   caption: { fontSize: '0.75rem', fontWeight: 400, lineHeight: 1.4, color: text.secondary },
   overline: { fontSize: '0.7rem', fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase' },
   // Observed page-level styles (not MUI defaults): page title 24/700, section heading 20/700.
+  // Module page header title ("Public Practice", "Payroll"): observed 26–32px / 700.
+  moduleTitle: { fontSize: '1.75rem', fontWeight: 700, lineHeight: 1.25, color: text.strong },
   pageTitle: { fontSize: '1.5rem', fontWeight: 700, lineHeight: 1.3, color: text.primary },
   sectionTitle: { fontSize: '1.25rem', fontWeight: 700, lineHeight: 1.35, color: text.primary },
 };

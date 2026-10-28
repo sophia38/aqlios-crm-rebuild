@@ -6,6 +6,10 @@ export interface ComingSoonPlaceholderProps {
   title: string;
   message?: string;
   icon?: React.ReactNode;
+  /** Pill text; interim screens of the rebuild use "Rebuild in progress". */
+  badge?: string;
+  /** `practice`: the practice-level placeholder (smaller title, sits on the grey page). */
+  size?: 'default' | 'practice';
 }
 
 /**
@@ -16,6 +20,8 @@ export function ComingSoonPlaceholder({
   title,
   message = `We are currently building ${title}. It will be available here soon.`,
   icon = <ConstructionOutlinedIcon fontSize="large" />,
+  badge = 'Coming soon',
+  size = 'default',
 }: ComingSoonPlaceholderProps) {
   return (
     <Box
@@ -45,7 +51,10 @@ export function ComingSoonPlaceholder({
       >
         {icon}
       </Box>
-      <Typography component="h2" sx={{ fontSize: 28, fontWeight: 700, color: 'text.primary' }}>
+      <Typography
+        component="h2"
+        sx={{ fontSize: size === 'practice' ? 22 : 28, fontWeight: 700, color: 'text.primary' }}
+      >
         {title}
       </Typography>
       <Typography sx={{ fontSize: 16, color: 'text.secondary', maxWidth: 520 }}>{message}</Typography>
@@ -64,7 +73,7 @@ export function ComingSoonPlaceholder({
           borderRadius: `${theme.tokens.radius.pill}px`,
         })}
       >
-        Coming soon
+        {badge}
       </Box>
     </Box>
   );

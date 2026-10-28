@@ -21,10 +21,12 @@ declare module '@mui/material/styles' {
     neutral?: typeof neutral;
   }
   interface TypographyVariants {
+    moduleTitle: React.CSSProperties;
     pageTitle: React.CSSProperties;
     sectionTitle: React.CSSProperties;
   }
   interface TypographyVariantsOptions {
+    moduleTitle?: React.CSSProperties;
     pageTitle?: React.CSSProperties;
     sectionTitle?: React.CSSProperties;
   }
@@ -32,6 +34,7 @@ declare module '@mui/material/styles' {
 
 declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
+    moduleTitle: true;
     pageTitle: true;
     sectionTitle: true;
   }
