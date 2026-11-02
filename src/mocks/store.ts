@@ -1,5 +1,6 @@
 import type {
   AppointmentConfiguration,
+  CommunicationTemplate,
   Permission,
   Practice,
   PracticeManager,
@@ -17,12 +18,13 @@ import {
   emptyAppointmentConfiguration,
 } from './fixtures/lookups';
 import { buildPractices, isUnconfiguredFixture } from './fixtures/practices';
+import { buildTemplates } from './fixtures/templates';
 import { buildPermissionCatalog, defaultRolePermissions } from './fixtures/permissions';
 import { buildRoles, buildStaff, PERSONAS, type PersonaId, type StaffMember } from './fixtures/users';
 
 // In-browser mock database. Each visitor has their own copy in localStorage; "Reset demo data" restores the fixtures.
 // Bump the key when the shape changes so old copies are replaced instead of breaking.
-const STORAGE_KEY = 'aqlios-mock-db-v3';
+const STORAGE_KEY = 'aqlios-mock-db-v4';
 
 export interface MockDb {
   session: { signedIn: boolean; persona: PersonaId };
@@ -32,6 +34,7 @@ export interface MockDb {
   /** Role id → granted permission ids. */
   rolePermissions: Record<string, string[]>;
   staff: StaffMember[];
+  templates: CommunicationTemplate[];
   practiceManagers: PracticeManager[];
   odsDirectory: PublicPractice[];
   rotaGroups: RotaGroup[];
@@ -54,6 +57,7 @@ function seed(): MockDb {
       roles,
       practices.map((practice) => practice.id),
     ),
+    templates: buildTemplates(practices.map((practice) => practice.practice_name)),
     practiceManagers: buildPracticeManagers(),
     odsDirectory: buildOdsDirectory(),
     rotaGroups: buildRotaGroups(),

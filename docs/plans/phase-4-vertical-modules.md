@@ -4,6 +4,8 @@
 
 **Progress:** Roles & Permissions built (2026-10-28). Built notes: the list pages share a new `usePagedList` hook (`src/lib/usePagedList.ts`; the practice list uses it too). `FilterBar` gained `hideLabel` and `children`. The site's not-found page renders new roles at their real URLs, and also a newly onboarded practice's dashboard. The mock database key moved to `aqlios-mock-db-v3` (adds the permission catalog, role permissions and ~98 staff).
 
+Template Library built (2026-11-02). Built notes: Tiptap 3.31.4 (pinned) for `RichTextEditor`; `FormModal` gained `size`, `icon`, `titleAdornment` and `footer`; `ConfirmDialog` gained a `brand` tone; new `template` token group. Mock database key `aqlios-mock-db-v4` (adds 27 templates).
+
 Phase 4 replaces the five hub "Rebuild in progress" pages with the real screens. Each module follows the reference screens from phase 3 and reuses their components. Everything runs on the mock API in the browser, as before.
 
 | # | Module | Route (as live) | Spec | Follows |

@@ -294,3 +294,60 @@ export type ListParams = {
   ordering?: string;
   search?: string;
 };
+
+export type TemplateScope = 'STANDARD' | 'STAFF';
+export type TemplateType = 'MESSAGE' | 'EMAIL' | 'NOTE';
+export type TemplateStatus = 'ACTIVE' | 'INACTIVE' | 'DRAFT';
+
+/** The 10 captured categories, in the live order (docs/super-admin/10-template-library.md). */
+export const TEMPLATE_CATEGORIES = [
+  'Appointments',
+  'Prescription',
+  'Medicine',
+  'Payment',
+  'Consultation / Requests',
+  'Diet & Lifestyle',
+  'Documents',
+  'Blood Tests',
+  'Measurements & Vitals',
+  'Medical History',
+] as const;
+export type TemplateCategory = (typeof TEMPLATE_CATEGORIES)[number];
+
+/** A communication template (no template API was captured; shape inferred from the screens). */
+export interface CommunicationTemplate {
+  id: string;
+  scope: TemplateScope;
+  name: string;
+  category: TemplateCategory;
+  type: TemplateType;
+  status: TemplateStatus;
+  /** Email only. */
+  subject: string | null;
+  /** Rich text as HTML; `{{placeholders}}` are plain text inside it. */
+  body: string;
+  created_by_name: string;
+  /** Staff-created only: the practice the author belongs to. */
+  business_name: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type TemplateInput = Pick<CommunicationTemplate, 'name' | 'category' | 'type' | 'status' | 'subject' | 'body'>;
+
+export interface TemplateListResponse {
+  results: CommunicationTemplate[];
+  /** Unfiltered totals for the header and tab counts. */
+  totals: { standard: number; staff: number };
+  /** Authors of staff-created templates (the Created By filter). */
+  authors: string[];
+}
+
+export interface TemplateListParams {
+  scope: 'standard' | 'staff';
+  search?: string;
+  type?: string;
+  status?: string;
+  category?: string;
+  created_by?: string;
+}

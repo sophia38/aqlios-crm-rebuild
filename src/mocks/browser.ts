@@ -4,8 +4,9 @@ import { authHandlers } from './handlers/auth';
 import { crmHandlers } from './handlers/crm';
 import { practiceHandlers } from './handlers/practices';
 import { roleHandlers } from './handlers/roles';
+import { templateHandlers } from './handlers/templates';
 
-const handlers = [...authHandlers, ...practiceHandlers, ...roleHandlers, ...crmHandlers];
+const handlers = [...authHandlers, ...practiceHandlers, ...roleHandlers, ...templateHandlers, ...crmHandlers];
 
 export const worker = setupWorker(...handlers);
 

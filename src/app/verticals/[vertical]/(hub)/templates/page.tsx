@@ -1,15 +1,12 @@
-'use client';
+import { Suspense } from 'react';
+import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
+import { TemplateLibraryPage } from '@/features/templates/TemplateLibraryPage';
 
-import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined';
-import { InterimModulePage } from '@/features/shell/PlaceholderPages';
-
+// The tab lives in `?tab=`; reading search params needs a Suspense boundary in a static export.
 export default function Page() {
   return (
-    <InterimModulePage
-      title="Templates Library"
-      icon={DescriptionOutlined}
-      phase={4}
-      spec="docs/super-admin/10-template-library.md"
-    />
+    <Suspense fallback={<LoadingSpinner />}>
+      <TemplateLibraryPage />
+    </Suspense>
   );
 }

@@ -3,6 +3,8 @@
 Captured 2026-10-27. I didn't create, edit, deactivate, move or delete any template.
 Route: `/verticals/public/templates`. The tabs don't change the URL.
 
+**Rebuilt (phase 4, 2026-11-02):** per `docs/plans/phase-4-vertical-modules.md` §2. Fixes: the tab is in `?tab=staff-created`; Notes chip is teal so it differs from Message; view-mode copy no longer says "Create…"; type label is "Notes" everywhere; one ConfirmDialog for all three confirms (Mark as Inactive uses the orange tone). Ask AI is shown disabled ("Coming soon"). Standard has 16 seed templates (Appointments 6, so the total matches the header). The success, validation and toast copy apart from Move to Standard is placeholder (not captured). All API paths are inferred.
+
 ## Layout
 - No breadcrumb. Header: white circle tile with a document icon and **Templates Library** (bold, ~30px). No subtitle.
 - One white bordered card holds everything:

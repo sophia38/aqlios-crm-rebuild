@@ -143,3 +143,11 @@ MUI defaults (xs 0, sm 600, md 900, lg 1200, xl 1536). Grid usage is mostly `xs:
 | `surface.authPage` | `#F5F5F5` | Login page background |
 | `userPill.avatarBg` / `avatarText` | `#F1ECFA` / `#5E35B1` | User pill avatar ("light lavender"; hex approximated) |
 | `tone.error.strongBg` / `strongInk` | `#FDEDED` / `#5F2120` | MUI's standard error Alert colours (the live app defines only `tone.error.main`) |
+
+## Template Library (`template`, phase 4)
+| Token | Value | Use |
+|---|---|---|
+| `template.aiGradient` | `linear-gradient(90deg, #F97316, #FACC15, #22C55E, #0EA5E9, #8B5CF6, #EC4899)` | Ask AI button border (approximated) |
+| `template.placeholderText` | `#0288D1` | `{{placeholders}}` in card previews |
+| `template.previewBubble` | `#F1F1F1` | Message bubble in the phone preview |
+| `template.previewNotch` | `#E5E7EB` | Phone preview notch bar |

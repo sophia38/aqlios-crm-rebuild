@@ -16,7 +16,7 @@ import DeleteOutline from '@mui/icons-material/DeleteOutlineOutlined';
 import ErrorOutline from '@mui/icons-material/ErrorOutlineOutlined';
 import HelpOutline from '@mui/icons-material/HelpOutlineOutlined';
 
-export type ConfirmVariant = 'error' | 'warning' | 'success' | 'primary';
+export type ConfirmVariant = 'error' | 'warning' | 'success' | 'primary' | 'brand';
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -70,14 +70,17 @@ export function ConfirmDialog({
     warning: theme.palette.warning.main,
     success: theme.palette.success.main,
     primary: theme.palette.primary.main,
+    brand: theme.palette.brand.main,
   }[confirmButtonVariant];
+  const ink =
+    confirmButtonVariant === 'brand' ? theme.palette.brand.contrastText : theme.palette.getContrastText(color);
 
   const isDestructive = confirmButtonVariant === 'error' && /^(delete|remove)\b/i.test(confirmButtonText);
   const resolvedSubtitle = subtitle ?? (isDestructive ? "This can't be undone." : undefined);
   const Icon =
     confirmButtonVariant === 'success'
       ? CheckCircleOutline
-      : confirmButtonVariant === 'primary'
+      : confirmButtonVariant === 'primary' || confirmButtonVariant === 'brand'
         ? HelpOutline
         : ErrorOutline;
 
@@ -194,7 +197,7 @@ export function ConfirmDialog({
           sx={{
             borderRadius: '24px',
             bgcolor: color,
-            color: theme.palette.getContrastText(color),
+            color: ink,
             '&:hover': { bgcolor: alpha(color, 0.88) },
           }}
         >

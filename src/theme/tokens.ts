@@ -128,6 +128,15 @@ export const dutyType = {
   PM_SESSION: '#1FC16B',
 } as const;
 
+// Template Library (docs/super-admin/10-template-library.md). The Ask AI border colours are
+// approximated from the capture ("rainbow gradient border"); the exact stops weren't recorded.
+export const template = {
+  aiGradient: 'linear-gradient(90deg, #F97316, #FACC15, #22C55E, #0EA5E9, #8B5CF6, #EC4899)',
+  placeholderText: '#0288D1',
+  previewBubble: '#F1F1F1',
+  previewNotch: '#E5E7EB',
+} as const;
+
 export const radius = {
   base: 18, // theme.shape.borderRadius: paper, buttons, pickers
   input: 12,
@@ -162,6 +171,7 @@ export const tokens = {
   rowState,
   control,
   dutyType,
+  template,
   radius,
   shadow,
 } as const;
