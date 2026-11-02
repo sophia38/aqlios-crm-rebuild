@@ -6,6 +6,8 @@
 
 Template Library built (2026-11-02). Built notes: Tiptap 3.31.4 (pinned) for `RichTextEditor`; `FormModal` gained `size`, `icon`, `titleAdornment` and `footer`; `ConfirmDialog` gained a `brand` tone; new `template` token group. Mock database key `aqlios-mock-db-v4` (adds 27 templates).
 
+Settings built (2026-11-02). Built notes: `SettingsShell` and `GroupedDataTable` built; mock database key `aqlios-mock-db-v5` (global configurations, 3 competencies, 49 pathways). New mock-only failure switch: set `localStorage['aqlios-mock-fail']` to a URL fragment, optionally with a method (`PATCH /pathways/`), to make matching calls fail.
+
 Phase 4 replaces the five hub "Rebuild in progress" pages with the real screens. Each module follows the reference screens from phase 3 and reuses their components. Everything runs on the mock API in the browser, as before.
 
 | # | Module | Route (as live) | Spec | Follows |

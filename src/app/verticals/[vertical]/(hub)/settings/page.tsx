@@ -1,10 +1,12 @@
-'use client';
+import { Suspense } from 'react';
+import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
+import { SettingsPage } from '@/features/settings/SettingsPage';
 
-import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
-import { InterimModulePage } from '@/features/shell/PlaceholderPages';
-
+// The section lives in `?section=` (as live); reading search params needs a Suspense boundary.
 export default function Page() {
   return (
-    <InterimModulePage title="Settings" icon={SettingsOutlined} phase={4} spec="docs/super-admin/09-settings.md" />
+    <Suspense fallback={<LoadingSpinner />}>
+      <SettingsPage />
+    </Suspense>
   );
 }

@@ -351,3 +351,84 @@ export interface TemplateListParams {
   category?: string;
   created_by?: string;
 }
+
+// ---- Settings (docs/super-admin/09-settings.md). No Settings call was captured; shapes inferred. ----
+
+export type GlobalAppointmentType = 'FACE_TO_FACE' | 'CALL';
+export type AdditionalSlotType = 'TELEPHONE_AUDIO' | 'ONLINE_VIDEO';
+export type ReminderOption = 'NONE' | 'BEFORE_48H' | 'BEFORE_24H' | 'BEFORE_12H' | 'BEFORE_6H' | 'BEFORE_2H';
+
+export interface DaySchedule {
+  day: OperatingHours['day'];
+  is_open: boolean;
+  opening_time: string;
+  closing_time: string;
+}
+
+export interface GlobalPracticeConfiguration {
+  appointment_types: { type: GlobalAppointmentType; enabled: boolean; is_default: boolean }[];
+  slot_durations: { role_id: string; appointment_type: GlobalAppointmentType; duration_minutes: number }[];
+  urgent_booking: BookingChannel;
+  routine_booking: BookingChannel;
+  /** Monday first, as on this page. */
+  operating_hours: DaySchedule[];
+  closed_message_clinical: string;
+  closed_message_non_clinical: string;
+}
+
+export interface AdditionalSlot {
+  role_id: string;
+  appointment_type: AdditionalSlotType;
+  staff_id: string;
+  start_time: string;
+  end_time: string;
+}
+
+export interface GlobalAppointmentConfiguration {
+  offered_slot_hours: number;
+  sms_reminder: ReminderOption;
+  email_reminder: ReminderOption;
+  min_cancellation_hours: number;
+  min_reschedule_hours: number;
+  enable_video_appointments: boolean;
+  notify_staff_on_cancel: boolean;
+  show_clinician_name: boolean;
+  reopen_cancelled_slot: boolean;
+  max_advance_booking_days: number;
+  same_day_booking: boolean;
+  urgent_booking: BookingChannel;
+  routine_booking: BookingChannel;
+  require_manager_approval: boolean;
+  urgent_capacity: DaySchedule[];
+  extra_appointments: ExtraAppointments;
+  additional_slots: AdditionalSlot[];
+}
+
+export interface Competency {
+  id: string;
+  name: string;
+  description: string;
+  role_ids: string[];
+  role_names: string[];
+  slot_duration_minutes: number;
+  sub_types: string[];
+  staff_assigned: number;
+  created_at: string;
+}
+
+export type CompetencyInput = Pick<
+  Competency,
+  'name' | 'description' | 'role_ids' | 'slot_duration_minutes' | 'sub_types'
+>;
+
+export type PathwayChannel = 'mobile_app' | 'web_app' | 'voice_agent' | 'website' | 'care_navigator';
+
+export interface Pathway {
+  id: string;
+  name: string;
+  specialty: string;
+  type: 'CLINICAL' | 'ADMINISTRATIVE';
+  status: 'ACTIVE' | 'DRAFT' | 'ARCHIVED';
+  routing: 'HUB' | 'PRACTICE';
+  channels: Record<PathwayChannel, boolean>;
+}

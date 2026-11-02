@@ -2,11 +2,21 @@ import { getResponse } from 'msw';
 import { setupWorker } from 'msw/browser';
 import { authHandlers } from './handlers/auth';
 import { crmHandlers } from './handlers/crm';
+import { failureHandlers } from './handlers/failures';
 import { practiceHandlers } from './handlers/practices';
 import { roleHandlers } from './handlers/roles';
+import { settingsHandlers } from './handlers/settings';
 import { templateHandlers } from './handlers/templates';
 
-const handlers = [...authHandlers, ...practiceHandlers, ...roleHandlers, ...templateHandlers, ...crmHandlers];
+const handlers = [
+  ...failureHandlers,
+  ...authHandlers,
+  ...practiceHandlers,
+  ...roleHandlers,
+  ...templateHandlers,
+  ...settingsHandlers,
+  ...crmHandlers,
+];
 
 export const worker = setupWorker(...handlers);
 

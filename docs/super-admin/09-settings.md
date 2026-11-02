@@ -3,6 +3,8 @@
 Captured 2026-10-27. Nothing was saved, and no table switch was clicked.
 Route: `/verticals/public/settings?section=<section>`. Unlike ROTA tabs, sections **are** in the URL.
 
+**Rebuilt (phase 4, 2026-11-02):** all four sections, per `docs/plans/phase-4-vertical-modules.md` §3. Fixes: "to" no longer wraps in the day rows; closed messages are saved whole; number limits (hours 1–720, days 1–365, minutes 1–480); "Cancellation & Reschedule Policy"; tables scroll inside their cards; white table headers and bold section titles everywhere. Channel switches save straight away with a toast and flip back if the save fails. Pathway "Configure" shows a "not captured yet" note. Seed values that looked like test data (799, "Furqan…" roles) are replaced with realistic ones. All API paths, success and validation copy are inferred.
+
 ## Layout (settings shell)
 - Breadcrumb: `Settings` (underlined link) `/ <Section name>`.
 - Header: white circle tile with a ⚙ icon and **Settings** (bold, ~32px). No subtitle.

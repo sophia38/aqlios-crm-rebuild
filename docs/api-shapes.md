@@ -84,3 +84,14 @@ results: [{
 | `POST /public/v1/…/practices/{id}/rota/same-rota-practices/` | `{ id, practice_name }[]` |
 
 Practice records gained (inferred): `practice_manager` (id), `rota_group_ids`, `linked_practice_ids`, `succession_start_date`, `succession_ongoing`, `succession_end_date`, `workforce_allocations[{staff_type, frequency, hours}]`. `status` is computed (`ACTIVE` / `INCOMPLETE`).
+
+## Mock-only failure switch (phase 4)
+Set `localStorage['aqlios-mock-fail']` to a URL fragment, optionally preceded by a method and a space (e.g. `PATCH /pathways/`). Matching CRM calls answer `500 Server error. Please try again later.` Remove the key to go back to normal. Used to demo and test error states (`src/mocks/handlers/failures.ts`).
+
+## Settings (phase 4, all inferred)
+- `GET`/`PUT /public/v1/sub-apps/{id}/global-practice-configuration/` → `GlobalPracticeConfiguration`
+- `GET`/`PUT …/global-appointment-configuration/` → `GlobalAppointmentConfiguration`
+- `GET …/competencies/?page&page_size&ordering` (paged) · `POST` · `PATCH …/competencies/{id}/` · `DELETE`
+- `GET …/pathways/?type&status&channel&routing&search` (plain list) · `PATCH …/pathways/{id}/channels/` with `{ <channel>: boolean }`
+
+Types are in `src/lib/api/types.ts`.
