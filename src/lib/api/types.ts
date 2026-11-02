@@ -550,3 +550,45 @@ export interface StaffActivity {
 export interface StaffActivityResponse extends Paginated<StaffActivity> {
   stats: { active: number; inactive: number; on_leave: number };
 }
+
+// ---- CQC Compliance (docs/super-admin/08-cqc-compliance.md, read from the live page's code). ----
+
+/** API values; one spelling each (the live UI papers over two spellings with an alias map). */
+export type ComplianceStatus =
+  'ACTIVE' | 'PENDING_UPLOAD' | 'PENDING_VERIFICATION' | 'REVERIFICATION_DUE' | 'EXPIRED' | 'REJECTED';
+
+/** A row as the API sends it: note the live field typo `complaince_status`. */
+export interface ComplianceRowApi {
+  id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role_name: string;
+  practice_id: string;
+  practice_name: string;
+  complaince_status: ComplianceStatus;
+  waiting_since: string | null;
+  last_updated: string;
+}
+
+/** The same row in the app, with the field name spelled correctly. */
+export type ComplianceRow = Omit<ComplianceRowApi, 'complaince_status'> & { compliance_status: ComplianceStatus };
+
+export interface ComplianceSummary {
+  total_staff: number;
+  compliant: number;
+  pending_upload: number;
+  awaiting_verification: number;
+  reverification_due: number;
+  expired: number;
+  rejected: number;
+}
+
+export interface ComplianceDashboardApi extends Paginated<ComplianceRowApi> {
+  summary: ComplianceSummary;
+}
+
+export interface ComplianceDashboard extends Paginated<ComplianceRow> {
+  summary: ComplianceSummary;
+}

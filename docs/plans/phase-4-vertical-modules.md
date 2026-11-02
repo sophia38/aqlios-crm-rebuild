@@ -1,6 +1,6 @@
 # Phase 4 plan: vertical (hub) modules
 
-**Status: approved 2026-10-28** with every recommended default (questions 1–10). Built and deployed module by module: Roles → Templates → Settings → ROTA → CQC.
+**Status: built 2026-11-02** (approved 2026-10-28 with every recommended default, questions 1–10). Built and deployed module by module: Roles → Templates → Settings → ROTA → CQC.
 
 **Progress:** Roles & Permissions built (2026-10-28). Built notes: the list pages share a new `usePagedList` hook (`src/lib/usePagedList.ts`; the practice list uses it too). `FilterBar` gained `hideLabel` and `children`. The site's not-found page renders new roles at their real URLs, and also a newly onboarded practice's dashboard. The mock database key moved to `aqlios-mock-db-v3` (adds the permission catalog, role permissions and ~98 staff).
 
@@ -9,6 +9,8 @@ Template Library built (2026-11-02). Built notes: Tiptap 3.31.4 (pinned) for `Ri
 Settings built (2026-11-02). Built notes: `SettingsShell` and `GroupedDataTable` built; mock database key `aqlios-mock-db-v5` (global configurations, 3 competencies, 49 pathways). New mock-only failure switch: set `localStorage['aqlios-mock-fail']` to a URL fragment, optionally with a method (`PATCH /pathways/`), to make matching calls fail.
 
 Vertical ROTA built (2026-11-02). Built notes: `ShiftBlock` (approved) plus the five observed ROTA components and `StatsStrip`; `PracticeFilterSelect` extracted from Associated Users for reuse; `useRoles` moved to `src/lib`; new `rota` token group. Shifts aren't stored: the mock works them out per week, so every week has data. Mock database key `aqlios-mock-db-v6` (rota groups now hold practices, roles and staff).
+
+CQC Compliance built (2026-11-02). Built notes: compliance rows are worked out from the staff (no new stored data); the failure switch now takes a status code (`GET /staff/dashboard/ 401`); no `compliance` token group was needed because `StatusChip`'s tones already match the captured colours. Phase 4 is complete.
 
 Phase 4 replaces the five hub "Rebuild in progress" pages with the real screens. Each module follows the reference screens from phase 3 and reuses their components. Everything runs on the mock API in the browser, as before.
 

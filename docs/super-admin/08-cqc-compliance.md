@@ -2,6 +2,8 @@
 
 Captured 2026-10-27. Route: `/verticals/public/compliance-dashboard`. Icon: `/layout/compliance_dashboard_icon.svg`.
 
+**Rebuilt (phase 4, 2026-11-02):** per `docs/plans/phase-4-vertical-modules.md` §5, from the code capture. Super-admin can see it; a 401 shows the error and never logs anyone out (testable with the mock failure switch, e.g. `GET /staff/dashboard/ 401`). The six stat cards use `StatsStrip` (cards); their layout is inferred. One spelling per status; the API's `complaince_status` is renamed to `compliance_status` in `src/lib/api/compliance.ts`; Rejected shows as a chip but has no card, as live. Pagination uses the app's one style ("Rows per page", 10/25/50, "1–10 of N"). The Verified icon stands in for the live SVG. Chip colours come from `StatusChip`, whose tones already match the captured hex values, so no separate `compliance` token group was needed. Practice users get "You don't have access".
+
 > ⚠ **Not seen rendered.** For super-admin the page's data call returns **401**, and the app then **logs the user out** (`POST /api/auth/logout`) and redirects to `/auth/login`. This happened on 2 of 2 tries, both times straight after profile and practice calls that returned 200, so it isn't an expired session.
 > Everything below is read from the page's own code (`app/verticals/[verticalId]/compliance-dashboard/page-*.js`). Colours and text are exact; exact layout and spacing still need a visual capture with a role that has access, such as Practice Manager.
 

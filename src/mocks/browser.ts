@@ -1,6 +1,7 @@
 import { getResponse } from 'msw';
 import { setupWorker } from 'msw/browser';
 import { authHandlers } from './handlers/auth';
+import { complianceHandlers } from './handlers/compliance';
 import { crmHandlers } from './handlers/crm';
 import { failureHandlers } from './handlers/failures';
 import { practiceHandlers } from './handlers/practices';
@@ -17,6 +18,7 @@ const handlers = [
   ...templateHandlers,
   ...settingsHandlers,
   ...rotaHandlers,
+  ...complianceHandlers,
   ...crmHandlers,
 ];
 

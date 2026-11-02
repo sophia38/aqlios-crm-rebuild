@@ -18,6 +18,7 @@ const STATUS_TONES: Record<string, Tone> = {
   'pending invite': 'warning',
   'pending upload': 'warning',
   'reverification due': 'warning',
+  're-verification due': 'warning',
   'pending verification': 'info',
   'awaiting verification': 'info',
   'reschedule requested': 'info',

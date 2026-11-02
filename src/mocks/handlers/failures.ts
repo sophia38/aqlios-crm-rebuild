@@ -5,7 +5,8 @@ import { fail } from '../respond';
 /**
  * Mock-only failure switch, so error states can be demoed and tested (REBUILD-PLAN.md §7.3).
  * Set `localStorage['aqlios-mock-fail']` to a URL fragment ("/pathways/"), optionally with a method
- * ("PATCH /pathways/"); matching CRM calls then answer 500. Remove the key to go back to normal.
+ * before it ("PATCH /pathways/") and a status code after it ("GET /staff/dashboard/ 401"); matching CRM
+ * calls then answer with that code (500 by default). Remove the key to go back to normal.
  */
 export const MOCK_FAIL_KEY = 'aqlios-mock-fail';
 
@@ -18,9 +19,17 @@ export const failureHandlers = [
       return undefined;
     }
     if (!rule) return undefined;
-    const [method, fragment] = rule.includes(' ') ? rule.split(' ', 2) : ['*', rule];
+    const parts = rule.trim().split(/\s+/);
+    const code = /^\d{3}$/.test(parts.at(-1) ?? '') ? Number(parts.pop()) : 500;
+    const [method, fragment] = parts.length > 1 ? parts : ['*', parts[0]];
     if ((method === '*' || method === request.method) && request.url.includes(fragment)) {
-      return fail(500, 'Server error. Please try again later.');
+      const message =
+        code === 401
+          ? 'Authentication credentials were not provided'
+          : code === 403
+            ? 'You do not have permission to perform this action!'
+            : 'Server error. Please try again later.';
+      return fail(code, message);
     }
     return undefined;
   }),

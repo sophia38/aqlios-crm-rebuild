@@ -86,7 +86,7 @@ results: [{
 Practice records gained (inferred): `practice_manager` (id), `rota_group_ids`, `linked_practice_ids`, `succession_start_date`, `succession_ongoing`, `succession_end_date`, `workforce_allocations[{staff_type, frequency, hours}]`. `status` is computed (`ACTIVE` / `INCOMPLETE`).
 
 ## Mock-only failure switch (phase 4)
-Set `localStorage['aqlios-mock-fail']` to a URL fragment, optionally preceded by a method and a space (e.g. `PATCH /pathways/`). Matching CRM calls answer `500 Server error. Please try again later.` Remove the key to go back to normal. Used to demo and test error states (`src/mocks/handlers/failures.ts`).
+Set `localStorage['aqlios-mock-fail']` to a URL fragment, optionally preceded by a method and followed by a status code (e.g. `PATCH /pathways/`, `GET /staff/dashboard/ 401`). Matching CRM calls answer with that code (500 `Server error. Please try again later.` by default). Remove the key to go back to normal. Used to demo and test error states (`src/mocks/handlers/failures.ts`).
 
 ## Settings (phase 4, all inferred)
 - `GET`/`PUT /public/v1/sub-apps/{id}/global-practice-configuration/` → `GlobalPracticeConfiguration`
@@ -103,3 +103,6 @@ Types are in `src/lib/api/types.ts`.
 - ~ `POST …/rota-groups/` · `PATCH …/rota-groups/{id}/` with `RotaGroupInput`
 - ~ `GET /rota/v1/sub-apps/{id}/assignments?week_start&practice_id&staff_id&staff_type&duty_type&role_id&rota_group_id` → `{ shifts, gaps }`
 - ~ `GET /activity/v1/sub-apps/{id}/staff-activity?date&staff_id&practice_id&status&search&page&page_size` → paged `StaffActivity` plus `stats { active, inactive, on_leave }`
+
+## CQC Compliance (phase 4)
+- (code) `GET /public/v1/sub-apps/{id}/staff/dashboard/?page&page_size&practice_id&search&verification_status` → paged `ComplianceRowApi` (with the live typo `complaince_status`) plus `summary { total_staff, compliant, pending_upload, awaiting_verification, reverification_due, expired, rejected }`. `reverification_due` is inferred (the live card had no field). `lib/api` renames the typo.
