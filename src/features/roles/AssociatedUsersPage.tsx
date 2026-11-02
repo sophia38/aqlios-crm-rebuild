@@ -3,16 +3,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
-import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import VisibilityOutlined from '@mui/icons-material/VisibilityOutlined';
 import { DataTable, type DataTableColumn } from '@/components/data/DataTable';
 import { FilterBar } from '@/components/data/FilterBar';
+import { PracticeFilterSelect, type PracticeOption } from '@/components/data/PracticeFilterSelect';
 import { StatusChip } from '@/components/data/StatusChip';
 import { AccessDenied } from '@/components/feedback/AccessDenied';
 import { HubManagementLayout } from '@/components/layout/HubManagementLayout';
@@ -20,7 +19,6 @@ import { ModulePageHeader } from '@/components/layout/ModulePageHeader';
 import { GoBackLink } from '@/components/primitives/GoBackLink';
 import { PUBLIC_SUB_APP_ID } from '@/lib/api/config';
 import { ApiError } from '@/lib/api/http';
-import { practiceManagementApi } from '@/lib/api/practiceManagement';
 import type { RoleUser, StaffStatus } from '@/lib/api/types';
 import { usersApi } from '@/lib/api/users';
 import { usePagedList, type PagedFetcher } from '@/lib/usePagedList';
@@ -31,62 +29,6 @@ const STATUS_LABEL: Record<NonNullable<StaffStatus>, string> = {
   ACTIVE: 'Active',
   PENDING_INVITE: 'Pending Invite',
 };
-
-type PracticeOption = { id: string; practice_name: string };
-
-/** Practice filter: searched on the server instead of the live `page_size=1000` list (REBUILD-PLAN.md §8). */
-function PracticeFilter({
-  value,
-  onChange,
-}: {
-  value: PracticeOption | null;
-  onChange: (value: PracticeOption | null) => void;
-}) {
-  const [input, setInput] = useState('');
-  const [options, setOptions] = useState<PracticeOption[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => {
-      setLoading(true);
-      practiceManagementApi
-        .practices(PUBLIC_SUB_APP_ID, { page_size: 20, search: input.trim() || undefined }, controller.signal)
-        .then((result) => setOptions(result.results))
-        .catch(() => undefined)
-        .finally(() => !controller.signal.aborted && setLoading(false));
-    }, 300);
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [input]);
-
-  return (
-    <Autocomplete
-      size="small"
-      options={options}
-      value={value}
-      loading={loading}
-      onChange={(_, next) => onChange(next)}
-      onInputChange={(_, next, reason) => reason === 'input' && setInput(next)}
-      getOptionLabel={(option) => option.practice_name}
-      isOptionEqualToValue={(option, selected) => option.id === selected.id}
-      filterOptions={(items) => items}
-      noOptionsText="No practices found"
-      sx={{ minWidth: 220, flex: '0 1 280px' }}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label="Practice"
-          placeholder="All"
-          slotProps={{ ...params.slotProps, inputLabel: { ...params.slotProps.inputLabel, shrink: true } }}
-          sx={{ '& .MuiInputBase-root': { fontSize: 13 } }}
-        />
-      )}
-    />
-  );
-}
 
 /** Associated Users List (docs/super-admin/05-roles-and-permissions.md §2). */
 export function AssociatedUsersPage({ roleId }: { roleId: string }) {
@@ -216,7 +158,7 @@ export function AssociatedUsersPage({ roleId }: { roleId: string }) {
           onRefresh={list.reload}
           refreshing={list.loading}
         >
-          <PracticeFilter
+          <PracticeFilterSelect
             value={practice}
             onChange={(next) => {
               setPractice(next);

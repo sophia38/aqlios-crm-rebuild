@@ -249,14 +249,6 @@ export const practiceHandlers = [
   }),
 
   // ✔ Rota groups.
-  http.get(crm('/public/v1/sub-apps/:subAppId/rota-groups/'), ({ request }) => {
-    const denied = guard();
-    if (denied) return denied;
-    const status = new URL(request.url).searchParams.get('status');
-    const groups = getDb().rotaGroups.filter((group) => !status || group.status === status.toUpperCase());
-    return ok(groups);
-  }),
-
   // ✔ Lookup fired on profile load: practices sharing a rota group with this one (shape inferred).
   http.post(crm('/public/v1/sub-apps/:subAppId/practices/:practiceId/rota/same-rota-practices/'), ({ params }) => {
     const denied = guard();

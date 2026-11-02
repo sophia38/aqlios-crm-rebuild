@@ -10,18 +10,17 @@ import type {
   PracticeManager,
   PublicPractice,
   Role,
-  RotaGroup,
   SlaConfiguration,
 } from '@/lib/api/types';
 import {
   buildAppointmentConfiguration,
   buildOdsDirectory,
   buildPracticeManagers,
-  buildRotaGroups,
   buildSlaConfiguration,
   emptyAppointmentConfiguration,
 } from './fixtures/lookups';
 import { buildPractices, isUnconfiguredFixture } from './fixtures/practices';
+import { buildRotaGroupRecords, rotaPeople, type RotaGroupRecord } from './fixtures/rota';
 import {
   buildCompetencies,
   buildGlobalAppointmentConfiguration,
@@ -34,7 +33,7 @@ import { buildRoles, buildStaff, PERSONAS, type PersonaId, type StaffMember } fr
 
 // In-browser mock database. Each visitor has their own copy in localStorage; "Reset demo data" restores the fixtures.
 // Bump the key when the shape changes so old copies are replaced instead of breaking.
-const STORAGE_KEY = 'aqlios-mock-db-v5';
+const STORAGE_KEY = 'aqlios-mock-db-v6';
 
 export interface MockDb {
   session: { signedIn: boolean; persona: PersonaId };
@@ -51,7 +50,7 @@ export interface MockDb {
   pathways: Pathway[];
   practiceManagers: PracticeManager[];
   odsDirectory: PublicPractice[];
-  rotaGroups: RotaGroup[];
+  rotaGroups: RotaGroupRecord[];
   appointmentConfigs: Record<string, AppointmentConfiguration>;
   slaConfigs: Record<string, SlaConfiguration>;
 }
@@ -79,7 +78,7 @@ function seed(): MockDb {
     pathways: buildPathways(),
     practiceManagers: buildPracticeManagers(),
     odsDirectory: buildOdsDirectory(),
-    rotaGroups: buildRotaGroups(),
+    rotaGroups: buildRotaGroupRecords(rotaPeople(staff, roles, practices), roles, practices),
     appointmentConfigs: Object.fromEntries(
       practices.map((practice, index) => [
         practice.id,

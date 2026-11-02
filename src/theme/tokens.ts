@@ -128,6 +128,19 @@ export const dutyType = {
   PM_SESSION: '#1FC16B',
 } as const;
 
+// ROTA (docs/super-admin/06-rota-management.md, shift block from docs/practice/06-rota-management.md).
+export const rota = {
+  session: { AM: '#0EA5E9', PM: '#16A34A' },
+  gap: { leave: '#F97316', published: '#06B6D4', holiday: '#22C55E', unallocated: '#D1D5DB' },
+  roleChip: { border: '#2C7A7B', bg: '#E0F2F1' },
+  contractChip: { bg: '#F3F4F6' },
+  practiceChip: { border: '#C2410C', bg: '#FFEDD5' },
+  activity: { activeNow: '#2E7D32', inactive: '#FFB400', onLeave: '#9C27B0', stripBg: '#F5F7FA' },
+  /** Shift card corner (captured 6px) and legend swatch corner (captured 3px). */
+  shiftRadius: 6,
+  swatchRadius: 3,
+} as const;
+
 // Template Library (docs/super-admin/10-template-library.md). The Ask AI border colours are
 // approximated from the capture ("rainbow gradient border"); the exact stops weren't recorded.
 export const template = {
@@ -171,6 +184,7 @@ export const tokens = {
   rowState,
   control,
   dutyType,
+  rota,
   template,
   radius,
   shadow,

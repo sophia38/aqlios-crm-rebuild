@@ -5,6 +5,7 @@ import { crmHandlers } from './handlers/crm';
 import { failureHandlers } from './handlers/failures';
 import { practiceHandlers } from './handlers/practices';
 import { roleHandlers } from './handlers/roles';
+import { rotaHandlers } from './handlers/rota';
 import { settingsHandlers } from './handlers/settings';
 import { templateHandlers } from './handlers/templates';
 
@@ -15,6 +16,7 @@ const handlers = [
   ...roleHandlers,
   ...templateHandlers,
   ...settingsHandlers,
+  ...rotaHandlers,
   ...crmHandlers,
 ];
 

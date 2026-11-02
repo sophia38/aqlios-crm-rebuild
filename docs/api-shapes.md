@@ -95,3 +95,11 @@ Set `localStorage['aqlios-mock-fail']` to a URL fragment, optionally preceded by
 - `GET …/pathways/?type&status&channel&routing&search` (plain list) · `PATCH …/pathways/{id}/channels/` with `{ <channel>: boolean }`
 
 Types are in `src/lib/api/types.ts`.
+
+## Vertical ROTA (phase 4)
+- ✔ `GET /rota/v1/sub-apps/{id}/available-practices?week_start=` → `RotaPractice[]` (assigned = opening time covered by shifts)
+- ✔ `GET /rota/v1/sub-apps/{id}/available-staff?date=` → `RotaStaff[]`
+- ✔ `GET /public/v1/sub-apps/{id}/rota-groups/?status=` → `RotaGroupDetail[]` (now with practices, roles and staff)
+- ~ `POST …/rota-groups/` · `PATCH …/rota-groups/{id}/` with `RotaGroupInput`
+- ~ `GET /rota/v1/sub-apps/{id}/assignments?week_start&practice_id&staff_id&staff_type&duty_type&role_id&rota_group_id` → `{ shifts, gaps }`
+- ~ `GET /activity/v1/sub-apps/{id}/staff-activity?date&staff_id&practice_id&status&search&page&page_size` → paged `StaffActivity` plus `stats { active, inactive, on_leave }`

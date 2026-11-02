@@ -151,3 +151,14 @@ MUI defaults (xs 0, sm 600, md 900, lg 1200, xl 1536). Grid usage is mostly `xs:
 | `template.placeholderText` | `#0288D1` | `{{placeholders}}` in card previews |
 | `template.previewBubble` | `#F1F1F1` | Message bubble in the phone preview |
 | `template.previewNotch` | `#E5E7EB` | Phone preview notch bar |
+
+## ROTA (`rota`, phase 4)
+| Token | Value | Use |
+|---|---|---|
+| `rota.session.AM` / `.PM` | `#0EA5E9` / `#16A34A` | Shift block left bar, legend |
+| `rota.gap.leave` / `.published` / `.holiday` / `.unallocated` | `#F97316` / `#06B6D4` / `#22C55E` / `#D1D5DB` | Dashed gap outlines, legend |
+| `rota.roleChip` | border `#2C7A7B`, bg `#E0F2F1` | Role chip on shift blocks and staff cards |
+| `rota.contractChip.bg` | `#F3F4F6` | Salaried / Locum chip |
+| `rota.practiceChip` | border `#C2410C`, bg `#FFEDD5` | Practice chip (rust outline, peach fill; approximated) |
+| `rota.activity` | Active Now `#2E7D32`, Inactive `#FFB400`, On Leave `#9C27B0`, strip `#F5F7FA` | Activity Tracker stats and chips |
+| `rota.shiftRadius` / `rota.swatchRadius` | `6` / `3` px | Shift card and legend swatch corners |

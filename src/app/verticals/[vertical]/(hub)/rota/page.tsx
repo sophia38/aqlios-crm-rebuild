@@ -1,15 +1,12 @@
-'use client';
+import { Suspense } from 'react';
+import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
+import { RotaPage } from '@/features/rota/RotaPage';
 
-import CalendarMonthOutlined from '@mui/icons-material/CalendarMonthOutlined';
-import { InterimModulePage } from '@/features/shell/PlaceholderPages';
-
+// The tab lives in `?tab=`; reading search params needs a Suspense boundary in a static export.
 export default function Page() {
   return (
-    <InterimModulePage
-      title="ROTA Management"
-      icon={CalendarMonthOutlined}
-      phase={4}
-      spec="docs/super-admin/06-rota-management.md"
-    />
+    <Suspense fallback={<LoadingSpinner />}>
+      <RotaPage />
+    </Suspense>
   );
 }

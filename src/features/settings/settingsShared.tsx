@@ -1,14 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useFormikContext } from 'formik';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { DayHours } from '@/components/forms/OperatingHoursRow';
-import { PUBLIC_SUB_APP_ID } from '@/lib/api/config';
-import type { DaySchedule, Role } from '@/lib/api/types';
-import { usersApi } from '@/lib/api/users';
+import type { DaySchedule } from '@/lib/api/types';
 
 /** Monday first on the Settings pages (live order here; the practice forms start on Sunday). */
 export const WEEK: { key: DaySchedule['day']; label: string }[] = [
@@ -42,20 +39,6 @@ export const dayError = (day: DaySchedule) =>
 
 /** Digits only, for hour/day/minute fields (live accepts any value; the rebuild limits them). */
 export const digits = (value: string, max = 4) => value.replace(/\D/g, '').slice(0, max);
-
-/** Every role, for the Role selects (`?is_paginated=false`). */
-export function useRoles() {
-  const [roles, setRoles] = useState<Role[]>([]);
-  useEffect(() => {
-    const controller = new AbortController();
-    usersApi
-      .allRoles(PUBLIC_SUB_APP_ID, controller.signal)
-      .then(setRoles)
-      .catch(() => undefined);
-    return () => controller.abort();
-  }, []);
-  return roles;
-}
 
 /**
  * Cancel and Save Changes, top-left under the section title as live; both stay disabled until
@@ -94,3 +77,5 @@ export function SectionTag({ children }: { children: string }) {
     </Typography>
   );
 }
+
+export { useRoles } from '@/lib/useRoles';

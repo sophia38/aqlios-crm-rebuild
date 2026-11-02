@@ -432,3 +432,121 @@ export interface Pathway {
   routing: 'HUB' | 'PRACTICE';
   channels: Record<PathwayChannel, boolean>;
 }
+
+// ---- ROTA (docs/super-admin/06-rota-management.md). URLs marked ✔ were captured; shapes inferred. ----
+
+export type DutyType =
+  | 'ON_CALL'
+  | 'CARE_HOME_WARD_ROUND'
+  | 'EXTENDED_ACCESS'
+  | 'NURSING'
+  | 'ADMIN_SESSION'
+  | 'NEIGHBOURHOOD_SHIFT'
+  | 'REMOTE_WORK'
+  | 'PPT_PLT_CPD'
+  | 'AM_SESSION'
+  | 'PM_SESSION';
+
+export type StaffType = 'SALARIED' | 'LOCUM';
+
+/** A rota group with what the Rota Groups tab and its form need. */
+export interface RotaGroupDetail extends RotaGroup {
+  description: string;
+  practices: { id: string; practice_name: string }[];
+  roles: { id: string; name: string }[];
+  staff: { id: string; name: string }[];
+}
+
+export type RotaGroupInput = {
+  name: string;
+  description: string;
+  status: RotaGroup['status'];
+  practice_ids: string[];
+  role_ids: string[];
+  staff_ids: string[];
+};
+
+/** ✔ `rota/v1/.../available-practices?week_start=` (shape inferred). */
+export interface RotaPractice {
+  id: string;
+  practice_name: string;
+  opening_time: string;
+  closing_time: string;
+  assigned_hours: number;
+  total_hours: number;
+}
+
+/** ✔ `rota/v1/.../available-staff?date=` (shape inferred). */
+export interface RotaStaff {
+  id: string;
+  name: string;
+  role_id: string;
+  role_name: string;
+  staff_type: StaffType;
+  working_hours: string;
+  assigned_hours: number;
+  total_hours: number;
+}
+
+export interface Shift {
+  id: string;
+  staff_id: string;
+  staff_name: string;
+  role_name: string;
+  staff_type: StaffType;
+  practice_id: string;
+  practice_name: string;
+  /** YYYY-MM-DD */
+  date: string;
+  start_time: string;
+  end_time: string;
+  duty_type: DutyType;
+}
+
+export type GapKind = 'leave' | 'published' | 'holiday';
+
+export interface RotaGap {
+  id: string;
+  kind: GapKind;
+  date: string;
+  start_time: string;
+  end_time: string;
+  label: string;
+  practice_id: string | null;
+  staff_id: string | null;
+}
+
+export interface RotaWeek {
+  shifts: Shift[];
+  gaps: RotaGap[];
+}
+
+export interface RotaWeekParams {
+  week_start: string;
+  practice_id?: string;
+  staff_id?: string;
+  staff_type?: string;
+  duty_type?: string;
+  role_id?: string;
+  rota_group_id?: string;
+}
+
+export type ActivityStatus = 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE';
+
+export interface StaffActivity {
+  id: string;
+  staff_id: string;
+  staff_name: string;
+  staff_code: string;
+  practice_name: string;
+  duty_type: DutyType;
+  status: ActivityStatus;
+  login_time: string | null;
+  logout_time: string | null;
+  allocated_hours: number;
+  date: string;
+}
+
+export interface StaffActivityResponse extends Paginated<StaffActivity> {
+  stats: { active: number; inactive: number; on_leave: number };
+}

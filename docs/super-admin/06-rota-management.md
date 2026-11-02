@@ -3,6 +3,8 @@
 Captured 2026-10-27 (week 26 Oct – 1 Nov 2026). Nothing was created, assigned or saved.
 Route: `/verticals/public/rota`. The three tabs switch **in place with no URL change**.
 
+**Rebuilt (phase 4, 2026-11-02):** per `docs/plans/phase-4-vertical-modules.md` §4. Fixes: tabs in `?tab=rota-groups` / `?tab=activity-tracker`; an unnamed role groups as "Others" (live "s(1)"); "No. of Practices"; Activity Tracker uses 24-hour times, the normal title weight, only real duty types, and has On Leave in the Status filter. Download Rota saves a CSV of the visible days once a practice or staff member is picked. Assign Staff (＋), clicking a shift, and Create / Apply Rota Template show a "rebuilt in phase 5" note. Shift data is generated per week by the mock (18 fictional staff across 6 practices, bank holidays, leave and published slots). Week view shows up to two compact shifts side by side per day, with "+N more" opening Day view. All write and assignment APIs are inferred.
+
 ## Page shell
 - No breadcrumb on this module.
 - **Top tab bar**: a white pill container with three pill tabs, each with an icon. The active tab is teal filled with white text; inactive tabs are grey text.
