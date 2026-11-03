@@ -592,3 +592,123 @@ export interface ComplianceDashboardApi extends Paginated<ComplianceRowApi> {
 export interface ComplianceDashboard extends Paginated<ComplianceRow> {
   summary: ComplianceSummary;
 }
+
+// ---------------------------------------------------------------- patients (phase 5, inferred)
+
+/** The 14 captured Registration Type options (docs/practice/01-patients.md). */
+export const REGISTRATION_TYPES = [
+  'EMERGENCY',
+  'IMMEDIATELY_NECESSARY',
+  'PRIVATE',
+  'REGULAR',
+  'TEMPORARY',
+  'DUMMY',
+  'OTHER',
+  'CONTRACEPTIVE_SERVICES',
+  'MATERNITY_SERVICES',
+  'CHILD_HEALTH_SERVICES',
+  'WALK_IN',
+  'GYNAECOLOGY',
+  'RHEUMATOLOGY',
+  'DERMATOLOGY',
+] as const;
+export type RegistrationType = (typeof REGISTRATION_TYPES)[number];
+
+/** The 4 captured Registration Status options. */
+export const REGISTRATION_STATUSES = [
+  'PATIENT_REGISTERED_AND_CARER_CORRECT',
+  'PATIENT_REGISTERED_BUT_CARER_INCORRECT',
+  'NOT_KNOWN',
+  'PATIENT_NOT_REGISTERED',
+] as const;
+export type RegistrationStatus = (typeof REGISTRATION_STATUSES)[number];
+
+export interface PatientAddress {
+  street_address: string;
+  address_line_2: string;
+  city: string;
+  post_code: string;
+}
+
+export interface PatientCarer {
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  date_of_birth: string | null;
+  sex_at_birth: string;
+  ethnicity: string;
+  nhs_number: string;
+  address: string;
+  relationship: string;
+  phone_number: string;
+  email: string;
+  verified: boolean;
+}
+
+export interface Patient {
+  id: string;
+  practice_id: string;
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  /** Stored without spaces; shown as "999 123 4567". */
+  nhs_number: string;
+  date_of_birth: string;
+  sex_at_birth: string;
+  ethnicity: string;
+  phone_number: string;
+  email: string;
+  spoken_language: string;
+  needs_interpreter: boolean | null;
+  interpreter_language: string;
+  needs_transport: boolean | null;
+  address: PatientAddress;
+  registration_type: RegistrationType;
+  registration_status: RegistrationStatus;
+  registered_at: string;
+  carer: PatientCarer | null;
+  synced_with_clinical_system: boolean;
+  archived: boolean;
+  deregistration_reason: string | null;
+}
+
+export interface PatientNote {
+  id: string;
+  text: string;
+  added_by_name: string;
+  created_at: string;
+}
+
+export interface HealthRecordFile {
+  id: string;
+  file_name: string;
+  file_type: string;
+  size_kb: number;
+  date_added: string;
+}
+
+export interface PatientDetail extends Patient {
+  notes: PatientNote[];
+  health_records: HealthRecordFile[];
+}
+
+export interface PatientConsultation {
+  id: string;
+  request_name: string;
+  status: string;
+  submitted_at: string;
+}
+
+export type PatientInput = Partial<
+  Omit<Patient, 'id' | 'practice_id' | 'registered_at' | 'carer' | 'synced_with_clinical_system' | 'archived'>
+>;
+
+export interface PatientListParams {
+  page: number;
+  page_size: number;
+  search?: string;
+  registration_type?: string;
+  registration_date?: string;
+}
+
+export type PatientMessageChannel = 'SMS' | 'EMAIL';

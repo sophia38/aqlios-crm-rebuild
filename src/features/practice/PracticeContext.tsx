@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { PUBLIC_SUB_APP_ID } from '@/lib/api/config';
 import { practiceManagementApi, practiceSlug } from '@/lib/api/practiceManagement';
 import type { Practice } from '@/lib/api/types';
@@ -13,7 +13,15 @@ type PracticeState =
   | { status: 'error'; message: string }
   | { status: 'ready'; practice: Practice };
 
-const PracticeContext = createContext<Practice | null>(null);
+const PracticeContext = createContext<{ practice: Practice; basePath: string } | null>(null);
+
+/** A breadcrumb after the shell's own "Dashboard" crumb; `href` is relative to the practice. */
+export interface PracticeCrumb {
+  label: string;
+  href?: string;
+}
+
+const CrumbsContext = createContext<((crumbs: PracticeCrumb[] | null) => void) | null>(null);
 
 /** Loads every practice the user can see (the API caps pages at 100) and finds the one matching the slug. */
 async function findPracticeBySlug(slug: string, signal: AbortSignal): Promise<Practice | null> {
@@ -49,13 +57,52 @@ export function usePracticeLoader(slug: string): PracticeState {
   return state;
 }
 
-export function PracticeProvider({ practice, children }: { practice: Practice; children: React.ReactNode }) {
-  return <PracticeContext.Provider value={practice}>{children}</PracticeContext.Provider>;
+export function PracticeProvider({
+  practice,
+  basePath,
+  onCrumbsChange,
+  children,
+}: {
+  practice: Practice;
+  /** `/verticals/public/practices/{slug}` */
+  basePath: string;
+  onCrumbsChange: (crumbs: PracticeCrumb[] | null) => void;
+  children: React.ReactNode;
+}) {
+  const value = useMemo(() => ({ practice, basePath }), [practice, basePath]);
+  return (
+    <PracticeContext.Provider value={value}>
+      <CrumbsContext.Provider value={onCrumbsChange}>{children}</CrumbsContext.Provider>
+    </PracticeContext.Provider>
+  );
+}
+
+function usePracticeRoute() {
+  const route = useContext(PracticeContext);
+  if (!route) throw new Error('Practice hooks must be used inside a practice route');
+  return route;
 }
 
 /** The practice for the current practice-level route. */
 export function useCurrentPractice(): Practice {
-  const practice = useContext(PracticeContext);
-  if (!practice) throw new Error('useCurrentPractice must be used inside a practice route');
-  return practice;
+  return usePracticeRoute().practice;
+}
+
+/** Builds a link inside the current practice, e.g. `practiceHref('/patient-management')`. */
+export function usePracticeHref() {
+  const { basePath } = usePracticeRoute();
+  return useCallback((path: string) => `${basePath}${path}`, [basePath]);
+}
+
+/**
+ * Shows these crumbs in the practice top bar after "Dashboard" (docs/plans/phase-5-practice-modules.md,
+ * practice anatomy). Pages without crumbs keep the icon-and-title top bar.
+ */
+export function usePracticeCrumbs(crumbs: PracticeCrumb[]) {
+  const setCrumbs = useContext(CrumbsContext);
+  const key = JSON.stringify(crumbs);
+  useEffect(() => {
+    setCrumbs?.(JSON.parse(key) as PracticeCrumb[]);
+    return () => setCrumbs?.(null);
+  }, [setCrumbs, key]);
 }

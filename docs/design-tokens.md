@@ -152,6 +152,12 @@ MUI defaults (xs 0, sm 600, md 900, lg 1200, xl 1536). Grid usage is mostly `xs:
 | `template.previewBubble` | `#F1F1F1` | Message bubble in the phone preview |
 | `template.previewNotch` | `#E5E7EB` | Phone preview notch bar |
 
+## Patients (`patient`, phase 5)
+| Token | Value | Use |
+|---|---|---|
+| `patient.noteBg` | `#FFF8E1` | Pale-yellow note card background (approximated from the capture) |
+| `patient.noteBorder` | `#FFE7A3` | Note card border |
+
 ## ROTA (`rota`, phase 4)
 | Token | Value | Use |
 |---|---|---|

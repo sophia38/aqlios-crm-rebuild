@@ -4,7 +4,10 @@ import type {
   Competency,
   GlobalAppointmentConfiguration,
   GlobalPracticeConfiguration,
+  HealthRecordFile,
   Pathway,
+  Patient,
+  PatientNote,
   Permission,
   Practice,
   PracticeManager,
@@ -19,6 +22,7 @@ import {
   buildSlaConfiguration,
   emptyAppointmentConfiguration,
 } from './fixtures/lookups';
+import { buildPatients } from './fixtures/patients';
 import { buildPractices, isUnconfiguredFixture } from './fixtures/practices';
 import { buildRotaGroupRecords, rotaPeople, type RotaGroupRecord } from './fixtures/rota';
 import {
@@ -33,7 +37,7 @@ import { buildRoles, buildStaff, PERSONAS, type PersonaId, type StaffMember } fr
 
 // In-browser mock database. Each visitor has their own copy in localStorage; "Reset demo data" restores the fixtures.
 // Bump the key when the shape changes so old copies are replaced instead of breaking.
-const STORAGE_KEY = 'aqlios-mock-db-v6';
+const STORAGE_KEY = 'aqlios-mock-db-v7';
 
 export interface MockDb {
   session: { signedIn: boolean; persona: PersonaId };
@@ -53,6 +57,10 @@ export interface MockDb {
   rotaGroups: RotaGroupRecord[];
   appointmentConfigs: Record<string, AppointmentConfiguration>;
   slaConfigs: Record<string, SlaConfiguration>;
+  patients: Patient[];
+  /** Patient id → notes, newest first. */
+  patientNotes: Record<string, PatientNote[]>;
+  healthRecords: Record<string, HealthRecordFile[]>;
 }
 
 function seed(): MockDb {
@@ -60,6 +68,7 @@ function seed(): MockDb {
   const roles = buildRoles();
   const clinician = roles.find((role) => role.name === 'Clinician') ?? roles[0];
   const permissions = buildPermissionCatalog();
+  const patientSeed = buildPatients(practices);
   const staff = buildStaff(
     roles,
     practices.map((practice) => practice.id),
@@ -86,6 +95,9 @@ function seed(): MockDb {
       ]),
     ),
     slaConfigs: Object.fromEntries(practices.map((practice) => [practice.id, buildSlaConfiguration()])),
+    patients: patientSeed.patients,
+    patientNotes: patientSeed.notes,
+    healthRecords: patientSeed.healthRecords,
   };
 }
 

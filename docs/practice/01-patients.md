@@ -1,5 +1,7 @@
 # Practice · EHR → Patients
 
+> **Rebuilt in phase 5** (2026-11-03): `src/features/patients/`. Differences from live are listed in `docs/plans/phase-5-practice-modules.md` §1.
+
 Captured 2026-10-27 as super-admin. Nothing was saved, archived, deregistered or edited.
 - Croft Hall Medical Practice has **no patients** (empty state).
 - **Main Practice - Surgery** has 1 test patient ("Aqlios Test", dev data), used for the screenshots below.

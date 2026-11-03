@@ -1,15 +1,7 @@
 'use client';
 
-import AssignmentIndOutlined from '@mui/icons-material/AssignmentIndOutlined';
-import { InterimModulePage } from '@/features/shell/PlaceholderPages';
+import { PatientListPage } from '@/features/patients/PatientListPage';
 
 export default function Page() {
-  return (
-    <InterimModulePage
-      title="Patient Management"
-      icon={AssignmentIndOutlined}
-      phase={5}
-      spec="docs/practice/01-patients.md"
-    />
-  );
+  return <PatientListPage />;
 }

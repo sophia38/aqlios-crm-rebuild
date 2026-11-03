@@ -190,7 +190,8 @@ test.describe('pathway configuration', () => {
     await page.evaluate(() => window.localStorage.setItem('aqlios-mock-fail', 'PATCH /pathways/'));
     const web = page.getByRole('switch', { name: 'Web App for Home Visit Request' });
     await expect(web).toBeChecked();
-    await web.uncheck();
+    // A plain click: the failed save can flip the switch back before uncheck() sees it change.
+    await web.click();
     await expect(page.getByText('Failed to update Web App for Home Visit Request').first()).toBeVisible();
     await expect(web).toBeChecked();
     await page.evaluate(() => window.localStorage.removeItem('aqlios-mock-fail'));

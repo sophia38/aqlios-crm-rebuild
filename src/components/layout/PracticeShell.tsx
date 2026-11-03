@@ -4,14 +4,17 @@ import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Badge from '@mui/material/Badge';
+import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
+import MuiLink from '@mui/material/Link';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import type { Theme } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
+import NavigateNext from '@mui/icons-material/NavigateNext';
 import NotificationsNoneOutlined from '@mui/icons-material/NotificationsNoneOutlined';
 import Search from '@mui/icons-material/Search';
 import { AppSidebar } from '@/components/layout/AppSidebar';
@@ -26,6 +29,11 @@ export interface PracticeShellProps {
   practicesHref: string;
   /** Unread notifications for the 🔔 dot. */
   hasUnread?: boolean;
+  /**
+   * Breadcrumb after "Dashboard" in place of the page title (practice anatomy, phase 5). `href` is
+   * relative to `basePath`; the last crumb is the current page.
+   */
+  crumbs?: { label: string; href?: string }[] | null;
   children: React.ReactNode;
 }
 
@@ -62,6 +70,60 @@ function TopBarTitle({ basePath, items, userName }: { basePath: string; items: N
   );
 }
 
+function TopBarCrumbs({
+  basePath,
+  crumbs,
+  compact,
+}: {
+  basePath: string;
+  crumbs: { label: string; href?: string }[];
+  compact: boolean;
+}) {
+  // Phones only have room for the current page.
+  const all = compact ? crumbs.slice(-1) : [{ label: 'Dashboard', href: '/dashboard' }, ...crumbs];
+  return (
+    <Breadcrumbs
+      aria-label="Breadcrumb"
+      separator={<NavigateNext fontSize="small" />}
+      sx={{ minWidth: 0, fontSize: { xs: 13, sm: 15 }, '& ol': { flexWrap: 'nowrap' }, '& li': { minWidth: 0 } }}
+    >
+      {all.map((crumb, index) => {
+        const last = index === all.length - 1;
+        if (last || !crumb.href) {
+          return (
+            <Typography
+              key={crumb.label}
+              component="span"
+              noWrap
+              aria-current={last ? 'page' : undefined}
+              sx={{
+                display: 'block',
+                fontSize: 'inherit',
+                fontWeight: 600,
+                color: last ? 'text.primary' : 'text.secondary',
+              }}
+            >
+              {crumb.label}
+            </Typography>
+          );
+        }
+        return (
+          <MuiLink
+            key={crumb.label}
+            component={Link}
+            href={`${basePath}${crumb.href}`}
+            underline="hover"
+            noWrap
+            sx={{ display: 'block', fontSize: 'inherit', fontWeight: 500, color: 'text.secondary' }}
+          >
+            {crumb.label}
+          </MuiLink>
+        );
+      })}
+    </Breadcrumbs>
+  );
+}
+
 const squareButton = (theme: Theme) => ({
   width: 36,
   height: 36,
@@ -80,6 +142,7 @@ export function PracticeShell({
   practiceName,
   practicesHref,
   hasUnread = false,
+  crumbs = null,
   children,
 }: PracticeShellProps) {
   const dispatch = useAppDispatch();
@@ -140,9 +203,13 @@ export function PracticeShell({
                 <MenuIcon fontSize="small" />
               </IconButton>
             )}
-            <Suspense fallback={null}>
-              <TopBarTitle basePath={basePath} items={allItems} userName={userName} />
-            </Suspense>
+            {crumbs?.length ? (
+              <TopBarCrumbs basePath={basePath} crumbs={crumbs} compact={compact} />
+            ) : (
+              <Suspense fallback={null}>
+                <TopBarTitle basePath={basePath} items={allItems} userName={userName} />
+              </Suspense>
+            )}
           </Box>
           <Stack direction="row" spacing={{ xs: 0.75, sm: 1.25 }} sx={{ alignItems: 'center', flexShrink: 0 }}>
             {/* The live search button does nothing; disabled here until search is designed. */}

@@ -1,6 +1,15 @@
 # Phase 5 plan: practice modules
 
-**Status: approved 2026-11-02, with every proposed default for questions 1–10** (SheetJS, "X days (Y h)", Archive + Unarchive enabled, self-approval blocked, read-only capture session first, 0-12/13-15/16-44/45+, "my shifts" on Leaves and ROTA, HR Policies hidden for practice users, keyword answers from 6 demo policies). Next step: the capture session below, then module 1.
+**Status: approved 2026-11-02, with every proposed default for questions 1–10** (SheetJS, "X days (Y h)", Archive + Unarchive enabled, self-approval blocked, read-only capture session first, 0-12/13-15/16-44/45+, "my shifts" on Leaves and ROTA, HR Policies hidden for practice users, keyword answers from 6 demo policies). Capture session done 2026-11-03.
+
+**Progress:** Patients built (2026-11-03). Built notes:
+- The practice anatomy is in place: `PracticeShell` shows a `Dashboard › …` breadcrumb set by pages with `usePracticeCrumbs` (only the current crumb on phones). `PracticeContext` also gives `usePracticeHref`.
+- Extensions: `ModulePageHeader` optional `icon` and `titleAdornment`, `GoBackLink variant="pill"`, `ConfirmDialog requireReason`. New: `LabelValueList`. Token group `patient` (note card colours).
+- 40 fictional patients for each of the 3 demo practices (999 NHS numbers, 07700 900xxx phones, example.com emails). The mock database key moved to `aqlios-mock-db-v7`.
+- Patient detail pages are pre-built for the demo practices. Static export rejects an empty param list, so every other practice gets one `…/patient-management/none/` page that shows "Patient not found"; other ids go through the not-found fallback.
+- Edit Details puts Cancel and Save Changes in the Patient Information card's header (top right of the form).
+- Archived patients open read-only with an info banner. A deregistered patient shows the reason in a banner.
+- Fixed a racy step in the phase 4 pathway test (a failed save can flip the switch back before `uncheck()` sees it).
 
 Phase 5 replaces the 11 practice pages that still say "Rebuild in progress". The practice frame, dashboard banner, practice switcher, the 12 `coming-soon/*` pages and the 4 practice placeholders (Documents, Recruitment, Performance, Support, Notifications) were already built in phase 2 and stay as they are. It also fills in the four "rebuilt in phase 5" notes left in phase 4:
 - Assign Staff and shift click on the vertical ROTA

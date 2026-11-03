@@ -150,6 +150,12 @@ export const template = {
   previewNotch: '#E5E7EB',
 } as const;
 
+// Patients (docs/practice/01-patients.md): notes are pale-yellow cards. Colours approximated from the capture.
+export const patient = {
+  noteBg: '#FFF8E1',
+  noteBorder: '#FFE7A3',
+} as const;
+
 export const radius = {
   base: 18, // theme.shape.borderRadius: paper, buttons, pickers
   input: 12,
@@ -186,6 +192,7 @@ export const tokens = {
   dutyType,
   rota,
   template,
+  patient,
   radius,
   shadow,
 } as const;

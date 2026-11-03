@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
 import ArchiveOutlined from '@mui/icons-material/ArchiveOutlined';
@@ -17,6 +18,14 @@ import ErrorOutline from '@mui/icons-material/ErrorOutlineOutlined';
 import HelpOutline from '@mui/icons-material/HelpOutlineOutlined';
 
 export type ConfirmVariant = 'error' | 'warning' | 'success' | 'primary' | 'brand';
+
+export interface ConfirmReason {
+  label: string;
+  maxLength: number;
+  /** Required reasons keep the confirm button disabled until text is entered. */
+  required?: boolean;
+  placeholder?: string;
+}
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -35,8 +44,11 @@ export interface ConfirmDialogProps {
   confirmButtonLoading?: boolean;
   /** Extra content under the callouts, e.g. Delete Role's per-user reassign cards. */
   children?: React.ReactNode;
+  /** A reason text box under the message (cancel appointment, reject leave, deregister). */
+  requireReason?: ConfirmReason;
   onClose: () => void;
-  onConfirm: () => void;
+  /** Receives the trimmed reason when `requireReason` is set. */
+  onConfirm: (reason?: string) => void;
 }
 
 /**
@@ -57,6 +69,7 @@ export function ConfirmDialog({
   confirmButtonDisabled = false,
   confirmButtonLoading = false,
   children,
+  requireReason,
   onClose,
   onConfirm,
 }: ConfirmDialogProps) {
@@ -64,6 +77,15 @@ export function ConfirmDialog({
   const titleId = useId();
   const messageId = useId();
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const [reason, setReason] = useState('');
+  const [wasOpen, setWasOpen] = useState(open);
+
+  // Each opening starts with an empty reason.
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setReason('');
+  }
+  const reasonMissing = Boolean(requireReason?.required) && !reason.trim();
 
   const color = {
     error: theme.tokens.tone.error.main,
@@ -171,6 +193,22 @@ export function ConfirmDialog({
           )}
         {alternative && callout(alternative, theme.palette.primary.main, <ArchiveOutlined />)}
         {children}
+        {requireReason && (
+          <TextField
+            label={requireReason.label}
+            required={requireReason.required}
+            placeholder={requireReason.placeholder}
+            value={reason}
+            onChange={(event) => setReason(event.target.value.slice(0, requireReason.maxLength))}
+            multiline
+            minRows={3}
+            fullWidth
+            disabled={confirmButtonLoading}
+            helperText={`${reason.length}/${requireReason.maxLength} characters`}
+            slotProps={{ htmlInput: { maxLength: requireReason.maxLength } }}
+            sx={{ mt: 2.5 }}
+          />
+        )}
       </Box>
       <Divider />
       <Stack direction="row" spacing={1.5} sx={{ px: 3, py: 2, justifyContent: 'flex-end' }}>
@@ -191,8 +229,8 @@ export function ConfirmDialog({
         <Button
           variant="contained"
           loading={confirmButtonLoading}
-          disabled={confirmButtonDisabled}
-          onClick={onConfirm}
+          disabled={confirmButtonDisabled || reasonMissing}
+          onClick={() => onConfirm(requireReason ? reason.trim() : undefined)}
           startIcon={isDestructive ? <DeleteOutline /> : undefined}
           sx={{
             borderRadius: '24px',

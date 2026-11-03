@@ -5,6 +5,8 @@ import Box from '@mui/material/Box';
 import { AuthGate } from '@/components/auth/AuthGate';
 import { AccessDenied } from '@/components/feedback/AccessDenied';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
+import { PatientDetailsPage } from '@/features/patients/PatientDetailsPage';
+import { PATIENT_PATH_PATTERN } from '@/features/patients/patientsRoutes';
 import { PracticeDashboard } from '@/features/practice/PracticeDashboard';
 import { AssociatedUsersPage } from '@/features/roles/AssociatedUsersPage';
 import { RoleFormPage } from '@/features/roles/RoleFormPage';
@@ -29,6 +31,17 @@ function fallbackFor(pathname: string): React.ReactNode | null {
         <HubFrame vertical="public">
           {users ? <AssociatedUsersPage roleId={roleId} /> : <RoleFormPage roleId={roleId} />}
         </HubFrame>
+      </AuthGate>
+    );
+  }
+  const patient = pathname.match(PATIENT_PATH_PATTERN);
+  if (patient) {
+    const [, vertical, slug, patientId] = patient;
+    return (
+      <AuthGate>
+        <PracticeFrame vertical={vertical} slug={slug}>
+          <PatientDetailsPage patientId={patientId} />
+        </PracticeFrame>
       </AuthGate>
     );
   }

@@ -1,11 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { AccessDenied } from '@/components/feedback/AccessDenied';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
 import { PracticeShell } from '@/components/layout/PracticeShell';
 import { navForUser, PRACTICE_NAV } from '@/config/navigation';
-import { PracticeProvider, usePracticeLoader } from '@/features/practice/PracticeContext';
+import { PracticeProvider, usePracticeLoader, type PracticeCrumb } from '@/features/practice/PracticeContext';
 import { selectSession, useAppSelector } from '@/store';
 
 /** Pages hidden from the user's menu are also blocked by URL (e.g. HR Policies for practice users). */
@@ -34,6 +35,7 @@ export function PracticeFrame({
   const practicesHref = `/verticals/${vertical}/practices`;
   const basePath = `${practicesHref}/${slug}`;
   const blocked = useBlockedForUser(basePath);
+  const [crumbs, setCrumbs] = useState<PracticeCrumb[] | null>(null);
 
   if (state.status === 'loading') return <LoadingSpinner fullScreen message="Loading practice..." />;
   if (state.status !== 'ready') {
@@ -48,8 +50,13 @@ export function PracticeFrame({
   }
 
   return (
-    <PracticeProvider practice={state.practice}>
-      <PracticeShell basePath={basePath} practiceName={state.practice.practice_name} practicesHref={practicesHref}>
+    <PracticeProvider practice={state.practice} basePath={basePath} onCrumbsChange={setCrumbs}>
+      <PracticeShell
+        basePath={basePath}
+        practiceName={state.practice.practice_name}
+        practicesHref={practicesHref}
+        crumbs={blocked ? null : crumbs}
+      >
         {blocked ? <AccessDenied backHref={`${basePath}/dashboard`} backLabel="Go to dashboard" /> : children}
       </PracticeShell>
     </PracticeProvider>

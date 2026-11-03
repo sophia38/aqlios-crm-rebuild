@@ -106,3 +106,13 @@ Types are in `src/lib/api/types.ts`.
 
 ## CQC Compliance (phase 4)
 - (code) `GET /public/v1/sub-apps/{id}/staff/dashboard/?page&page_size&practice_id&search&verification_status` → paged `ComplianceRowApi` (with the live typo `complaince_status`) plus `summary { total_staff, compliant, pending_upload, awaiting_verification, reverification_due, expired, rejected }`. `reverification_due` is inferred (the live card had no field). `lib/api` renames the typo.
+
+## Patients (phase 5)
+Base `GET /api/crm/api/public/v1/sub-apps/{subAppId}/practices/{practiceId}/patients/?page&page_size` (**captured** path); query `search`, `registration_type`, `registration_date` (YYYY-MM-DD) and every other call are inferred. Types in `src/lib/api/types.ts` (`Patient`, `PatientDetail`), client in `src/lib/api/patients.ts`.
+- `GET …/patients/{id}/` → `PatientDetail` (patient + `notes` + `health_records`); 404 "Patient not found".
+- `PATCH …/patients/{id}/` (registration fields or Edit Details fields; NHS number stored without spaces).
+- `POST …/{id}/archive/` · `POST …/{id}/deregister/ {reason}` (required, ≤300).
+- `POST …/{id}/notes/ {text}` (≤1000) · `DELETE …/{id}/notes/{noteId}/`.
+- `POST …/{id}/call-feedback/ {feedback}` (≤1000) · `POST …/{id}/messages/ {channel: SMS|EMAIL, body}` (≤2000; nothing is sent in the demo).
+- `GET …/{id}/consultations/` → `[]` until Tickets (module 2). Live reads these from the clinical system (`…/consultation/patient/{id}/emis-consultations/`, never returned during capture).
+
