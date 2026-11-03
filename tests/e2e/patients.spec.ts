@@ -211,7 +211,11 @@ test.describe('patient details', () => {
     await expect(viewer).toHaveCount(0);
 
     await page.getByRole('tablist', { name: 'Medical requests' }).getByRole('tab', { name: 'Consultations' }).click();
-    await expect(page.getByText('No consultations found.')).toBeVisible();
+    // Filled in by Tickets (phase 5, module 2): the patient's tickets, each linking to its details.
+    const consultations = page.getByRole('tabpanel', { name: 'Consultations' });
+    await expect(
+      consultations.getByRole('link').or(consultations.getByText('No consultations found.')).first(),
+    ).toBeVisible();
   });
 
   test('an unknown patient id shows "Patient not found"', async ({ page }) => {

@@ -11,6 +11,17 @@
 - Archived patients open read-only with an info banner. A deregistered patient shows the reason in a banner.
 - Fixed a racy step in the phase 4 pathway test (a failed save can flip the switch back before `uncheck()` sees it).
 
+**Progress:** Tickets built (2026-11-03). Built notes:
+- 60 open and 8 closed fictional tickets for each demo practice, across 12 complaint types, with transcripts, summaries, red flags, recommended actions and logs. Recommended and assigned staff are the practice's active staff. Mock database key `aqlios-mock-db-v8`.
+- New components `ChatThread` and `ActivityTimeline`. Extensions: `TemplateCard action`, read-only `FormDrawer`, ticket status tones in `StatusChip`. No new tokens.
+- Consultation Details is one column in the captured order, and two columns (summary, notes, transcript | chat, assign, details) on extra-wide screens (`xl`).
+- Closed cases follow the capture: everything editable disabled, a banner with who, when and why, and **Reopen Case** (with a confirm) next to the status.
+- Browse Templates lists active Message/Email templates (Note templates for Clinical Notes); Use Template fills the known placeholders from the ticket and practice.
+- Previous Consultations is its own page listing the patient's other tickets, with the Requested Date filter. The patient Consultations tab now lists the patient's tickets.
+- Send As (SMS, Email, Aqlios App, NHS App) and Patient Reply Allowed are kept; Save Message in Clinical System is disabled (no clinical system). Save Template from the captured composer is left out.
+- SNOMED search uses a short list of 21 well-known SNOMED CT concepts (common conditions and symptoms) rather than invented codes.
+- Copy fixes: "These actions are prescribed by the voice agent. Change them if you disagree." and "…selected by the voice agent. Change it if you disagree."
+
 Phase 5 replaces the 11 practice pages that still say "Rebuild in progress". The practice frame, dashboard banner, practice switcher, the 12 `coming-soon/*` pages and the 4 practice placeholders (Documents, Recruitment, Performance, Support, Notifications) were already built in phase 2 and stay as they are. It also fills in the four "rebuilt in phase 5" notes left in phase 4:
 - Assign Staff and shift click on the vertical ROTA
 - Create and Apply Rota Template

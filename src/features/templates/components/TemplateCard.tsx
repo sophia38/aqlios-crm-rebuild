@@ -29,9 +29,17 @@ export function HighlightedText({ text }: { text: string }) {
 
 /**
  * Template card: type and status chips, ⋮ menu, name, subject, 2-line body preview, author and date
- * (COMPONENTS.md → TemplateCard).
+ * (COMPONENTS.md → TemplateCard). `action` replaces the ⋮ menu with one button (Browse Templates' Use Template).
  */
-export function TemplateCard({ template, actions }: { template: CommunicationTemplate; actions: ActionMenuItem[] }) {
+export function TemplateCard({
+  template,
+  actions = [],
+  action,
+}: {
+  template: CommunicationTemplate;
+  actions?: ActionMenuItem[];
+  action?: React.ReactNode;
+}) {
   return (
     <Box
       component="article"
@@ -51,7 +59,7 @@ export function TemplateCard({ template, actions }: { template: CommunicationTem
         <StatusChip status={TYPE_LABEL[template.type]} tone={TYPE_TONE[template.type]} variant="outlined" />
         <StatusChip status={STATUS_LABEL[template.status]} />
         <Box sx={{ flex: 1 }} />
-        <ActionMenu aria-label={`Actions for ${template.name}`} items={actions} />
+        {action ?? <ActionMenu aria-label={`Actions for ${template.name}`} items={actions} />}
       </Stack>
       <Typography component="h4" sx={{ fontSize: 15, fontWeight: 600, color: 'text.primary' }}>
         {template.name}

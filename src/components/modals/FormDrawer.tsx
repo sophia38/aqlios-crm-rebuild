@@ -17,8 +17,9 @@ export interface FormDrawerProps {
   title: string;
   subtitle?: string;
   onClose: () => void;
-  onSubmit: () => void;
-  submitLabel: string;
+  /** Omit for a read-only drawer (Consultation Logs): no form and no footer. */
+  onSubmit?: () => void;
+  submitLabel?: string;
   submitDisabled?: boolean;
   submitting?: boolean;
   children: React.ReactNode;
@@ -26,7 +27,7 @@ export interface FormDrawerProps {
 
 /**
  * Right-side drawer form: 480px, labels above fields, sticky Cancel and Save footer
- * (reference: Add Competency, docs/super-admin/09-settings.md).
+ * (reference: Add Competency, docs/super-admin/09-settings.md). Without `onSubmit` it is a read-only panel.
  */
 export function FormDrawer({
   open,
@@ -57,11 +58,11 @@ export function FormDrawer({
       }}
     >
       <Box
-        component="form"
-        noValidate
-        onSubmit={(event) => {
+        component={onSubmit ? 'form' : 'div'}
+        noValidate={onSubmit ? true : undefined}
+        onSubmit={(event: React.FormEvent) => {
           event.preventDefault();
-          if (!submitDisabled && !submitting) onSubmit();
+          if (onSubmit && !submitDisabled && !submitting) onSubmit();
         }}
         sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}
       >
@@ -82,31 +83,33 @@ export function FormDrawer({
           )}
           <Stack spacing={2.5}>{children}</Stack>
         </Box>
-        <Divider />
-        <Stack direction="row" spacing={2} sx={{ px: 3, py: 2, justifyContent: 'flex-end' }}>
-          <Button
-            variant="outlined"
-            onClick={close}
-            disabled={submitting}
-            sx={(theme) => ({
-              borderRadius: `${theme.tokens.radius.pill}px`,
-              color: 'brand.contrastText',
-              borderColor: 'brand.main',
-            })}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            color="brand"
-            disabled={submitDisabled || submitting}
-            startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : <Check />}
-            sx={(theme) => ({ borderRadius: `${theme.tokens.radius.pill}px` })}
-          >
-            {submitLabel}
-          </Button>
-        </Stack>
+        {onSubmit && <Divider />}
+        {onSubmit && (
+          <Stack direction="row" spacing={2} sx={{ px: 3, py: 2, justifyContent: 'flex-end' }}>
+            <Button
+              variant="outlined"
+              onClick={close}
+              disabled={submitting}
+              sx={(theme) => ({
+                borderRadius: `${theme.tokens.radius.pill}px`,
+                color: 'brand.contrastText',
+                borderColor: 'brand.main',
+              })}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              color="brand"
+              disabled={submitDisabled || submitting}
+              startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : <Check />}
+              sx={(theme) => ({ borderRadius: `${theme.tokens.radius.pill}px` })}
+            >
+              {submitLabel}
+            </Button>
+          </Stack>
+        )}
       </Box>
     </Drawer>
   );

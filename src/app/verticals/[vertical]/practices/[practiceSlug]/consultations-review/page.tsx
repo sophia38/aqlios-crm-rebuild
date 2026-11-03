@@ -1,10 +1,12 @@
-'use client';
+import { Suspense } from 'react';
+import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
+import { TicketListPage } from '@/features/tickets/TicketListPage';
 
-import ConfirmationNumberOutlined from '@mui/icons-material/ConfirmationNumberOutlined';
-import { InterimModulePage } from '@/features/shell/PlaceholderPages';
-
+// The tab lives in `?cases=closed`; reading search params needs a Suspense boundary in a static export.
 export default function Page() {
   return (
-    <InterimModulePage title="Tickets" icon={ConfirmationNumberOutlined} phase={5} spec="docs/practice/02-tickets.md" />
+    <Suspense fallback={<LoadingSpinner />}>
+      <TicketListPage />
+    </Suspense>
   );
 }

@@ -1,9 +1,11 @@
 import { http } from 'msw/http';
 import { CRM_API } from '@/lib/api/config';
+import { TICKET_STATUS_LABELS } from '@/lib/api/tickets';
 import {
   REGISTRATION_STATUSES,
   REGISTRATION_TYPES,
   type PatientDetail,
+  type PatientConsultation,
   type PatientInput,
   type PatientMessageChannel,
   type PatientNote,
@@ -216,13 +218,23 @@ export const patientHandlers = [
     return created({ id: mockId('patient-message', Date.now()) }, 'Message sent successfully');
   }),
 
-  // Live reads these from the clinical system (the call never returned in the capture). Tickets
-  // (phase 5, module 2) fill this in; until then every patient has none.
+  // Live reads these from the clinical system (the call never returned in the capture); the demo
+  // lists the patient's tickets, newest first.
   http.get(patients(':patientId/consultations/'), ({ params }) => {
     const practiceId = String(params.practiceId);
     const denied = guard(practiceId);
     if (denied) return denied;
-    if (!findPatient(practiceId, String(params.patientId))) return fail(404, 'Patient not found');
-    return ok([]);
+    const patient = findPatient(practiceId, String(params.patientId));
+    if (!patient) return fail(404, 'Patient not found');
+    const items: PatientConsultation[] = getDb()
+      .tickets.filter((ticket) => ticket.patient_id === patient.id)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .map((ticket) => ({
+        id: ticket.id,
+        request_name: ticket.request_name,
+        status: TICKET_STATUS_LABELS[ticket.status],
+        submitted_at: ticket.created_at,
+      }));
+    return ok(items);
   }),
 ];

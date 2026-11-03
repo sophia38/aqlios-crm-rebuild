@@ -13,6 +13,9 @@ import { RoleFormPage } from '@/features/roles/RoleFormPage';
 import { ROLE_PATH_PATTERN } from '@/features/roles/rolesRoutes';
 import { HubFrame } from '@/features/shell/HubFrame';
 import { PracticeFrame } from '@/features/shell/PracticeFrame';
+import { ConsultationDetailsPage } from '@/features/tickets/ConsultationDetailsPage';
+import { PreviousConsultationsPage } from '@/features/tickets/PreviousConsultationsPage';
+import { TICKET_PATH_PATTERN } from '@/features/tickets/ticketsRoutes';
 import { BASE_PATH } from '@/lib/basePath';
 
 const PRACTICE_DASHBOARD_PATTERN = /^\/verticals\/([^/]+)\/practices\/([^/]+)\/dashboard\/?$/;
@@ -41,6 +44,21 @@ function fallbackFor(pathname: string): React.ReactNode | null {
       <AuthGate>
         <PracticeFrame vertical={vertical} slug={slug}>
           <PatientDetailsPage patientId={patientId} />
+        </PracticeFrame>
+      </AuthGate>
+    );
+  }
+  const ticket = pathname.match(TICKET_PATH_PATTERN);
+  if (ticket) {
+    const [, vertical, slug, ticketId, previous] = ticket;
+    return (
+      <AuthGate>
+        <PracticeFrame vertical={vertical} slug={slug}>
+          {previous ? (
+            <PreviousConsultationsPage ticketId={ticketId} />
+          ) : (
+            <ConsultationDetailsPage ticketId={ticketId} />
+          )}
         </PracticeFrame>
       </AuthGate>
     );

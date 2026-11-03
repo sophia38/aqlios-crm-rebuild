@@ -712,3 +712,144 @@ export interface PatientListParams {
 }
 
 export type PatientMessageChannel = 'SMS' | 'EMAIL';
+
+// ---- Tickets / consultations (docs/practice/02-tickets.md). No ticket call was captured; shapes inferred. ----
+
+/** The 10 captured Open Cases statuses, in the live order, then Closed (shown as "Completed"). */
+export const TICKET_OPEN_STATUSES = [
+  'NEW',
+  'MORE_INFO_REQUIRED',
+  'APPOINTMENT_PENDING',
+  'UNDER_CLINICAL_REVIEW',
+  'REOPENED',
+  'FORWARDED',
+  'FOLLOW_UP_REQUESTED',
+  'APPOINTMENT_BOOKED',
+  'DNA',
+  'APPOINTMENT_CANCELLED',
+] as const;
+export type TicketOpenStatus = (typeof TICKET_OPEN_STATUSES)[number];
+export type TicketStatus = TicketOpenStatus | 'CLOSED';
+
+export type TicketSource = 'VOICE_AGENT' | 'WEB_TRIAGE';
+/** The captured urgency radio values. Severity (the list flag) follows it: URGENT is urgent, the rest routine. */
+export const TICKET_URGENCIES = ['URGENT', 'ROUTINE_ONE_WEEK', 'ROUTINE_TWO_WEEK'] as const;
+export type TicketUrgency = (typeof TICKET_URGENCIES)[number];
+
+/** Fix: a reason list replaces the live free text ("tEST", "mnm"). */
+export const TICKET_CLOSURE_REASONS = [
+  'Resolved',
+  'Duplicate',
+  'Patient no longer needs help',
+  'Referred elsewhere',
+  'Other',
+] as const;
+export type TicketClosureReason = (typeof TICKET_CLOSURE_REASONS)[number];
+
+export interface TicketStaff {
+  id: string;
+  name: string;
+  role: string;
+}
+
+export interface Ticket {
+  id: string;
+  practice_id: string;
+  patient_id: string;
+  patient_name: string;
+  patient_age: number;
+  patient_sex: string;
+  source: TicketSource;
+  urgency: TicketUrgency;
+  complaint_type: string;
+  status: TicketStatus;
+  created_at: string;
+  recommended_staff: TicketStaff | null;
+  assigned_staff: TicketStaff | null;
+  closed_at: string | null;
+  closed_by_name: string | null;
+  closure_reason: string | null;
+}
+
+export interface TicketSnomedCode {
+  id: string;
+  code: string;
+  term: string;
+  comment: string;
+  created_at: string;
+}
+
+export type TicketMessageChannel = 'SMS' | 'EMAIL' | 'APP' | 'NHS_APP';
+
+export interface TicketMessage {
+  id: string;
+  /** STAFF: sent from the CRM. PATIENT: a reply. */
+  sender: 'STAFF' | 'PATIENT';
+  sender_name: string;
+  body: string;
+  channels: TicketMessageChannel[];
+  reply_allowed: boolean;
+  created_at: string;
+}
+
+export interface TicketNote {
+  id: string;
+  text: string;
+  shared_with_patient: boolean;
+  added_by_name: string;
+  created_at: string;
+}
+
+export interface TicketTranscriptEntry {
+  speaker: 'AI' | 'PATIENT';
+  text: string;
+}
+
+export interface TicketDetail extends Ticket {
+  current_viewer_name: string | null;
+  preferred_method: string;
+  request_name: string;
+  submitted_by: string;
+  urgency_changed_by_clinician: boolean;
+  summary: {
+    presenting_complaint: string | null;
+    condition_history: string | null;
+    timeframe: string | null;
+    symptoms: string | null;
+  };
+  red_flags: string[];
+  recommended_actions: string[];
+  requested_tests: string[];
+  medication: string[];
+  snomed_codes: TicketSnomedCode[];
+  messages: TicketMessage[];
+  notes: TicketNote[];
+  transcript: { started_at: string; duration_seconds: number; entries: TicketTranscriptEntry[] };
+}
+
+export interface TicketLog {
+  id: string;
+  actor: string;
+  event: string;
+  user_name: string;
+  role: string;
+  created_at: string;
+}
+
+export interface TicketListParams {
+  page: number;
+  page_size: number;
+  /** Omit for both (Previous Consultations). */
+  case?: 'open' | 'closed';
+  ordering?: string;
+  search?: string;
+  status?: string;
+  date?: string;
+  patient_id?: string;
+  exclude?: string;
+}
+
+export interface SnomedConcept {
+  code: string;
+  term: string;
+}

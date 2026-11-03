@@ -1,5 +1,7 @@
 # Practice · EHR → Tickets (consultations)
 
+> **Rebuilt in phase 5** (2026-11-03): `src/features/tickets/`. Built notes are in `docs/plans/phase-5-practice-modules.md` (Progress).
+
 Captured 2026-10-27 in **Main Practice - Surgery** as super-admin. Nothing was assigned, approved, saved or closed.
 Route: `/verticals/public/practices/{slug}/consultations-review`. Sidebar label "Tickets"; page breadcrumb `Dashboard › Tickets`.
 

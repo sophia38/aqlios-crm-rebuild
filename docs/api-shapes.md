@@ -114,5 +114,15 @@ Base `GET /api/crm/api/public/v1/sub-apps/{subAppId}/practices/{practiceId}/pati
 - `POST …/{id}/archive/` · `POST …/{id}/deregister/ {reason}` (required, ≤300).
 - `POST …/{id}/notes/ {text}` (≤1000) · `DELETE …/{id}/notes/{noteId}/`.
 - `POST …/{id}/call-feedback/ {feedback}` (≤1000) · `POST …/{id}/messages/ {channel: SMS|EMAIL, body}` (≤2000; nothing is sent in the demo).
-- `GET …/{id}/consultations/` → `[]` until Tickets (module 2). Live reads these from the clinical system (`…/consultation/patient/{id}/emis-consultations/`, never returned during capture).
+- `GET …/{id}/consultations/` → the patient's tickets `{id, request_name, status, submitted_at}[]`, newest first. Live reads these from the clinical system (`…/consultation/patient/{id}/emis-consultations/`, never returned during capture).
 
+## Tickets (phase 5, all inferred)
+No ticket call was captured. Base `…/public/v1/sub-apps/{subAppId}/practices/{practiceId}/consultations/`. Types in `src/lib/api/types.ts` (`Ticket`, `TicketDetail`, `TicketLog`), client in `src/lib/api/tickets.ts`.
+- `GET …/consultations/?case=open|closed&status&date&search&patient_id&exclude&ordering&page&page_size` → `Paginated<Ticket>`. Default ordering `-created_at` (open) or `-closed_at` (closed); no `case` returns both (Previous Consultations).
+- `GET …/consultations/assignable-staff/` → `{id, name, role}[]` (active staff of the practice).
+- `GET …/consultations/{id}/` → `TicketDetail`; also records the caller as `current_viewer_name`, as live. 404 "Consultation not found".
+- `PATCH …/{id}/ {urgency}` (URGENT · ROUTINE_ONE_WEEK · ROUTINE_TWO_WEEK; sets `urgency_changed_by_clinician`).
+- `POST …/{id}/assign/ {staff_id, reason?}` (≤300). `POST …/{id}/status/ {status, reason?}`: CLOSED needs a reason (≤300) and sets `closed_at`/`closed_by_name`/`closure_reason`; a closed case only accepts REOPENED.
+- `POST …/{id}/notes/ {text, shared_with_patient}` (≤700) · `POST …/{id}/snomed/ {code, comment}` (≤200, no duplicates) · `POST …/{id}/messages/ {body, channels: SMS|EMAIL|APP|NHS_APP[], reply_allowed}` (≤1000; nothing is sent in the demo).
+- Notes, SNOMED and messages return 400 while the ticket is unassigned or closed (live: read-only).
+- `GET …/{id}/logs/` → `TicketLog[]` newest first. `GET /public/v1/snomed-codes/?search` (≥3 characters) → `{code, term}[]` from a short demo list.

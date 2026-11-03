@@ -32,6 +32,16 @@ const STATUS_TONES: Record<string, Tone> = {
   dna: 'error',
   draft: 'neutral',
   archived: 'neutral',
+  // Ticket statuses (docs/practice/02-tickets.md): New blue, Under Clinical Review orange, as captured.
+  new: 'info',
+  'more info required': 'warning',
+  'appointment pending': 'warning',
+  'under clinical review': 'warning',
+  reopened: 'info',
+  forwarded: 'secondary',
+  'follow up requested': 'secondary',
+  'appointment booked': 'success',
+  'appointment cancelled': 'error',
 };
 
 function toneColor(theme: Theme, tone: Tone) {

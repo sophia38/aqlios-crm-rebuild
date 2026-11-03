@@ -10,6 +10,7 @@ import { roleHandlers } from './handlers/roles';
 import { rotaHandlers } from './handlers/rota';
 import { settingsHandlers } from './handlers/settings';
 import { templateHandlers } from './handlers/templates';
+import { ticketHandlers } from './handlers/tickets';
 
 const handlers = [
   ...failureHandlers,
@@ -21,6 +22,7 @@ const handlers = [
   ...rotaHandlers,
   ...complianceHandlers,
   ...patientHandlers,
+  ...ticketHandlers,
   ...crmHandlers,
 ];
 
