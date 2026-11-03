@@ -94,3 +94,30 @@ Breadcrumb `Dashboard › Tickets › Consultation Details`.
 
 ## Not opened (change data or need your OK)
 Approve recommended staff · Assign to Alternative Staff · Assign Task · Update Status · Fetch from / Send to Clinical System · Add SNOMED code · Save Notes · sending chat messages · Browse Templates popup (disabled while unassigned) · Previous Consultations · a Closed case's detail.
+
+## Captured 2026-11-03 (phase 5 read-only session)
+
+Practice: Main Practice - Surgery (the only practice with patient data). Open and cancel only; nothing was sent, saved, assigned, published or asked. Numbers match the checklist in `docs/plans/phase-5-practice-modules.md`.
+
+### 4 Closed Cases list + closed case detail
+- Closed Cases tab filters: Search · Date Submitted only (no Status). Columns: Patient Name (with "Copy patient name" icon) · Source · Case Type · Date Closed · Closed By · Reason for Closure · Actions (link aria-label "View consultation"). 6 rows on 1 page.
+- Detail header: Back · "Consultation Details" · "Current Viewer: {name}" · Fetch from Clinical System · Send data to Clinical System · Open in Clinical System (disabled) · patient name + copy icon · urgency chip "Routine (1 Week)" · Previous Consultations · View Logs · Update Status (DISABLED when closed).
+- Closed banner (info alert): "This case is closed. Please reopen it to make changes. Closed by {name} on DD/MM/YYYY HH:mm. Reason: {reason}."
+- Everything editable is disabled when closed: SNOMED checkboxes, Add Codes, code search "Type at least 3 characters", comment "Add comment here...", "Add and Save to Clinical System", chat Browse Templates, "Type a message...", Send message, Send As checkboxes (SMS, Email, Aqlios App, NHS App), switches (Patient Reply Allowed, Save Message in Clinical System, Save Template), urgency radios (URGENT, ROUTINE_ONE_WEEK, ROUTINE_TWO_WEEK), clinical notes (max 700, placeholder "Clinical notes and observations..."), Save Notes, Select Staff, Assign Task.
+- Still enabled when closed: Refresh messages, Open full conversation, Open notes history, Open full transcript, View Logs, and **Reopen Case** (in Clinical Actions, next to the status "Completed").
+- Chat empty state: "No messages yet". Chat header "Preferred Method: Aqlios App". Template card: "Use Message Template" / "Browse categorised templates and instantly apply them to the patient conversation." / Browse Templates.
+- Voice Agent Recommendations: "How clinically urgent is this consultation?" radios + note "This urgency level was changed by a clinician."; "What actions are required to solve this consultation?" bullet list + "These actions are prescribed by voice agent change if you disagree." (sic).
+- Details: Request date & time · Status · Request Name · Submitted by · Assigned to.
+- Web Pathway Answers: "19 October 2026 · 14:53 – 14:53 · 17s" then alternating "AI Assistant" question / patient answer bubbles.
+
+### 6 Previous Consultations
+- A separate page (not a panel): `consultations-review/{id}/previous-consultations`. Back · "Previous Consultations" · "Current Viewer: {name}" · "Filters:" Requested Date picker (placeholder "Select date").
+- Loading text "Fetching previous consultations from the clinical system…" stays for more than 15s (EMIS call hangs, the same as the patient Consultations tab). Results layout NOT CAPTURABLE.
+
+### 5 Browse Templates (consultation chat, open case)
+- MUI Dialog, 1200×640. Title "Message Templates (25)" + an unlabelled ✕ icon button (a11y bug: add aria-label "Close").
+- PillTabs: "Standard Templates (14)" | "Staff Created (11)".
+- Left rail "Template Categories": All Templates 13 · Appointments 3 · Prescription 2 · Medicine 1 · Payment 1 · Consultation / Requests 1 · Diet & Lifestyle 1 · Documents 1 · Blood Tests 1 · Measurements & Vitals 1 · Medical History 1 (the rail's All count 13 disagrees with the tab's 14: live bug).
+- Right side: section heading "Standard Templates (14)" + "Templates created or approved by administrators."; Search (placeholder "Search Templates") · Type select (All / Email / Message) · Clear Filters (disabled until a filter is set).
+- Grouped by category headings "Appointments(3)" (no space before "(": copy as "Appointments (3)"). Each card: type chip (Email/Message) · "Active" chip · **Use Template** button · title · "Subject: …" for email · body with {{placeholders}} raw · avatar initials · "Created by {name}" · DD/MM/YYYY. Some cards also have an unlabelled icon button (preview?).
+- Esc closes it. Chat side on an open case: Browse Templates enabled, "Type a message...", Send message icon button.

@@ -81,3 +81,19 @@ Breadcrumb: `Dashboard › Patient Management › Patient Details`.
 - Archive patient · Deregister Patient · Edit Details · Save Status · Add Note / delete note · Save Feedback
 - Message and Email tabs in Contact Patient (opening a tab is safe; can be captured next)
 - Consultations tab and the 👁 file viewer
+
+## Captured 2026-11-03 (phase 5 read-only session)
+
+Practice: Main Practice - Surgery (the only practice with patient data). Open and cancel only; nothing was sent, saved, assigned, published or asked. Numbers match the checklist in `docs/plans/phase-5-practice-modules.md`.
+
+### 1 Contact Patient
+- Tabs (role=tab buttons): Call | Message | Email.
+- Message: read-only-ish "Phone Number" input prefilled (+44…) + "Copy Phone Number" button; textarea label "Message", placeholder "Write an SMS to the patient.", maxLength 2000, counter "0/2000 characters"; "Send Message" disabled while empty.
+- Email: "Email Address" input prefilled; textarea label "Email", placeholder "Write an email to the patient.", max 2000, counter "0/2000 characters"; "Send Email" ENABLED while empty (live bug: don't copy, disable until text).
+- No subject field, no template picker, no sent-history list in either tab.
+
+### 2–3 Medical Requests (Health Records / Consultations)
+- Tabs as role=tab buttons; Health Records selected by default.
+- Health Records: GET …/patient/{id}/clinical/document/?page=1&item_per_page=200 → 400; the UI shows "Request timed out. Please check your connection and try again." (wrong message for a 400). No file listed, so the file viewer can't be opened → NOT CAPTURABLE.
+- Consultations: GET …/consultation/patient/{id}/emis-consultations/?page=1&item_per_page=200 hangs (>15s, no response); tab body is blank, with no spinner and no empty state. NOT CAPTURABLE. Consultations come from EMIS, not from Aqlios tickets.
+- Also seen: "Open in Clinical Systems" disabled; NHS Number input maxLength 12 (formatted "123 456 7890"); note has a "Delete note" icon button.

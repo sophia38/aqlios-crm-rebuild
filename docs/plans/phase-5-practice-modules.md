@@ -97,10 +97,10 @@ Patient, consultation and staff detail pages have ids in their paths. They're pr
 4. **Carer Information:** read-only, with the Carer Verified badge.
 5. **Contact Patient:** `SegmentedTabs` Call · Message · Email.
    - **Call:** phone number with **Copy Phone Number**, After Call Feedback (0/1000) and **Save Feedback**.
-   - **Message and Email** weren't captured (proposal): a template picker (Template Library, Message or Email type), the text, and Send. Sent items are listed below.
+   - **Message and Email** (captured 2026-11-03): the prefilled phone number or email address, then a 2000-character text box ("Write an SMS to the patient." / "Write an email to the patient.") with a counter, and **Send Message** / **Send Email**, disabled while empty. There's no template picker, subject or sent list, as in live.
 6. **Medical Requests:** tabs Health Records | Consultations.
    - **Health Records:** file rows with 👁. The viewer is a dialog with a placeholder preview of the file (no real files in the demo).
-   - **Consultations:** this patient's tickets, each linking to Consultation Details. Not captured, so inferred.
+   - **Consultations:** this patient's tickets, each linking to Consultation Details. Inferred: live loads these from the clinical system and the call never returned during the capture. Shows a spinner, then "No consultations found."
 
 **Deregister Patient:**
 - `ConfirmDialog` (error tone) with a required **Reason** (max 300).
@@ -224,7 +224,7 @@ The other practices have none, so the "No registered patients yet." empty state 
 - `WeekCalendarGrid`, extended to draw appointments as well as shifts (see Components).
 - Week navigator, Day | Week, one now-line style (the ROTA dashed line; live has two styles).
 - Clicking an appointment opens the popup.
-- Clicking an empty slot: booking wasn't captured, so this shows an info note "Booking from the calendar isn't rebuilt yet" (see question 6).
+- Clicking an empty slot does nothing, as in live (captured 2026-11-03: live has no click handler there).
 - Empty week: "No appointments for this period".
 
 **Table View:**
@@ -641,3 +641,22 @@ Read-only: open, read, screenshot, then Cancel / ✕ / Esc. Nothing is sent, sav
 | 10 | Create / Apply Rota Template | Practice ROTA | Open each modal, then Cancel |
 | 11 | Assign Staff | Practice ROTA → open slot | Open the drawer, then Cancel |
 | 12 | Ask HR answer view | HR Policies → Ask HR | Read the empty composer only. Asking a question is a submit, so only with your explicit OK |
+
+### Capture results (2026-11-03)
+
+Full notes are in the "Captured 2026-11-03" sections of `docs/practice/01, 02, 03, 06, 08`. What changes in the plan:
+
+| # | Result | Plan change |
+|---|---|---|
+| 1 | Captured | Message/Email match live: no template picker or sent list (1b updated). Send stays disabled while empty for both (live leaves Send Email enabled). |
+| 2 | Not capturable (the clinical system call hangs) | Consultations tab stays inferred (1b updated). |
+| 3 | Not capturable (the documents call fails with "Request timed out…") | File viewer stays inferred. |
+| 4 | Captured | Closed case: everything editable is disabled, with a closed banner showing who, when and why, and a **Reopen Case** button in Clinical Actions (with a confirm, inferred). Update Status is disabled. |
+| 5 | Captured | Browse Templates is a 1200px dialog with Standard / Staff Created tabs, a category rail, Search + Type filters, cards with **Use Template**. Reuses the phase 4 `TemplateCard`. |
+| 6 | Partly (page shell only) | Previous Consultations is its **own route** `consultations-review/{id}/previous-consultations` with a Requested Date filter, so it needs a static-param or 404-fallback entry. The results list is inferred. |
+| 7 | Captured | Day view: one column, 48 half-hour rows, nav labels "Previous day / Next day", date filter "This day". |
+| 8 | Captured: doesn't exist | No booking from empty slots (3 updated). |
+| 9 | Captured: no popup | "View" opens Consultation Details at `appointment/consultation-review/{id}`, so ConsultationDetailsPage is reused on a second route. |
+| 10 | Captured | Create Rota Template (600px) and Choose Rota Template (700px) fields and copy recorded. Apply lists only this practice's templates (live shows others). |
+| 11 | Captured | Assign Staff opens by **dragging** a time range on a future day. The drawer has two modes, **Assign Staff** (available staff with weekly capacity) and **Publish Slot** (contract, groups, roles, duty type, bidding timeline, repeat, notifications). `AssignmentDrawer` gets a `mode` switch. Keyboard access is added (Enter on a slot). |
+| 12 | Composer only | The empty state, 4 suggestions, 1000-character composer and helper text are captured. The answer view stays as proposed (question 10). |

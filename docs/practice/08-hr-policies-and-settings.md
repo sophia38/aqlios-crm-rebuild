@@ -46,3 +46,15 @@ Route `/settings` → **defaults to Competency**. Sections are **path routes** (
 - **Upload policy** uses a native date input and its Upload button is enabled with empty required fields.
 - **Data typos** in dev competencies ("comptenecy", "asthama").
 - **Copy:** "Manage Appointment settings here." (capital A).
+
+## Captured 2026-11-03 (phase 5 read-only session)
+
+Practice: Main Practice - Surgery (the only practice with patient data). Open and cancel only; nothing was sent, saved, assigned, published or asked. Numbers match the checklist in `docs/plans/phase-5-practice-modules.md`.
+
+### 12 Ask HR (composer only, nothing asked)
+- `hr-policies` redirects to `hr-policies/ask`. Breadcrumb links "HRM / HR Policies / Ask HR". Tabs are links with role=tab: Ask HR | Policy library (`hr-policies/library`).
+- Header "Ask HR" + "Ask a question and get an answer from your practice's own policies, with sources."
+- Empty card: "Ask about your practice's HR policies" + "Your practice has no policies yet. Upload the staff handbook and HR policies so staff can ask questions here." + **Upload a policy** button.
+- 4 suggestion buttons: "How much annual leave do I get?" · "What is the sickness reporting procedure?" · "How do I raise a grievance?" · "What is the expenses policy?" (not clicked: they probably send straight away).
+- Composer: textarea labelled/placeholder "Ask a question about your policies" · helper "Enter to send, Shift+Enter for a new line" · counter "0/1000" · Send (disabled while empty).
+- The answer view is not capturable: the practice has no policies, so an answer with sources can't appear. Keep the plan's proposal (answer quotes the clause and cites "Policy name, section x.y"; no-match text).

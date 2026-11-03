@@ -101,3 +101,24 @@ Requests to book a staff member other than the one the system recommended.
 
 ## Not opened (change data or need your OK)
 Join / Reschedule / Cancel Appointment · View Request Details · View Full Profile · Day view · clicking an empty calendar slot (may start booking) · Approve / Reject on pending requests (none pending).
+
+## Captured 2026-11-03 (phase 5 read-only session)
+
+Practice: Main Practice - Surgery (the only practice with patient data). Open and cancel only; nothing was sent, saved, assigned, published or asked. Numbers match the checklist in `docs/plans/phase-5-practice-modules.md`.
+
+### 7 Appointment Day view
+- The Day/Week toggle is a button group with role=radio. In Day view the date nav buttons are "Previous day" / "Go to today" (its text shows the date "3 Nov 2026") / "Next day"; in Week view the label is "2 Nov - 8 Nov 2026" (Mon–Sun).
+- Day view: one column with header "Tue / 3 Nov", 30-minute rows 00:00–23:30 (48 rows, full 24h). Empty state "No appointments for this period".
+- The Date filter placeholder changes to "This day" in Day view. Search placeholder "Search by name or email, phone".
+- The Appointment Type select stayed on "Loading appointment types..." (endpoint slow or hanging); Severity disabled with "Select type first"; Staff "All Staff"; Status "All Status"; Clear filters disabled until a filter is set.
+- Calendar View / Table View is also role=radio.
+
+### 8 Booking from an empty slot
+- Doesn't exist: empty slot cells have no click handlers (checked the React props up the tree) and cursor:auto. Calendar booking stays out of the rebuild (plan already says so). Don't show an info note on click either, so it matches live.
+
+### 9 View Request Details (Appointment Requests)
+- Stats cards on the tab: "Pending Approval Appointments" · "Approved Today Appointments" · "Rejected Today Appointments".
+- Filters: Requested By (All Staff) · Status (All Status) · Date Range (placeholder "All dates") · Clear filters.
+- There is no request-details popup. Both the patient name and the Actions icon (aria-label "View case for {patient}") link to `/appointment/consultation-review/{consultationId}`, which is the same Consultation Details page as Tickets but under the appointment route. Approve/Reject buttons appear only on Pending rows (none to see today). "Expires in" shows "---" for decided rows.
+- On that page (live bugs, don't copy): the patient name shows "-", and the closed banner has no "Closed by … Reason …" detail. Urgency note in the voice-agent default state: "This urgency level is selected by voice agent — change it if you disagree."
+- Rebuild: reuse ConsultationDetailsPage at `appointment/consultation-review/{id}` (breadcrumb Appointment › Consultation Details).
