@@ -26,6 +26,7 @@ import { FormSectionCard } from '@/components/forms/FormSectionCard';
 import { ModulePageHeader } from '@/components/layout/ModulePageHeader';
 import { ConfirmDialog } from '@/components/modals/ConfirmDialog';
 import { GoBackLink } from '@/components/primitives/GoBackLink';
+import { APPOINTMENT_PATH } from '@/features/appointments/appointmentRoutes';
 import { useCurrentPractice, usePracticeCrumbs, usePracticeHref } from '@/features/practice/PracticeContext';
 import { PUBLIC_SUB_APP_ID } from '@/lib/api/config';
 import { isClosed, TICKET_STATUS_LABELS, TICKET_URGENCY_LABELS, ticketsApi } from '@/lib/api/tickets';
@@ -48,15 +49,28 @@ export function ViewerChip({ name }: { name: string | null }) {
   return name ? <StatusChip status={`Current Viewer: ${name}`} tone="neutral" variant="outlined" /> : null;
 }
 
-/** Consultation Details (docs/practice/02-tickets.md §2, plan §2b). */
-export function ConsultationDetailsPage({ ticketId }: { ticketId: string }) {
+/**
+ * Consultation Details (docs/practice/02-tickets.md §2, plan §2b). `from="appointment"` is the same
+ * page opened from Appointment (`appointment/consultation-review/{id}`, captured 2026-11-03).
+ */
+export function ConsultationDetailsPage({
+  ticketId,
+  from = 'tickets',
+}: {
+  ticketId: string;
+  from?: 'tickets' | 'appointment';
+}) {
   const router = useRouter();
   const theme = useTheme();
   const wide = useMediaQuery(theme.breakpoints.up('xl'));
   const practice = useCurrentPractice();
   const practiceHref = usePracticeHref();
   const { enqueueSnackbar } = useSnackbar();
-  usePracticeCrumbs([{ label: 'Tickets', href: TICKETS_PATH }, { label: 'Consultation Details' }]);
+  const fromAppointment = from === 'appointment';
+  usePracticeCrumbs([
+    fromAppointment ? { label: 'Appointment', href: APPOINTMENT_PATH } : { label: 'Tickets', href: TICKETS_PATH },
+    { label: 'Consultation Details' },
+  ]);
 
   const { state, update, refresh, reload } = useTicketDetail(practice.id, ticketId);
   const [tab, setTab] = useState<SummaryTab>('summary');
@@ -158,7 +172,14 @@ export function ConsultationDetailsPage({ ticketId }: { ticketId: string }) {
       <Box sx={{ mb: 2 }}>
         <GoBackLink
           variant="pill"
-          onClick={() => router.push(practiceHref(closed ? CLOSED_TICKETS_PATH : TICKETS_PATH))}
+          onClick={() => {
+            // From Appointment, go back to the tab or view it was opened from.
+            if (fromAppointment && window.history.length > 1) router.back();
+            else
+              router.push(
+                practiceHref(fromAppointment ? APPOINTMENT_PATH : closed ? CLOSED_TICKETS_PATH : TICKETS_PATH),
+              );
+          }}
         >
           Back
         </GoBackLink>

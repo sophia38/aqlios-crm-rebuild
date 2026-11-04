@@ -1,5 +1,6 @@
 import { getResponse } from 'msw';
 import { setupWorker } from 'msw/browser';
+import { appointmentHandlers } from './handlers/appointments';
 import { authHandlers } from './handlers/auth';
 import { complianceHandlers } from './handlers/compliance';
 import { crmHandlers } from './handlers/crm';
@@ -23,6 +24,7 @@ const handlers = [
   ...complianceHandlers,
   ...patientHandlers,
   ...ticketHandlers,
+  ...appointmentHandlers,
   ...crmHandlers,
 ];
 

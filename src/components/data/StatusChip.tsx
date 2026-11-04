@@ -22,6 +22,9 @@ const STATUS_TONES: Record<string, Tone> = {
   'pending verification': 'info',
   'awaiting verification': 'info',
   'reschedule requested': 'info',
+  // Appointment statuses (docs/practice/03-appointment.md): the stat card colours.
+  upcoming: 'warning',
+  'in progress': 'info',
   rejected: 'error',
   expired: 'error',
   'invitation expired': 'error',
@@ -29,7 +32,9 @@ const STATUS_TONES: Record<string, Tone> = {
   locked: 'error',
   cancelled: 'error',
   'cancelled by patient': 'error',
-  dna: 'error',
+  'cancelled by staff': 'error',
+  // Captured purple on the Appointment table.
+  dna: 'secondary',
   draft: 'neutral',
   archived: 'neutral',
   // Ticket statuses (docs/practice/02-tickets.md): New blue, Under Clinical Review orange, as captured.

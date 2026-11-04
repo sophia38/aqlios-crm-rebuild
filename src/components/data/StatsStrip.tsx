@@ -9,13 +9,81 @@ export interface StatItem {
   color: string;
   /** Small line under the label (CQC cards). */
   caption?: string;
+  /** `pill` only: the icon in the white circle. */
+  icon?: React.ReactNode;
+  /** `pill` only: the card's tinted background. */
+  tint?: string;
 }
 
 /**
- * KPI numbers with a coloured left bar (COMPONENTS.md → StatsStrip). `strip`: one grey panel
- * (Activity Tracker). `cards`: separate white cards in a grid (CQC Compliance).
+ * KPI numbers (COMPONENTS.md → StatsStrip). `strip`: one grey panel with coloured bars (Activity
+ * Tracker). `cards`: separate white cards in a grid (CQC Compliance). `pill`: tinted rounded cards with
+ * an icon circle, label and the big number on the right (Appointment, Staff and Leave).
  */
-export function StatsStrip({ items, variant = 'strip' }: { items: StatItem[]; variant?: 'strip' | 'cards' }) {
+export function StatsStrip({ items, variant = 'strip' }: { items: StatItem[]; variant?: 'strip' | 'cards' | 'pill' }) {
+  if (variant === 'pill') {
+    return (
+      <Box
+        component="ul"
+        sx={{
+          listStyle: 'none',
+          m: 0,
+          p: 0,
+          display: 'grid',
+          gap: 2,
+          // Up to 3 a row on laptops (5 cards don't fit beside each other at 1280px), all in one row on wide screens.
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: 'repeat(2, 1fr)',
+            md: `repeat(${Math.min(items.length, 3)}, 1fr)`,
+            xl: `repeat(${items.length}, 1fr)`,
+          },
+        }}
+      >
+        {items.map((item) => (
+          <Box
+            component="li"
+            key={item.label}
+            sx={(theme) => ({
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              px: 2,
+              py: 1.5,
+              bgcolor: item.tint ?? 'background.paper',
+              borderRadius: `${theme.tokens.radius.base}px`,
+            })}
+          >
+            {item.icon && (
+              <Box
+                aria-hidden
+                sx={{
+                  width: 40,
+                  height: 40,
+                  flexShrink: 0,
+                  display: 'grid',
+                  placeItems: 'center',
+                  borderRadius: '50%',
+                  bgcolor: 'background.paper',
+                  color: item.color,
+                  '& svg': { fontSize: 22 },
+                }}
+              >
+                {item.icon}
+              </Box>
+            )}
+            <Typography sx={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 500, color: 'text.primary' }}>
+              {item.label}
+            </Typography>
+            <Typography sx={{ fontSize: 28, fontWeight: 600, lineHeight: 1.2, color: item.color }}>
+              {String(item.value).padStart(2, '0')}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    );
+  }
+
   const cards = variant === 'cards';
   return (
     <Box

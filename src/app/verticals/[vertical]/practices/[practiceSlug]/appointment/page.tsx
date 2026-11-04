@@ -1,10 +1,12 @@
-'use client';
+import { Suspense } from 'react';
+import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
+import { AppointmentPage } from '@/features/appointments/AppointmentPage';
 
-import EventNoteOutlined from '@mui/icons-material/EventNoteOutlined';
-import { InterimModulePage } from '@/features/shell/PlaceholderPages';
-
+// The tab and view live in `?tab=requests` / `?view=table`; reading search params needs a Suspense boundary.
 export default function Page() {
   return (
-    <InterimModulePage title="Appointment" icon={EventNoteOutlined} phase={5} spec="docs/practice/03-appointment.md" />
+    <Suspense fallback={<LoadingSpinner />}>
+      <AppointmentPage />
+    </Suspense>
   );
 }

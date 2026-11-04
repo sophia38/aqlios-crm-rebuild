@@ -22,12 +22,21 @@ const minutesOf = (time: string) => {
 const topOf = (time: string) => (minutesOf(time) / 30) * ROW;
 const slotTime = (slot: number) => `${String(Math.floor(slot / 2)).padStart(2, '0')}:${slot % 2 ? '30' : '00'}`;
 
-type Item =
+/** Anything else drawn in the grid (appointments): a day and a time range. */
+export interface CalendarEvent {
+  id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+}
+
+type Item<E> =
   | { kind: 'shift'; shift: Shift; start: string; end: string }
-  | { kind: 'gap'; gap: RotaGap; start: string; end: string };
+  | { kind: 'gap'; gap: RotaGap; start: string; end: string }
+  | { kind: 'event'; event: E; start: string; end: string };
 
 /** Greedy side-by-side lanes: each item takes the first lane that's free at its start time. */
-function layout(items: Item[]) {
+function layout<E>(items: Item<E>[]) {
   const sorted = [...items].sort((a, b) => a.start.localeCompare(b.start) || b.end.localeCompare(a.end));
   const laneEnds: string[] = [];
   return sorted.map((item) => {
@@ -38,34 +47,43 @@ function layout(items: Item[]) {
   });
 }
 
-export interface WeekCalendarGridProps {
+export interface WeekCalendarGridProps<E extends CalendarEvent = CalendarEvent> {
   /** YYYY-MM-DD, 7 for Week or 1 for Day. */
   days: string[];
-  shifts: Shift[];
-  gaps: RotaGap[];
+  shifts?: Shift[];
+  gaps?: RotaGap[];
   /** Which gap kinds to draw (the Show filter). */
-  showGaps: GapKind[];
-  onSlotClick: (date: string, time: string) => void;
-  onShiftClick: (shift: Shift) => void;
+  showGaps?: GapKind[];
+  /** Other blocks drawn with `renderEvent`, side by side with the shifts. */
+  events?: E[];
+  renderEvent?: (event: E, options: { compact: boolean }) => React.ReactNode;
+  /** Omit to leave out the ＋ Assign Staff targets (Appointment has no booking from a slot). */
+  onSlotClick?: (date: string, time: string) => void;
+  onShiftClick?: (shift: Shift) => void;
   /** "+N more" in a crowded week column opens that day in Day view. */
   onShowDay: (date: string) => void;
   loading?: boolean;
+  'aria-label'?: string;
 }
 
 /**
  * Day or week grid in 30-minute rows with the today tint, a dashed now-line, ＋ Assign Staff targets and
  * shifts side by side (COMPONENTS.md → WeekCalendarGrid, docs/super-admin/06-rota-management.md).
+ * `events` + `renderEvent` draw other blocks, such as appointments, in the same grid.
  */
-export function WeekCalendarGrid({
+export function WeekCalendarGrid<E extends CalendarEvent = CalendarEvent>({
   days,
-  shifts,
-  gaps,
-  showGaps,
+  shifts = [],
+  gaps = [],
+  showGaps = [],
+  events = [],
+  renderEvent,
   onSlotClick,
   onShiftClick,
   onShowDay,
   loading = false,
-}: WeekCalendarGridProps) {
+  'aria-label': ariaLabel = 'Rota calendar',
+}: WeekCalendarGridProps<E>) {
   const scroller = useRef<HTMLDivElement>(null);
   const today = dayjs().format('YYYY-MM-DD');
   const now = dayjs().format('HH:mm');
@@ -80,13 +98,16 @@ export function WeekCalendarGrid({
   }, []);
 
   const perDay = days.map((date) => {
-    const items: Item[] = [
+    const items: Item<E>[] = [
       ...shifts
         .filter((shift) => shift.date === date)
         .map((shift) => ({ kind: 'shift' as const, shift, start: shift.start_time, end: shift.end_time })),
       ...gaps
         .filter((gap) => gap.date === date && gap.kind !== 'holiday' && showGaps.includes(gap.kind))
         .map((gap) => ({ kind: 'gap' as const, gap, start: gap.start_time, end: gap.end_time })),
+      ...events
+        .filter((event) => event.date === date)
+        .map((event) => ({ kind: 'event' as const, event, start: event.start_time, end: event.end_time })),
     ];
     const placed = layout(items);
     const visible = placed.filter((entry) => entry.lane < maxLanes);
@@ -101,7 +122,7 @@ export function WeekCalendarGrid({
     <Box
       ref={scroller}
       role="region"
-      aria-label="Rota calendar"
+      aria-label={ariaLabel}
       aria-busy={loading || undefined}
       tabIndex={0}
       sx={(theme) => ({
@@ -207,27 +228,29 @@ export function WeekCalendarGrid({
               })}
             >
               {/* ＋ Assign Staff targets, one per half hour */}
-              <Box sx={{ position: 'absolute', left: 0, top: 0, width: PLUS_COL }}>
-                {Array.from({ length: SLOTS }, (_, slot) => (
-                  <ButtonBase
-                    key={slot}
-                    aria-label={`Assign staff, ${dayLabel} ${slotTime(slot)}`}
-                    title="Assign Staff"
-                    onClick={() => onSlotClick(date, slotTime(slot))}
-                    sx={(theme) => ({
-                      display: 'flex',
-                      width: PLUS_COL,
-                      height: ROW,
-                      color: theme.palette.brand.dark,
-                      opacity: 0.35,
-                      '&:hover, &.Mui-focusVisible': { opacity: 1, bgcolor: theme.palette.brand.soft },
-                    })}
-                  >
-                    <Add sx={{ fontSize: 14 }} />
-                  </ButtonBase>
-                ))}
-              </Box>
-              <Box sx={{ position: 'absolute', left: PLUS_COL + 2, right: 4, top: 0, bottom: 0 }}>
+              {onSlotClick && (
+                <Box sx={{ position: 'absolute', left: 0, top: 0, width: PLUS_COL }}>
+                  {Array.from({ length: SLOTS }, (_, slot) => (
+                    <ButtonBase
+                      key={slot}
+                      aria-label={`Assign staff, ${dayLabel} ${slotTime(slot)}`}
+                      title="Assign Staff"
+                      onClick={() => onSlotClick(date, slotTime(slot))}
+                      sx={(theme) => ({
+                        display: 'flex',
+                        width: PLUS_COL,
+                        height: ROW,
+                        color: theme.palette.brand.dark,
+                        opacity: 0.35,
+                        '&:hover, &.Mui-focusVisible': { opacity: 1, bgcolor: theme.palette.brand.soft },
+                      })}
+                    >
+                      <Add sx={{ fontSize: 14 }} />
+                    </ButtonBase>
+                  ))}
+                </Box>
+              )}
+              <Box sx={{ position: 'absolute', left: onSlotClick ? PLUS_COL + 2 : 4, right: 4, top: 0, bottom: 0 }}>
                 {holiday && (
                   <Box
                     sx={(theme) => ({
@@ -253,14 +276,18 @@ export function WeekCalendarGrid({
                     left: `calc(${(lane / lanes) * 100}% + 1px)`,
                     width: `calc(${100 / lanes}% - 2px)`,
                   };
+                  const compact = !single || lanes > 4 || height < ROW * 6;
+                  if (item.kind === 'event') {
+                    return (
+                      <Box key={item.event.id} sx={{ ...position, zIndex: 1 }}>
+                        {renderEvent?.(item.event, { compact })}
+                      </Box>
+                    );
+                  }
                   if (item.kind === 'shift') {
                     return (
                       <Box key={item.shift.id} sx={{ ...position, zIndex: 1 }}>
-                        <ShiftBlock
-                          shift={item.shift}
-                          compact={!single || lanes > 4 || height < ROW * 6}
-                          onClick={onShiftClick}
-                        />
+                        <ShiftBlock shift={item.shift} compact={compact} onClick={onShiftClick} />
                       </Box>
                     );
                   }

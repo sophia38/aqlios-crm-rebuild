@@ -1,5 +1,7 @@
 import type {
   AppointmentConfiguration,
+  AppointmentRequest,
+  AppointmentStatus,
   CommunicationTemplate,
   Competency,
   GlobalAppointmentConfiguration,
@@ -24,6 +26,7 @@ import {
   buildSlaConfiguration,
   emptyAppointmentConfiguration,
 } from './fixtures/lookups';
+import { buildAppointmentRequests } from './fixtures/appointments';
 import { buildPatients } from './fixtures/patients';
 import { buildPractices, isUnconfiguredFixture } from './fixtures/practices';
 import { buildRotaGroupRecords, rotaPeople, type RotaGroupRecord } from './fixtures/rota';
@@ -34,13 +37,13 @@ import {
   buildPathways,
 } from './fixtures/settings';
 import { buildTemplates } from './fixtures/templates';
-import { buildTickets } from './fixtures/tickets';
+import { assignableStaff, buildTickets } from './fixtures/tickets';
 import { buildPermissionCatalog, defaultRolePermissions } from './fixtures/permissions';
 import { buildRoles, buildStaff, PERSONAS, type PersonaId, type StaffMember } from './fixtures/users';
 
 // In-browser mock database. Each visitor has their own copy in localStorage; "Reset demo data" restores the fixtures.
 // Bump the key when the shape changes so old copies are replaced instead of breaking.
-const STORAGE_KEY = 'aqlios-mock-db-v8';
+const STORAGE_KEY = 'aqlios-mock-db-v9';
 
 export interface MockDb {
   session: { signedIn: boolean; persona: PersonaId };
@@ -67,6 +70,9 @@ export interface MockDb {
   tickets: TicketDetail[];
   /** Ticket id → log entries, newest first. */
   ticketLogs: Record<string, TicketLog[]>;
+  /** `{practiceId}:{appointmentId}` → a change made in the demo (appointments themselves are worked out per day). */
+  appointmentChanges: Record<string, { status: AppointmentStatus; reason: string | null }>;
+  appointmentRequests: AppointmentRequest[];
 }
 
 function seed(): MockDb {
@@ -107,6 +113,15 @@ function seed(): MockDb {
     healthRecords: patientSeed.healthRecords,
     tickets: ticketSeed.tickets,
     ticketLogs: ticketSeed.logs,
+    appointmentChanges: {},
+    appointmentRequests: buildAppointmentRequests(
+      practices.map((practice) => ({
+        practice,
+        tickets: ticketSeed.tickets.filter((ticket) => ticket.practice_id === practice.id),
+        patients: new Map(),
+        staff: assignableStaff(staff, roles, practice.id),
+      })),
+    ),
   };
 }
 

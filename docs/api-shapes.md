@@ -126,3 +126,13 @@ No ticket call was captured. Base `…/public/v1/sub-apps/{subAppId}/practices/{
 - `POST …/{id}/notes/ {text, shared_with_patient}` (≤700) · `POST …/{id}/snomed/ {code, comment}` (≤200, no duplicates) · `POST …/{id}/messages/ {body, channels: SMS|EMAIL|APP|NHS_APP[], reply_allowed}` (≤1000; nothing is sent in the demo).
 - Notes, SNOMED and messages return 400 while the ticket is unassigned or closed (live: read-only).
 - `GET …/{id}/logs/` → `TicketLog[]` newest first. `GET /public/v1/snomed-codes/?search` (≥3 characters) → `{code, term}[]` from a short demo list.
+
+## Appointments (phase 5, all inferred)
+No appointment call was captured. Base `…/public/v1/sub-apps/{subAppId}/practices/{practiceId}/`. Types in `src/lib/api/types.ts` (`Appointment`, `AppointmentRequest`), client in `src/lib/api/appointments.ts`.
+- `GET …/appointments/?week_start|date&type&severity&staff_id&status&search&ordering&page&page_size` → `Paginated<Appointment>`. `week_start` (a Monday) covers 7 days, `date` one day; neither means today. `ordering=start|-start` (default `start`). Search matches name, email and phone (spaces ignored).
+- `GET …/appointments/summary/` (same filters, no `status`) → `{upcoming, in_progress, dna, completed, cancelled}`. Upcoming includes Reschedule Requested; cancelled is both cancel statuses.
+- `GET …/appointments/{id}/` → `Appointment` (ids look like `appt-2026-11-04-3`). 404 "Appointment not found".
+- `POST …/{id}/cancel/ {reason}` (required, ≤300; Upcoming or Reschedule Requested only) → status CANCELLED_BY_STAFF. `POST …/{id}/reschedule/` (Upcoming only) → RESCHEDULE_REQUESTED. `POST …/{id}/complete/` and `…/dna/` once the appointment has started.
+- Mock only: appointments are worked out per day from the practice's tickets (3–8 on weekdays, 0–2 on Saturdays), and the status follows the clock. Changes are kept in `appointmentChanges`.
+- `GET …/appointment-requests/?requested_by&status&range=today|last_7_days|last_30_days&page&page_size` → `Paginated<AppointmentRequest>`, newest first. A pending request shows as EXPIRED 24 hours after it was made.
+- `GET …/appointment-requests/summary/` → `{pending, approved_today, rejected_today}`. `POST …/{id}/approve/` and `POST …/{id}/reject/ {reason?}` (≤300), pending only.

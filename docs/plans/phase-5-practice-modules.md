@@ -22,6 +22,15 @@
 - SNOMED search uses a short list of 21 well-known SNOMED CT concepts (common conditions and symptoms) rather than invented codes.
 - Copy fixes: "These actions are prescribed by the voice agent. Change them if you disagree." and "…selected by the voice agent. Change it if you disagree."
 
+**Progress:** Appointment built (2026-11-04). Built notes:
+- Appointments are worked out per day from each demo practice's tickets (3–8 on weekdays, 0–2 on Saturday mornings), with the status following the clock. Cancel, reschedule and outcome changes are stored as overrides. 10 fictional alternative-booking requests per demo practice (4 pending, 1 expired). Mock database key `aqlios-mock-db-v9`.
+- Extensions: `StatsStrip variant="pill"` (icon, tint), `FilterBar` `disabled`/`disabledLabel`, generic `events`/`renderEvent` in `WeekCalendarGrid` (no ＋ targets without `onSlotClick`), appointment status tones in `StatusChip` (DNA is purple everywhere now, as captured). No new tokens or components besides the feature's own.
+- The Date filter is shared by both views: empty means today (Table, Day) or this week (Week). Its captured placeholder ("This week", "This day", "Today") is shown in the label, as the date field always shows DD/MM/YYYY.
+- Mark as Completed / Mark as DNA appear once an appointment has started and offer whichever outcome it doesn't have yet, so a wrong outcome can be corrected. Join Appointment is for video appointments, enabled only while in progress.
+- Status filter: the 6 captured options plus Reschedule Requested. The popup footer says Close (live "Cancel" sat next to Cancel Appointment); the cancel confirm's secondary button is Keep Appointment.
+- Consultation Details is reused at `appointment/consultation-review/{id}` (crumb Appointment, Back returns to where it was opened). Previous Consultations from there stays under Tickets.
+- Date Range on Requests is a select (All dates, Today, Last 7 days, Last 30 days).
+
 Phase 5 replaces the 11 practice pages that still say "Rebuild in progress". The practice frame, dashboard banner, practice switcher, the 12 `coming-soon/*` pages and the 4 practice placeholders (Documents, Recruitment, Performance, Support, Notifications) were already built in phase 2 and stay as they are. It also fills in the four "rebuilt in phase 5" notes left in phase 4:
 - Assign Staff and shift click on the vertical ROTA
 - Create and Apply Rota Template

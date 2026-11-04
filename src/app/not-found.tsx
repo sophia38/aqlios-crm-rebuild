@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import Box from '@mui/material/Box';
 import { AuthGate } from '@/components/auth/AuthGate';
+import { APPOINTMENT_CONSULTATION_PATH_PATTERN } from '@/features/appointments/appointmentRoutes';
 import { AccessDenied } from '@/components/feedback/AccessDenied';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
 import { PatientDetailsPage } from '@/features/patients/PatientDetailsPage';
@@ -59,6 +60,17 @@ function fallbackFor(pathname: string): React.ReactNode | null {
           ) : (
             <ConsultationDetailsPage ticketId={ticketId} />
           )}
+        </PracticeFrame>
+      </AuthGate>
+    );
+  }
+  const appointmentTicket = pathname.match(APPOINTMENT_CONSULTATION_PATH_PATTERN);
+  if (appointmentTicket) {
+    const [, vertical, slug, ticketId] = appointmentTicket;
+    return (
+      <AuthGate>
+        <PracticeFrame vertical={vertical} slug={slug}>
+          <ConsultationDetailsPage ticketId={ticketId} from="appointment" />
         </PracticeFrame>
       </AuthGate>
     );

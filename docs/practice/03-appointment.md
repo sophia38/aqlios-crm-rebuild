@@ -1,5 +1,7 @@
 # Practice · EHR → Appointment
 
+> Rebuilt in phase 5 (2026-11-04): `src/features/appointments/`. Built notes are in `docs/plans/phase-5-practice-modules.md` (Progress).
+
 Captured 2026-10-27 in **Main Practice - Surgery** as super-admin. Nothing was booked, joined, rescheduled, cancelled, approved or rejected.
 Route: `/verticals/public/practices/{slug}/appointment`. Tabs and views **don't change the URL**.
 Top bar shows the page title "📅 Appointment" (no breadcrumb on this page, unlike Patients and Tickets).

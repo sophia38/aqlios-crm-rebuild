@@ -23,6 +23,10 @@ export interface FilterDefinition {
   options: FilterOption[];
   /** Label of the empty value, e.g. "All Roles". */
   allLabel: string;
+  /** Locked until another filter is set (Appointment Severity). */
+  disabled?: boolean;
+  /** Shown instead of `allLabel` while disabled, e.g. "Select type first". */
+  disabledLabel?: string;
 }
 
 export interface FilterBarProps {
@@ -104,11 +108,12 @@ export function FilterBar({
           label={filter.label}
           value={values[filter.id] ?? ''}
           onChange={(event) => onChange(filter.id, event.target.value)}
+          disabled={filter.disabled}
           fullWidth={false}
           slotProps={{ select: { displayEmpty: true }, inputLabel: { shrink: true } }}
           sx={{ minWidth: 160, '& .MuiInputBase-root': { fontSize: 13 } }}
         >
-          <MenuItem value="">{filter.allLabel}</MenuItem>
+          <MenuItem value="">{(filter.disabled && filter.disabledLabel) || filter.allLabel}</MenuItem>
           {filter.options.map((option) => (
             <MenuItem key={option.value} value={option.value}>
               {option.label}

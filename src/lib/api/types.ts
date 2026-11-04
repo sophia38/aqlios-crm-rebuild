@@ -853,3 +853,113 @@ export interface SnomedConcept {
   code: string;
   term: string;
 }
+
+// ---- Appointments (docs/practice/03-appointment.md). No appointment call was captured; shapes inferred. ----
+
+/** One set of type names: the practice's 4 appointment types plus Online (Video) (fixes the live mix). */
+export const APPOINTMENT_KINDS = [
+  'FACE_TO_FACE_SURGERY',
+  'TELEPHONE_OR_AUDIO',
+  'FACE_TO_FACE_HOME_VISIT',
+  'WRITTEN_INCLUDING_ONLINE',
+  'ONLINE_VIDEO',
+] as const;
+export type AppointmentKind = (typeof APPOINTMENT_KINDS)[number];
+
+/** The 6 captured Status filter values, then Reschedule Requested (after a reschedule). */
+export const APPOINTMENT_STATUSES = [
+  'UPCOMING',
+  'IN_PROGRESS',
+  'DNA',
+  'COMPLETED',
+  'CANCELLED_BY_PATIENT',
+  'CANCELLED_BY_STAFF',
+  'RESCHEDULE_REQUESTED',
+] as const;
+export type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number];
+
+export type AppointmentSeverity = 'URGENT' | 'ROUTINE';
+
+export interface Appointment {
+  id: string;
+  practice_id: string;
+  consultation_id: string;
+  request_name: string;
+  patient_id: string;
+  patient_name: string;
+  patient_pronouns: string | null;
+  patient_phone: string;
+  patient_email: string;
+  staff: TicketStaff;
+  type: AppointmentKind;
+  severity: AppointmentSeverity;
+  /** YYYY-MM-DD and HH:mm, practice local time. */
+  date: string;
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+  status: AppointmentStatus;
+  /** Video appointments only. */
+  meeting_link: string | null;
+  cancellation_reason: string | null;
+}
+
+export interface AppointmentListParams {
+  /** A Monday: the 7 days from it (Calendar View, Week). */
+  week_start?: string;
+  /** One day (Calendar View, Day, and Table View). Neither: today. */
+  date?: string;
+  type?: string;
+  severity?: string;
+  staff_id?: string;
+  status?: string;
+  search?: string;
+  ordering?: string;
+  page?: number;
+  page_size?: number;
+}
+
+export interface AppointmentSummary {
+  upcoming: number;
+  in_progress: number;
+  dna: number;
+  completed: number;
+  cancelled: number;
+}
+
+export type AppointmentRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+
+/** A request to book a staff member other than the one the system recommended. */
+export interface AppointmentRequest {
+  id: string;
+  practice_id: string;
+  consultation_id: string;
+  patient_id: string;
+  patient_name: string;
+  original_staff: TicketStaff;
+  requested_staff: TicketStaff;
+  reason: string;
+  requested_by: TicketStaff;
+  created_at: string;
+  expires_at: string;
+  status: AppointmentRequestStatus;
+  decided_at: string | null;
+  decided_by_name: string | null;
+  rejection_reason: string | null;
+}
+
+export type AppointmentRequestRange = 'today' | 'last_7_days' | 'last_30_days';
+
+export interface AppointmentRequestListParams {
+  page: number;
+  page_size: number;
+  requested_by?: string;
+  status?: string;
+  range?: string;
+}
+
+export interface AppointmentRequestSummary {
+  pending: number;
+  approved_today: number;
+  rejected_today: number;
+}
