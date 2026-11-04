@@ -42,13 +42,14 @@ import {
   buildPathways,
 } from './fixtures/settings';
 import { buildTemplates } from './fixtures/templates';
+import type { RotaDemoState } from './rotaState';
 import { assignableStaff, buildTickets } from './fixtures/tickets';
 import { buildPermissionCatalog, defaultRolePermissions } from './fixtures/permissions';
 import { buildRoles, buildStaff, PERSONAS, type PersonaId, type StaffMember } from './fixtures/users';
 
 // In-browser mock database. Each visitor has their own copy in localStorage; "Reset demo data" restores the fixtures.
 // Bump the key when the shape changes so old copies are replaced instead of breaking.
-const STORAGE_KEY = 'aqlios-mock-db-v10';
+const STORAGE_KEY = 'aqlios-mock-db-v11';
 
 export interface MockDb {
   session: { signedIn: boolean; persona: PersonaId };
@@ -86,6 +87,8 @@ export interface MockDb {
   staffProfiles: Record<string, Partial<Pick<StaffDetail, 'account' | 'leave' | 'competencies' | 'payroll'>>>;
   /** Staff id → document key → saved document. */
   staffDocuments: Record<string, Record<string, StaffDocument>>;
+  /** ROTA changes made in the demo, laid over the generated weekly rota (phase 5). */
+  rota: RotaDemoState;
 }
 
 function seed(): MockDb {
@@ -131,6 +134,7 @@ function seed(): MockDb {
     staffChanges: {},
     staffProfiles: {},
     staffDocuments: {},
+    rota: { assignments: [], overrides: [], published: [], bids: {}, declines: {}, filled: {}, templates: [] },
     appointmentRequests: buildAppointmentRequests(
       practices.map((practice) => ({
         practice,

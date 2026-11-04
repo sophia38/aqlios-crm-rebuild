@@ -41,6 +41,15 @@
 - Payroll Updates: an amount needs its reason and end date, and the other way round (live marks all six as required). Proof of Identity's "Choose Document" select isn't rebuilt.
 - Associated Users 👁 opens the person's Staff Member Details in their first practice.
 
+**Progress:** Practice ROTA built (2026-11-04). Built notes:
+- Staff Rota reuses the vertical Rota Management tab with the practice fixed (no Practice filter or practice panel; Staff View keeps the staff panel). Activity Tracker likewise, with the Duty Type filter and no Practice Name row.
+- ＋ on a slot (Enter, a click, or dragging down the ＋ column for a range, as live) opens **Assign Staff**; managers also get **Publish Slot**. A shift opens **Edit Assignment** with the scope radios and 🗑 Delete. Past days are disabled, as live. The vertical ROTA uses the same drawer for the selected practice (phase 4's "rebuilt in phase 5" notes are gone).
+- The generated weekly rota stays as it was; assignments, edits and deletes (by scope), published slots, bids and templates are stored and laid over it, so the vertical ROTA shows them too. Mock database key `aqlios-mock-db-v11`.
+- Shift Bidding lists the practice's published slots for the next 4 weeks with the rate, close date and bids. Managers (super-admin) Accept Bid; practice users Claim or Decline (captured confirm copy). Publish Slot adds a **Rate per hour** field so the cards can show the rate.
+- Create Rota Template copies the chosen staff's shifts in a date range (up to 4 weeks); Choose Rota Template lists only this practice's templates, with labelled Edit (rename) and Delete, a start date and "Clear existing shifts".
+- Left out of the Assign Staff form: the Flexible Hrs. switch (no captured behaviour). Times use the browser's time input (24-hour in a UK locale).
+- Practice users can use the practice ROTA for their own practices (the phase 4 endpoints were admin-only).
+
 Phase 5 replaces the 11 practice pages that still say "Rebuild in progress". The practice frame, dashboard banner, practice switcher, the 12 `coming-soon/*` pages and the 4 practice placeholders (Documents, Recruitment, Performance, Support, Notifications) were already built in phase 2 and stay as they are. It also fills in the four "rebuilt in phase 5" notes left in phase 4:
 - Assign Staff and shift click on the vertical ROTA
 - Create and Apply Rota Template

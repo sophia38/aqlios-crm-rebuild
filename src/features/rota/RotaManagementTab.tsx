@@ -31,7 +31,10 @@ import { PUBLIC_SUB_APP_ID } from '@/lib/api/config';
 import { DUTY_TYPE_LABELS, rotaApi } from '@/lib/api/rota';
 import type { DutyType, GapKind, RotaGroupDetail, RotaPractice, RotaStaff, RotaWeek, Shift } from '@/lib/api/types';
 import { useRoles } from '@/lib/useRoles';
+import { selectSession, useAppSelector } from '@/store';
+import { AssignmentDrawer, type AssignmentTarget } from './components/AssignmentDrawer';
 import { CapacityCard } from './components/CapacityCard';
+import { ApplyTemplateModal, CreateTemplateModal } from './components/RotaTemplateModals';
 import { RotaLegend } from './components/RotaLegend';
 import { WeekCalendarGrid } from './components/WeekCalendarGrid';
 
@@ -45,7 +48,6 @@ const GAP_OPTIONS: { value: GapKind; label: string }[] = [
 ];
 const ALL_GAPS = GAP_OPTIONS.map((option) => option.value);
 const EMPTY_FILTERS = { staff_id: '', staff_type: '', duty_type: '', role_id: '', rota_group_id: '' };
-const PHASE_5 = 'This is rebuilt in phase 5, together with practice-level ROTA.';
 
 const mondayOf = (date: string) => dayjs(date).subtract((dayjs(date).day() + 6) % 7, 'day');
 
@@ -81,15 +83,27 @@ function downloadCsv(shifts: Shift[], name: string) {
   URL.revokeObjectURL(link.href);
 }
 
-/** Rota Management tab (docs/super-admin/06-rota-management.md, Tab 1). */
-export function RotaManagementTab() {
+/**
+ * Rota Management tab (docs/super-admin/06-rota-management.md, Tab 1). With `practice` it's the
+ * practice ROTA's Staff Rota (docs/practice/06-rota-management.md): the practice is fixed, so there's
+ * no Practice filter or practice panel. ＋ (or a dragged range) opens Assign Staff; a shift opens
+ * Edit Assignment.
+ */
+export function RotaManagementTab({ practice: fixedPractice }: { practice?: PracticeOption } = {}) {
   const { enqueueSnackbar } = useSnackbar();
   const roles = useRoles();
+  const isAdmin = Boolean(useAppSelector(selectSession).user?.isAdmin);
   const [view, setView] = useState<View>('practice');
   const [range, setRange] = useState<Range>('week');
   const [date, setDate] = useState(() => dayjs().format('YYYY-MM-DD'));
   const [filters, setFilters] = useState(EMPTY_FILTERS);
-  const [practice, setPractice] = useState<PracticeOption | null>(null);
+  const [pickedPractice, setPractice] = useState<PracticeOption | null>(null);
+  const practice = fixedPractice ?? pickedPractice;
+  const [target, setTarget] = useState<AssignmentTarget | null>(null);
+  const [creatingTemplate, setCreatingTemplate] = useState(false);
+  const [applyingTemplate, setApplyingTemplate] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reload = () => setReloadKey((key) => key + 1);
   const [show, setShow] = useState<GapKind[]>(ALL_GAPS);
   const [panelOpen, setPanelOpen] = useState(true);
   const [week, setWeek] = useState<RotaWeek>({ shifts: [], gaps: [] });
@@ -121,8 +135,11 @@ export function RotaManagementTab() {
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([
-      rotaApi.availablePractices(PUBLIC_SUB_APP_ID, weekStartText, controller.signal),
-      rotaApi.availableStaff(PUBLIC_SUB_APP_ID, weekStartText, controller.signal),
+      // Practice level has no practice panel, and practice users can't list every practice.
+      fixedPractice
+        ? Promise.resolve([])
+        : rotaApi.availablePractices(PUBLIC_SUB_APP_ID, weekStartText, controller.signal),
+      rotaApi.availableStaff(PUBLIC_SUB_APP_ID, weekStartText, controller.signal, fixedPractice?.id),
     ])
       .then(([practiceList, staffList]) => {
         setPractices(practiceList);
@@ -132,21 +149,21 @@ export function RotaManagementTab() {
         () => !controller.signal.aborted && enqueueSnackbar('Failed to load practices and staff', { variant: 'error' }),
       );
     return () => controller.abort();
-  }, [weekStartText, enqueueSnackbar]);
+  }, [weekStartText, fixedPractice, reloadKey, enqueueSnackbar]);
 
-  const requestKey = JSON.stringify([weekStartText, practice?.id ?? '', filters]);
+  const requestKey = JSON.stringify([weekStartText, practice?.id ?? '', filters, reloadKey]);
   const loading = loadedKey !== requestKey;
 
   useEffect(() => {
     const controller = new AbortController();
-    const key = JSON.stringify([weekStartText, practice?.id ?? '', filters]);
+    const key = JSON.stringify([weekStartText, practice?.id ?? '', filters, reloadKey]);
     rotaApi
       .week(PUBLIC_SUB_APP_ID, { week_start: weekStartText, practice_id: practice?.id, ...filters }, controller.signal)
       .then(setWeek)
       .catch(() => !controller.signal.aborted && enqueueSnackbar('Failed to load the rota', { variant: 'error' }))
       .finally(() => !controller.signal.aborted && setLoadedKey(key));
     return () => controller.abort();
-  }, [weekStartText, practice, filters, enqueueSnackbar]);
+  }, [weekStartText, practice, filters, reloadKey, enqueueSnackbar]);
 
   const setFilter = (id: string, value: string) => setFilters((current) => ({ ...current, [id]: value }));
   const move = (step: number) =>
@@ -155,7 +172,6 @@ export function RotaManagementTab() {
         .add(step, range === 'day' ? 'day' : 'week')
         .format('YYYY-MM-DD'),
     );
-  const later = () => enqueueSnackbar(PHASE_5, { variant: 'info' });
 
   const visibleShifts = week.shifts.filter((shift) => days.includes(shift.date));
   const selection = filters.staff_id
@@ -182,7 +198,7 @@ export function RotaManagementTab() {
           <CalendarViewWeekOutlined aria-hidden sx={{ color: 'primary.main', fontSize: 32 }} />
           <Box>
             <Typography component="h2" variant="pageTitle">
-              Hub ROTA Management
+              {fixedPractice ? 'ROTA Management' : 'Hub ROTA Management'}
             </Typography>
             <Typography variant="body2">{view === 'practice' ? 'Practice View' : 'Staff View'}</Typography>
           </Box>
@@ -193,7 +209,7 @@ export function RotaManagementTab() {
           onChange={(next) => {
             setView(next);
             setFilters((current) => ({ ...current, staff_id: '' }));
-            setPractice(null);
+            if (!fixedPractice) setPractice(null);
           }}
           items={[
             { value: 'practice', label: 'Practice View' },
@@ -217,10 +233,15 @@ export function RotaManagementTab() {
         >
           Download Rota
         </Button>
-        <Button variant="outlined" startIcon={<ContentCopyOutlined />} onClick={later} sx={pill}>
+        <Button
+          variant="outlined"
+          startIcon={<ContentCopyOutlined />}
+          onClick={() => setApplyingTemplate(true)}
+          sx={pill}
+        >
           Apply Rota Template
         </Button>
-        <Button variant="contained" startIcon={<Add />} onClick={later} sx={pill}>
+        <Button variant="contained" startIcon={<Add />} onClick={() => setCreatingTemplate(true)} sx={pill}>
           Create Rota Template
         </Button>
       </Stack>
@@ -305,7 +326,11 @@ export function RotaManagementTab() {
               options: groups.map((group) => ({ value: group.id, label: group.name })),
             },
           ]}
-          values={{ ...filters, practice: practice?.id ?? '', show: show.length === ALL_GAPS.length ? '' : 'x' }}
+          values={{
+            ...filters,
+            practice: fixedPractice ? '' : (practice?.id ?? ''),
+            show: show.length === ALL_GAPS.length ? '' : 'x',
+          }}
           onChange={setFilter}
           onClear={() => {
             setFilters(EMPTY_FILTERS);
@@ -313,7 +338,7 @@ export function RotaManagementTab() {
             setShow(ALL_GAPS);
           }}
         >
-          <PracticeFilterSelect value={practice} onChange={(next) => setPractice(next)} />
+          {!fixedPractice && <PracticeFilterSelect value={practice} onChange={(next) => setPractice(next)} />}
           <TextField
             select
             size="small"
@@ -368,80 +393,83 @@ export function RotaManagementTab() {
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'flex-start' }}>
-        <Box
-          component="aside"
-          aria-label={view === 'practice' ? 'Select Practice' : 'Select Staff'}
-          sx={(theme) => ({
-            width: { xs: '100%', md: panelOpen ? 240 : 48 },
-            flexShrink: 0,
-            bgcolor: 'background.paper',
-            border: `1px solid ${theme.tokens.border.medium}`,
-            borderRadius: `${theme.tokens.radius.input}px`,
-            transition: theme.transitions.create('width'),
-            opacity: loading ? 0.6 : 1,
-          })}
-        >
-          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', p: 1 }}>
-            {panelOpen && (
-              <Typography component="h3" sx={{ fontSize: 14, fontWeight: 600, pl: 0.5 }}>
-                {view === 'practice' ? 'Select Practice' : 'Select Staff'}
-              </Typography>
-            )}
-            <IconButton
-              size="small"
-              aria-label={panelOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-              aria-expanded={panelOpen}
-              onClick={() => setPanelOpen(!panelOpen)}
-            >
-              {panelOpen ? <ChevronLeft fontSize="small" /> : <ChevronRight fontSize="small" />}
-            </IconButton>
-          </Stack>
-          {panelOpen && (
-            <Stack spacing={1} sx={{ p: 1, pt: 0, maxHeight: 640, overflowY: 'auto' }}>
-              {view === 'practice' ? (
-                <>
-                  <ButtonBase
-                    onClick={() => setPractice(null)}
-                    aria-pressed={!practice}
-                    sx={(theme) => ({
-                      display: 'block',
-                      textAlign: 'left',
-                      p: 1.25,
-                      borderRadius: `${theme.tokens.radius.input}px`,
-                      border: `1px solid ${!practice ? theme.palette.primary.main : theme.tokens.border.medium}`,
-                      bgcolor: !practice ? theme.tokens.surface.tealLight : 'background.paper',
-                    })}
-                  >
-                    <Typography sx={{ fontSize: 13, fontWeight: 600 }}>All Practices</Typography>
-                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Show all locations</Typography>
-                  </ButtonBase>
-                  {orderedPractices.map((item) => (
-                    <CapacityCard
-                      key={item.id}
-                      title={item.practice_name}
-                      subtitle={`${item.opening_time} - ${item.closing_time}`}
-                      icon={<ApartmentOutlined fontSize="small" />}
-                      assigned={item.assigned_hours}
-                      total={item.total_hours}
-                      selected={practice?.id === item.id}
-                      onSelect={() => setPractice({ id: item.id, practice_name: item.practice_name })}
-                    />
-                  ))}
-                </>
-              ) : (
-                staffGroups.map(({ role, members }) => (
-                  <StaffGroup
-                    key={role.id}
-                    title={`${role.name.trim() || 'Other'}s(${members.length})`}
-                    members={members}
-                    selectedId={filters.staff_id}
-                    onSelect={(id) => setFilter('staff_id', filters.staff_id === id ? '' : id)}
-                  />
-                ))
+        {/* Practice level: no practice panel (the grid is full width); Staff View keeps the staff panel. */}
+        {!(fixedPractice && view === 'practice') && (
+          <Box
+            component="aside"
+            aria-label={view === 'practice' ? 'Select Practice' : 'Select Staff'}
+            sx={(theme) => ({
+              width: { xs: '100%', md: panelOpen ? 240 : 48 },
+              flexShrink: 0,
+              bgcolor: 'background.paper',
+              border: `1px solid ${theme.tokens.border.medium}`,
+              borderRadius: `${theme.tokens.radius.input}px`,
+              transition: theme.transitions.create('width'),
+              opacity: loading ? 0.6 : 1,
+            })}
+          >
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', p: 1 }}>
+              {panelOpen && (
+                <Typography component="h3" sx={{ fontSize: 14, fontWeight: 600, pl: 0.5 }}>
+                  {view === 'practice' ? 'Select Practice' : 'Select Staff'}
+                </Typography>
               )}
+              <IconButton
+                size="small"
+                aria-label={panelOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+                aria-expanded={panelOpen}
+                onClick={() => setPanelOpen(!panelOpen)}
+              >
+                {panelOpen ? <ChevronLeft fontSize="small" /> : <ChevronRight fontSize="small" />}
+              </IconButton>
             </Stack>
-          )}
-        </Box>
+            {panelOpen && (
+              <Stack spacing={1} sx={{ p: 1, pt: 0, maxHeight: 640, overflowY: 'auto' }}>
+                {view === 'practice' ? (
+                  <>
+                    <ButtonBase
+                      onClick={() => setPractice(null)}
+                      aria-pressed={!practice}
+                      sx={(theme) => ({
+                        display: 'block',
+                        textAlign: 'left',
+                        p: 1.25,
+                        borderRadius: `${theme.tokens.radius.input}px`,
+                        border: `1px solid ${!practice ? theme.palette.primary.main : theme.tokens.border.medium}`,
+                        bgcolor: !practice ? theme.tokens.surface.tealLight : 'background.paper',
+                      })}
+                    >
+                      <Typography sx={{ fontSize: 13, fontWeight: 600 }}>All Practices</Typography>
+                      <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Show all locations</Typography>
+                    </ButtonBase>
+                    {orderedPractices.map((item) => (
+                      <CapacityCard
+                        key={item.id}
+                        title={item.practice_name}
+                        subtitle={`${item.opening_time} - ${item.closing_time}`}
+                        icon={<ApartmentOutlined fontSize="small" />}
+                        assigned={item.assigned_hours}
+                        total={item.total_hours}
+                        selected={practice?.id === item.id}
+                        onSelect={() => setPractice({ id: item.id, practice_name: item.practice_name })}
+                      />
+                    ))}
+                  </>
+                ) : (
+                  staffGroups.map(({ role, members }) => (
+                    <StaffGroup
+                      key={role.id}
+                      title={`${role.name.trim() || 'Other'}s(${members.length})`}
+                      members={members}
+                      selectedId={filters.staff_id}
+                      onSelect={(id) => setFilter('staff_id', filters.staff_id === id ? '' : id)}
+                    />
+                  ))
+                )}
+              </Stack>
+            )}
+          </Box>
+        )}
 
         <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
           <Box sx={{ height: 4, mb: 1 }}>{loading && <LinearProgress aria-label="Loading rota" />}</Box>
@@ -456,8 +484,17 @@ export function RotaManagementTab() {
             gaps={week.gaps}
             showGaps={show}
             loading={loading}
-            onSlotClick={later}
-            onShiftClick={later}
+            disablePast
+            onSlotClick={(day, time) =>
+              setTarget({
+                kind: 'new',
+                date: day,
+                start: time,
+                end: time >= '23:00' ? '23:59' : dayjs(`${day}T${time}`).add(1, 'hour').format('HH:mm'),
+              })
+            }
+            onSlotRange={(day, start, end) => setTarget({ kind: 'new', date: day, start, end })}
+            onShiftClick={(shift) => setTarget({ kind: 'edit', shift })}
             onShowDay={(day) => {
               setDate(day);
               setRange('day');
@@ -465,6 +502,29 @@ export function RotaManagementTab() {
           />
         </Box>
       </Box>
+      <AssignmentDrawer
+        target={target}
+        practice={practice}
+        canPublish={isAdmin}
+        onClose={() => setTarget(null)}
+        onSaved={() => {
+          setTarget(null);
+          reload();
+        }}
+      />
+      <CreateTemplateModal
+        open={creatingTemplate}
+        practice={practice}
+        weekStart={weekStartText}
+        onClose={() => setCreatingTemplate(false)}
+        onCreated={() => setCreatingTemplate(false)}
+      />
+      <ApplyTemplateModal
+        open={applyingTemplate}
+        practiceId={practice?.id ?? null}
+        onClose={() => setApplyingTemplate(false)}
+        onApplied={reload}
+      />
     </Stack>
   );
 }

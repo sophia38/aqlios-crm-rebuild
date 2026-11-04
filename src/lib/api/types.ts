@@ -501,6 +501,16 @@ export interface Shift {
   start_time: string;
   end_time: string;
   duty_type: DutyType;
+  /** The assignment this shift belongs to (phase 5): edits can apply to it from a date on. */
+  series_id?: string;
+  recurring?: boolean;
+  series_start_date?: string;
+  series_end_date?: string | null;
+  repeat_days?: DayKey[];
+  appointment_types?: AppointmentKind[];
+  urgencies?: ShiftUrgency[];
+  break_start?: string;
+  break_end?: string;
 }
 
 export type GapKind = 'leave' | 'published' | 'holiday';
@@ -1170,3 +1180,120 @@ export interface StaffDetail extends PracticeStaff {
 export type StaffDetailTab = 'account' | 'leave' | 'competencies' | 'payroll';
 
 export type StaffAction = 'lock' | 'unlock' | 'archive' | 'unarchive' | 'approve' | 'reject' | 'resend-invite';
+
+// ---- Practice ROTA (docs/practice/06-rota-management.md). All inferred. ----
+
+export type ShiftUrgency = 'ROUTINE' | 'URGENT';
+
+/** Which shifts of a recurring assignment an edit or delete applies to (captured radios). */
+export type AssignmentScope = 'CURRENT' | 'FOLLOWING' | 'ALL';
+
+export interface ShiftSlot {
+  start_time: string;
+  end_time: string;
+}
+
+/** Assign Staff (POST …/assignments). */
+export interface AssignmentInput {
+  staff_id: string;
+  practice_id: string;
+  type: 'ONCE' | 'RECURRING';
+  start_date: string;
+  /** Recurring only. */
+  end_date?: string;
+  /** Recurring only: the "Repeat every week" days. */
+  days?: DayKey[];
+  slots: ShiftSlot[];
+  duty_type: DutyType;
+  appointment_types: AppointmentKind[];
+  urgencies: ShiftUrgency[];
+  break_start?: string;
+  break_end?: string;
+}
+
+/** Edit Assignment (PATCH …/assignments/{shiftId}?scope=). */
+export interface AssignmentUpdate {
+  start_time: string;
+  end_time: string;
+  duty_type: DutyType;
+  appointment_types: AppointmentKind[];
+  urgencies: ShiftUrgency[];
+  break_start?: string;
+  break_end?: string;
+}
+
+/** Publish Slot (POST …/published-slots). */
+export interface PublishSlotInput {
+  practice_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  staff_type: StaffType | '';
+  rota_group_ids: string[];
+  role_ids: string[];
+  duty_type: DutyType;
+  rate_per_hour: number;
+  bidding_closes: string;
+  repeat_weekly: boolean;
+  repeat_until?: string;
+  notify: ('APP' | 'SMS' | 'EMAIL')[];
+}
+
+export interface SlotBid {
+  id: string;
+  staff_id: string;
+  staff_name: string;
+  role_name: string;
+  created_at: string;
+}
+
+/** One published slot on one date (Shift Bidding). */
+export interface PublishedSlot {
+  id: string;
+  practice_id: string;
+  practice_name: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  duty_type: DutyType;
+  rate_per_hour: number;
+  bidding_closes: string;
+  bids: SlotBid[];
+  /** The signed-in user's own bid and decline. */
+  my_bid: boolean;
+  declined: boolean;
+}
+
+export interface RotaTemplateShift {
+  staff_id: string;
+  staff_name: string;
+  /** Days from the template's start date. */
+  day_offset: number;
+  start_time: string;
+  end_time: string;
+  duty_type: DutyType;
+}
+
+export interface RotaTemplate {
+  id: string;
+  name: string;
+  practice_id: string;
+  practice_name: string;
+  rota_group_id: string | null;
+  staff_ids: string[];
+  start_date: string;
+  end_date: string;
+  include_bank_holidays: boolean;
+  shifts: RotaTemplateShift[];
+  created_at: string;
+}
+
+export interface RotaTemplateInput {
+  name: string;
+  practice_id: string;
+  rota_group_id: string | null;
+  staff_ids: string[];
+  start_date: string;
+  end_date: string;
+  include_bank_holidays: boolean;
+}

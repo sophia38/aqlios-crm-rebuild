@@ -2,9 +2,10 @@ import { http } from 'msw/http';
 import dayjs from 'dayjs';
 import { CRM_API } from '@/lib/api/config';
 import type { RotaGroupDetail, RotaGroupInput, RotaPractice, RotaStaff } from '@/lib/api/types';
-import { activityFor, hoursBetween, rotaPeople, rotaWeek, type RotaGroupRecord } from '../fixtures/rota';
+import { activityFor, hoursBetween, rotaPeople, type RotaGroupRecord } from '../fixtures/rota';
 import { mockId } from '../fixtures/random';
-import { currentPersona, getDb, saveDb } from '../store';
+import { assignableRotaStaff, weekWithChanges } from '../rotaState';
+import { currentPersona, getDb, saveDb, visiblePractices } from '../store';
 import { created, fail, forbidden, ok, paginate, unauthorized } from '../respond';
 
 // Vertical ROTA mocks (docs/plans/phase-4-vertical-modules.md §4). ✔ = URL captured live; the
@@ -17,6 +18,14 @@ const groups = (path = '') => crm(`/public/v1/sub-apps/:subAppId/rota-groups/${p
 function guard(adminOnly = true) {
   if (!getDb().session.signedIn) return unauthorized();
   if (adminOnly && !currentPersona().isAdmin) return forbidden();
+  return null;
+}
+
+/** Admins see every practice; practice users only their own, and only with a practice given (phase 5). */
+export function guardPractice(practiceId: string | null) {
+  if (!getDb().session.signedIn) return unauthorized();
+  if (currentPersona().isAdmin) return null;
+  if (!practiceId || !visiblePractices().some((practice) => practice.id === practiceId)) return forbidden();
   return null;
 }
 
@@ -150,8 +159,8 @@ export const rotaHandlers = [
     const denied = guard();
     if (denied) return denied;
     const weekStart = mondayOf(new URL(request.url).searchParams.get('week_start') ?? dayjs().format('YYYY-MM-DD'));
-    const { practices, roles } = getDb();
-    const { shifts } = rotaWeek(people(), roles, weekStart);
+    const { practices } = getDb();
+    const { shifts } = weekWithChanges(weekStart);
     const result: RotaPractice[] = practices.map((practice) => {
       const hours = practice.operating_hours.filter((day) => day.practice_state === 'OPEN');
       const monday = practice.operating_hours.find((day) => day.day === 'MONDAY');
@@ -173,37 +182,26 @@ export const rotaHandlers = [
     return ok(result);
   }),
 
-  // ✔ Staff on the rota, with their hours for the week of `date`.
+  // ✔ Staff on the rota, with their hours for the week of `date`. `practice_id` (phase 5): that
+  // practice's rota people plus its other active staff.
   http.get(rota('available-staff'), ({ request }) => {
-    const denied = guard();
+    const query = new URL(request.url).searchParams;
+    const practiceId = query.get('practice_id');
+    const denied = guardPractice(practiceId);
     if (denied) return denied;
-    const date = new URL(request.url).searchParams.get('date') ?? dayjs().format('YYYY-MM-DD');
-    const { roles } = getDb();
-    const list = people();
-    const { shifts } = rotaWeek(list, roles, mondayOf(date));
-    const result: RotaStaff[] = list.map((person) => ({
-      id: person.staff.id,
-      name: `${person.staff.first_name} ${person.staff.last_name}`,
-      role_id: person.staff.role_id,
-      role_name: roles.find((role) => role.id === person.staff.role_id)?.name ?? '',
-      staff_type: person.staffType,
-      working_hours: person.pattern === 0 ? '09:00 - 17:00' : person.pattern === 1 ? '08:00 - 13:00' : '13:00 - 18:30',
-      total_hours: person.staffType === 'LOCUM' ? 20 : 40,
-      assigned_hours: shifts
-        .filter((shift) => shift.staff_id === person.staff.id)
-        .reduce((sum, shift) => sum + hoursBetween(shift.start_time, shift.end_time), 0),
-    }));
+    const date = query.get('date') ?? dayjs().format('YYYY-MM-DD');
+    const result: RotaStaff[] = assignableRotaStaff(practiceId, date);
     return ok(result);
   }),
 
   // ~ Shifts and gaps for a week, with the toolbar filters.
   http.get(rota('assignments'), ({ request }) => {
-    const denied = guard();
-    if (denied) return denied;
     const query = new URL(request.url).searchParams;
-    const { roles, rotaGroups } = getDb();
+    const denied = guardPractice(query.get('practice_id'));
+    if (denied) return denied;
+    const { rotaGroups } = getDb();
     const list = people();
-    const week = rotaWeek(list, roles, mondayOf(query.get('week_start') ?? dayjs().format('YYYY-MM-DD')));
+    const week = weekWithChanges(mondayOf(query.get('week_start') ?? dayjs().format('YYYY-MM-DD')));
     const group = rotaGroups.find((item) => item.id === query.get('rota_group_id'));
     const person = (staffId: string) => list.find((item) => item.staff.id === staffId);
     const keep = (staffId: string | null, practiceId: string | null) => {
@@ -212,7 +210,7 @@ export const rotaHandlers = [
       const who = person(staffId);
       if (query.get('staff_id') && staffId !== query.get('staff_id')) return false;
       if (query.get('role_id') && who?.staff.role_id !== query.get('role_id')) return false;
-      if (query.get('staff_type') && who?.staffType !== query.get('staff_type')) return false;
+      if (query.get('staff_type') && who && who.staffType !== query.get('staff_type')) return false;
       if (group && !group.staff_ids.includes(staffId)) return false;
       return true;
     };
@@ -228,16 +226,17 @@ export const rotaHandlers = [
 
   // ~ Staff activity for one day.
   http.get(crm('/activity/v1/sub-apps/:subAppId/staff-activity'), ({ request }) => {
-    const denied = guard();
-    if (denied) return denied;
     const query = new URL(request.url).searchParams;
+    const denied = guardPractice(query.get('practice_id'));
+    if (denied) return denied;
     const date = query.get('date') ?? dayjs().format('YYYY-MM-DD');
     const { roles, practices } = getDb();
     const search = query.get('search')?.trim().toLowerCase();
     const practiceName = practices.find((practice) => practice.id === query.get('practice_id'))?.practice_name;
     const scoped = activityFor(people(), roles, date)
       .filter((record) => !query.get('staff_id') || record.staff_id === query.get('staff_id'))
-      .filter((record) => !query.get('practice_id') || record.practice_name === practiceName);
+      .filter((record) => !query.get('practice_id') || record.practice_name === practiceName)
+      .filter((record) => !query.get('duty_type') || record.duty_type === query.get('duty_type'));
     const stats = {
       active: scoped.filter((record) => record.status === 'ACTIVE').length,
       inactive: scoped.filter((record) => record.status === 'INACTIVE').length,

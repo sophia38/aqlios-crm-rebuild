@@ -14,19 +14,24 @@ import { FilterBar } from '@/components/data/FilterBar';
 import { PracticeFilterSelect, type PracticeOption } from '@/components/data/PracticeFilterSelect';
 import { StatsStrip } from '@/components/data/StatsStrip';
 import { PUBLIC_SUB_APP_ID } from '@/lib/api/config';
-import { rotaApi } from '@/lib/api/rota';
-import type { RotaStaff, StaffActivityResponse } from '@/lib/api/types';
+import { DUTY_TYPE_LABELS, rotaApi } from '@/lib/api/rota';
+import type { DutyType, RotaStaff, StaffActivityResponse } from '@/lib/api/types';
 import { ActivityCard } from './components/ActivityCard';
 
-const EMPTY_FILTERS = { staff_id: '', status: '' };
+const EMPTY_FILTERS = { staff_id: '', status: '', duty_type: '' };
 
-/** Activity Tracker tab (docs/super-admin/06-rota-management.md, Tab 3). Times are 24-hour (live: 12-hour). */
-export function ActivityTrackerTab() {
+/**
+ * Activity Tracker tab (docs/super-admin/06-rota-management.md, Tab 3). Times are 24-hour (live:
+ * 12-hour). With `practice` (practice ROTA): no Practice filter or Practice Name row, and a Duty
+ * Type filter, as captured.
+ */
+export function ActivityTrackerTab({ practice: fixedPractice }: { practice?: PracticeOption } = {}) {
   const theme = useTheme();
   const { enqueueSnackbar } = useSnackbar();
   const [date, setDate] = useState(() => dayjs().format('YYYY-MM-DD'));
   const [filters, setFilters] = useState(EMPTY_FILTERS);
-  const [practice, setPractice] = useState<PracticeOption | null>(null);
+  const [pickedPractice, setPractice] = useState<PracticeOption | null>(null);
+  const practice = fixedPractice ?? pickedPractice;
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -41,11 +46,11 @@ export function ActivityTrackerTab() {
   useEffect(() => {
     const controller = new AbortController();
     rotaApi
-      .availableStaff(PUBLIC_SUB_APP_ID, date, controller.signal)
+      .availableStaff(PUBLIC_SUB_APP_ID, date, controller.signal, fixedPractice?.id)
       .then(setStaff)
       .catch(() => undefined);
     return () => controller.abort();
-  }, [date]);
+  }, [date, fixedPractice]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -104,8 +109,21 @@ export function ActivityTrackerTab() {
               { value: 'ON_LEAVE', label: 'On Leave' },
             ],
           },
+          ...(fixedPractice
+            ? [
+                {
+                  id: 'duty_type',
+                  label: 'Duty Type',
+                  allLabel: 'All',
+                  options: (Object.keys(DUTY_TYPE_LABELS) as DutyType[]).map((key) => ({
+                    value: key,
+                    label: DUTY_TYPE_LABELS[key],
+                  })),
+                },
+              ]
+            : []),
         ]}
-        values={{ ...filters, practice: practice?.id ?? '' }}
+        values={{ ...filters, practice: fixedPractice ? '' : (practice?.id ?? '') }}
         onChange={(id, value) => {
           setFilters((current) => ({ ...current, [id]: value }));
           setPage(0);
@@ -126,14 +144,16 @@ export function ActivityTrackerTab() {
           setPage(0);
         }}
       >
-        <PracticeFilterSelect
-          value={practice}
-          allLabel="All Practices"
-          onChange={(next) => {
-            setPractice(next);
-            setPage(0);
-          }}
-        />
+        {!fixedPractice && (
+          <PracticeFilterSelect
+            value={practice}
+            allLabel="All Practices"
+            onChange={(next) => {
+              setPractice(next);
+              setPage(0);
+            }}
+          />
+        )}
         <DatePicker
           label="Date"
           value={dayjs(date)}
@@ -174,7 +194,7 @@ export function ActivityTrackerTab() {
         ) : data && data.results.length > 0 ? (
           <Stack spacing={1.5} component="section" aria-label="Staff activity">
             {data.results.map((record) => (
-              <ActivityCard key={record.id} record={record} />
+              <ActivityCard key={record.id} record={record} showPractice={!fixedPractice} />
             ))}
           </Stack>
         ) : (

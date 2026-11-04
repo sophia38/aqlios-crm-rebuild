@@ -1,5 +1,7 @@
 # Practice · HRM → ROTA Management (and Activity Tracker)
 
+> Rebuilt in phase 5 (2026-11-04): `src/features/rota/PracticeRotaPage.tsx` and the shared ROTA tabs. Built notes are in `docs/plans/phase-5-practice-modules.md` (Progress).
+
 Captured 2026-10-27 in **Main Practice - Surgery** as super-admin. Nothing was assigned, edited, published or bid on; the Edit Assignment drawer was cancelled.
 Route: `/verticals/public/practices/{slug}/rota`. Tabs **are in the URL** here: `?module=shiftBidding`, `?module=activityTracker` (the vertical-level ROTA tabs are not).
 The sidebar items "ROTA Management" and "Activity Tracker" both open this page; Activity Tracker opens its tab.

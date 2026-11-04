@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
@@ -59,6 +59,10 @@ export interface WeekCalendarGridProps<E extends CalendarEvent = CalendarEvent> 
   renderEvent?: (event: E, options: { compact: boolean }) => React.ReactNode;
   /** Omit to leave out the ＋ Assign Staff targets (Appointment has no booking from a slot). */
   onSlotClick?: (date: string, time: string) => void;
+  /** Dragging down the ＋ column selects a time range (captured: live opens Assign Staff by dragging). */
+  onSlotRange?: (date: string, start: string, end: string) => void;
+  /** Past days ignore the ＋ targets, as live. */
+  disablePast?: boolean;
   onShiftClick?: (shift: Shift) => void;
   /** "+N more" in a crowded week column opens that day in Day view. */
   onShowDay: (date: string) => void;
@@ -79,6 +83,8 @@ export function WeekCalendarGrid<E extends CalendarEvent = CalendarEvent>({
   events = [],
   renderEvent,
   onSlotClick,
+  onSlotRange,
+  disablePast = false,
   onShiftClick,
   onShowDay,
   loading = false,
@@ -86,6 +92,24 @@ export function WeekCalendarGrid<E extends CalendarEvent = CalendarEvent>({
 }: WeekCalendarGridProps<E>) {
   const scroller = useRef<HTMLDivElement>(null);
   const today = dayjs().format('YYYY-MM-DD');
+  // The slot range being dragged, and whether the next click should be ignored (it ended a drag).
+  const [drag, setDrag] = useState<{ date: string; anchor: number; current: number } | null>(null);
+  const endedDrag = useRef(false);
+
+  useEffect(() => {
+    if (!drag) return;
+    const finish = () => {
+      if (drag.anchor !== drag.current && onSlotRange) {
+        const first = Math.min(drag.anchor, drag.current);
+        const last = Math.max(drag.anchor, drag.current);
+        endedDrag.current = true;
+        onSlotRange(drag.date, slotTime(first), last + 1 >= SLOTS ? '23:59' : slotTime(last + 1));
+      }
+      setDrag(null);
+    };
+    window.addEventListener('pointerup', finish);
+    return () => window.removeEventListener('pointerup', finish);
+  }, [drag, onSlotRange]);
   const now = dayjs().format('HH:mm');
   const single = days.length === 1;
   // Week columns fit two readable blocks side by side; Day view has room for more.
@@ -229,25 +253,51 @@ export function WeekCalendarGrid<E extends CalendarEvent = CalendarEvent>({
             >
               {/* ＋ Assign Staff targets, one per half hour */}
               {onSlotClick && (
-                <Box sx={{ position: 'absolute', left: 0, top: 0, width: PLUS_COL }}>
-                  {Array.from({ length: SLOTS }, (_, slot) => (
-                    <ButtonBase
-                      key={slot}
-                      aria-label={`Assign staff, ${dayLabel} ${slotTime(slot)}`}
-                      title="Assign Staff"
-                      onClick={() => onSlotClick(date, slotTime(slot))}
-                      sx={(theme) => ({
-                        display: 'flex',
-                        width: PLUS_COL,
-                        height: ROW,
-                        color: theme.palette.brand.dark,
-                        opacity: 0.35,
-                        '&:hover, &.Mui-focusVisible': { opacity: 1, bgcolor: theme.palette.brand.soft },
-                      })}
-                    >
-                      <Add sx={{ fontSize: 14 }} />
-                    </ButtonBase>
-                  ))}
+                <Box sx={{ position: 'absolute', left: 0, top: 0, width: PLUS_COL, touchAction: 'none' }}>
+                  {Array.from({ length: SLOTS }, (_, slot) => {
+                    const past = disablePast && date < today;
+                    const selected =
+                      drag?.date === date &&
+                      slot >= Math.min(drag.anchor, drag.current) &&
+                      slot <= Math.max(drag.anchor, drag.current);
+                    return (
+                      <ButtonBase
+                        key={slot}
+                        aria-label={`Assign staff, ${dayLabel} ${slotTime(slot)}`}
+                        title={past ? undefined : 'Assign Staff (drag to choose a time range)'}
+                        disabled={past}
+                        onPointerDown={(event) => {
+                          if (!onSlotRange || event.button !== 0) return;
+                          // Let the pointer move over other slots while dragging.
+                          (event.target as HTMLElement).releasePointerCapture?.(event.pointerId);
+                          setDrag({ date, anchor: slot, current: slot });
+                        }}
+                        onPointerEnter={() =>
+                          setDrag((current) =>
+                            current && current.date === date ? { ...current, current: slot } : current,
+                          )
+                        }
+                        onClick={() => {
+                          if (endedDrag.current) {
+                            endedDrag.current = false;
+                            return;
+                          }
+                          onSlotClick(date, slotTime(slot));
+                        }}
+                        sx={(theme) => ({
+                          display: 'flex',
+                          width: PLUS_COL,
+                          height: ROW,
+                          color: theme.palette.brand.dark,
+                          opacity: past ? 0 : selected ? 1 : 0.35,
+                          bgcolor: selected ? theme.palette.brand.soft : 'transparent',
+                          '&:hover, &.Mui-focusVisible': { opacity: 1, bgcolor: theme.palette.brand.soft },
+                        })}
+                      >
+                        <Add sx={{ fontSize: 14 }} />
+                      </ButtonBase>
+                    );
+                  })}
                 </Box>
               )}
               <Box sx={{ position: 'absolute', left: onSlotClick ? PLUS_COL + 2 : 4, right: 4, top: 0, bottom: 0 }}>

@@ -45,7 +45,7 @@ const DUTIES: DutyType[] = [
 ];
 
 /** England and Wales bank holidays in the demo's range. */
-const BANK_HOLIDAYS: Record<string, string> = {
+export const BANK_HOLIDAYS: Record<string, string> = {
   '2026-08-31': 'Summer bank holiday',
   '2026-12-25': 'Christmas Day',
   '2026-12-28': 'Boxing Day (substitute day)',
@@ -175,7 +175,7 @@ export function rotaWeek(people: RotaPerson[], roles: Role[], weekStart: string)
           date,
           start_time: '14:00',
           end_time: '17:00',
-          label: 'Published slot',
+          label: 'Published Slot for Bidding',
           practice_id: person.practice.id,
           staff_id: null,
         });

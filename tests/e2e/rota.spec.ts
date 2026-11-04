@@ -41,7 +41,7 @@ test.describe('rota management', () => {
     await expect(calendar(page).getByRole('button', { name: /^Assign staff, / })).toHaveCount(48);
   });
 
-  test('picking a practice enables Download Rota; staff view and phase 5 notes', async ({ page }) => {
+  test('picking a practice enables Download Rota; staff view and Assign Staff', async ({ page }) => {
     await logIn(page);
     await page.goto(ROTA);
     const download = page.getByRole('button', { name: 'Download Rota' });
@@ -55,13 +55,16 @@ test.describe('rota management', () => {
     const [file] = await Promise.all([page.waitForEvent('download'), download.click()]);
     expect(file.suggestedFilename()).toMatch(/^rota-.+-\d{4}-\d{2}-\d{2}\.csv$/);
 
+    // Phase 5: ＋ opens Assign Staff for the selected practice (past days are disabled, so use next week).
+    await page.getByRole('button', { name: 'Next week' }).click();
     await calendar(page)
       .getByRole('button', { name: /^Assign staff, / })
       .first()
       .click();
-    await expect(
-      page.getByText('This is rebuilt in phase 5, together with practice-level ROTA.').first(),
-    ).toBeVisible();
+    const drawer = page.getByRole('dialog', { name: 'Assign Staff' });
+    await expect(drawer.getByRole('radiogroup', { name: 'Available staff' })).toBeVisible();
+    await drawer.getByRole('button', { name: 'Cancel' }).click();
+    await expect(drawer).toBeHidden();
 
     await page.getByRole('tab', { name: 'Staff View' }).click();
     await expect(page.getByRole('paragraph').filter({ hasText: /^Staff View$/ })).toBeVisible();
