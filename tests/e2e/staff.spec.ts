@@ -1,4 +1,6 @@
+import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
+import * as XLSX from 'xlsx';
 
 const PRACTICE = '/verticals/public/practices/ashford-medical-centre';
 const STAFF = `${PRACTICE}/staff/`;
@@ -72,22 +74,52 @@ test.describe('staff management', () => {
     await expect(staffTable(page, 'Sent Invitations').getByRole('row').nth(1)).toContainText('Pending Invite');
   });
 
-  test('bulk imports a file with a valid and an invalid row', async ({ page }) => {
+  test('downloads the .xlsx template and imports a valid and an invalid row', async ({ page }) => {
     await logIn(page);
     await page.goto(STAFF);
     await page.getByRole('button', { name: 'Bulk Import Staff' }).click();
     const dialog = page.getByRole('dialog', { name: 'Bulk Import Staff' });
     const submit = dialog.getByRole('button', { name: 'Import Staff' });
     await expect(submit).toBeDisabled();
-    await expect(dialog.getByRole('button', { name: 'Download Template' })).toBeEnabled();
+
+    const downloading = page.waitForEvent('download');
+    await dialog.getByRole('button', { name: 'Download Template' }).click();
+    const download = await downloading;
+    expect(download.suggestedFilename()).toBe('aqlios_staff_import_template.xlsx');
+    const template = XLSX.read(readFileSync((await download.path())!), { type: 'buffer' });
+    expect(template.SheetNames).toEqual(['Staff', 'Guidance']);
+    expect(XLSX.utils.sheet_to_json<string[]>(template.Sheets.Staff, { header: 1 })[0]).toEqual([
+      'First Name',
+      'Last Name',
+      'Email',
+      'Role',
+      'Staff Type',
+    ]);
+
+    // A wrong file type is refused before upload.
     await dialog.locator('input[type="file"]').setInputFiles({
       name: 'staff.csv',
       mimeType: 'text/csv',
-      buffer: Buffer.from(
-        'First Name,Last Name,Email,Role,Staff Type\nKit,Importer,kit.importer@example.com,Nurse,Nurse\nNo,Email,,Nurse,Nurse\n',
-      ),
+      buffer: Buffer.from('First Name\n'),
     });
-    await expect(dialog.getByText('staff.csv')).toBeVisible();
+    await expect(dialog.getByText('Upload a .xlsx file.')).toBeVisible();
+
+    const book = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      book,
+      XLSX.utils.aoa_to_sheet([
+        ['First Name', 'Last Name', 'Email', 'Role', 'Staff Type'],
+        ['Kit', 'Importer', 'kit.importer@example.com', 'Nurse', 'Nurse'],
+        ['No', 'Email', '', 'Nurse', 'Nurse'],
+      ]),
+      'Staff',
+    );
+    await dialog.locator('input[type="file"]').setInputFiles({
+      name: 'staff.xlsx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      buffer: XLSX.write(book, { bookType: 'xlsx', type: 'buffer' }) as Buffer,
+    });
+    await expect(dialog.getByText('staff.xlsx')).toBeVisible();
     await submit.click();
     await expect(toast(page, '1 staff imported')).toBeVisible();
     await expect(dialog.getByRole('alert').filter({ hasText: 'needs fixing' })).toContainText(

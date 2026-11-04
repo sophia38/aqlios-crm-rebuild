@@ -136,14 +136,23 @@ export function BulkImportModal({
               <Typography sx={{ fontSize: 14, fontWeight: 600, overflowWrap: 'anywhere' }}>
                 {IMPORT_TEMPLATE_NAME}
               </Typography>
-              <Typography variant="caption">Includes the columns, sample rows and the valid role names.</Typography>
+              <Typography variant="caption">
+                Includes column guidance, sample rows and the list of valid roles.
+              </Typography>
             </Box>
             <Button
               variant="outlined"
               size="small"
               startIcon={<Download />}
               disabled={!info}
-              onClick={() => info && saveFile(buildTemplate(info.roles, info.staff_types), IMPORT_TEMPLATE_NAME)}
+              onClick={async () => {
+                if (!info) return;
+                try {
+                  saveFile(await buildTemplate(info.roles, info.staff_types), IMPORT_TEMPLATE_NAME);
+                } catch {
+                  enqueueSnackbar('Failed to create the template', { variant: 'error' });
+                }
+              }}
             >
               Download Template
             </Button>
@@ -164,7 +173,7 @@ export function BulkImportModal({
           <FileDropzone
             accept={IMPORT_ACCEPT}
             maxSize={IMPORT_MAX_BYTES}
-            label="Drag and drop your file here, or"
+            label="Drag and drop your Excel file here, or"
             helperText={`Supported format: ${IMPORT_FORMAT_LABEL}`}
             typeError={`Upload a ${IMPORT_FORMAT_LABEL} file.`}
             sizeError="The file must be 2MB or smaller."

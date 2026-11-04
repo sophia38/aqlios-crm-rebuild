@@ -34,7 +34,7 @@
 **Progress:** Staff on-boarding and Profile built (2026-11-04). Built notes:
 - Each demo practice lists its existing staff plus 22 fictional people over all 9 statuses (mostly invites). Details and documents are worked out from the person's id until saved. Mock database key `aqlios-mock-db-v10`.
 - The CQC dashboard now takes each person's status from their compliance documents, so the two always agree.
-- Bulk Import uses **CSV for now** (question 2, option B): installing SheetJS was blocked by a permission check and needs your OK. The file format is in one module (`src/features/staff/staffImportFile.ts`), so switching to `.xlsx` is a small change.
+- Bulk Import uses a real `.xlsx` file (question 2, option A): SheetJS **0.20.3**, installed from cdn.sheetjs.com and pinned (the npm copy is stuck at 0.18.5, which has known security issues). The template has a Staff sheet (header and 2 sample rows) and a Guidance sheet (column rules, valid roles and staff types). SheetJS loads only when the template is downloaded or a file is imported. The file format is in `src/features/staff/staffImportFile.ts`.
 - New components `FileDropzone` (with `LogoUploadDropzone` as its logo look), `PasswordField` (also on the login page) and `ComplianceDocumentRow`. Status tone for Pending Profile. No new tokens.
 - Archive and Unarchive are enabled (question 4). Approve/Reject on Pending Approval rows; Resend invite is a labelled ↻ button. Practice users can invite, with a practice-scoped role list (the vertical roles list is admin-only), and can read the competency list.
 - Leave entitlements are entered in days and stored in hours, using the person's contracted day length (question 3). Read-only on your own profile.
