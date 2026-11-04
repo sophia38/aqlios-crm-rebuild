@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useSnackbar } from 'notistack';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
@@ -40,8 +41,11 @@ type ConfirmKind = 'delete' | 'deactivate' | 'activate';
 const TAB_PARAM: Record<Tab, string | null> = { standard: null, staff: 'staff-created' };
 const EMPTY_FILTERS = { type: '', status: '', created_by: '' };
 
-/** Templates Library (docs/super-admin/10-template-library.md). Card-grid page in one white card. */
-export function TemplateLibraryPage() {
+/**
+ * Templates Library (docs/super-admin/10-template-library.md). Card-grid page in one white card.
+ * `embedded`: practice Settings → Templates (plan §8), inside the settings card, without the hub frame.
+ */
+export function TemplateLibraryPage({ embedded = false }: { embedded?: boolean } = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -209,171 +213,169 @@ export function TemplateLibraryPage() {
       },
     }[confirm.kind];
 
-  return (
-    <HubManagementLayout>
-      <ModulePageHeader icon={<DescriptionOutlined />} title="Templates Library" />
-      <Box
-        sx={(theme) => ({
-          bgcolor: 'background.paper',
-          border: `1px solid ${theme.tokens.border.medium}`,
-          borderRadius: `${theme.tokens.radius.card}px`,
-          p: { xs: 2, md: 3 },
-        })}
+  const library = (
+    <Stack spacing={2.5}>
+      {embedded && (
+        // As live (REBUILD-PLAN.md §8), practice users can change standard templates, which are shared.
+        <Alert severity="info">
+          These templates are shared by every practice. Changes made here apply to all practices.
+        </Alert>
+      )}
+      <Typography component="h2" sx={{ fontSize: 18, fontWeight: 700, color: 'text.primary' }}>
+        Communication Templates ({totals.standard + totals.staff})
+      </Typography>
+      <SegmentedTabs<Tab>
+        aria-label="Template scope"
+        tone="brand"
+        size="small"
+        value={tab}
+        onChange={changeTab}
+        items={[
+          { value: 'standard', label: 'Standard Templates' },
+          { value: 'staff', label: 'Staff Created Templates' },
+        ]}
+      />
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={2}
+        sx={{ alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between' }}
       >
-        <Stack spacing={2.5}>
-          <Typography component="h2" sx={{ fontSize: 18, fontWeight: 700, color: 'text.primary' }}>
-            Communication Templates ({totals.standard + totals.staff})
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <PersonOutline aria-hidden sx={{ color: 'primary.main' }} />
+          <Typography component="h3" sx={{ fontSize: 16, fontWeight: 600, color: 'text.primary' }}>
+            {tabLabel} ({tab === 'standard' ? totals.standard : totals.staff})
           </Typography>
-          <SegmentedTabs<Tab>
-            aria-label="Template scope"
-            tone="brand"
-            size="small"
-            value={tab}
-            onChange={changeTab}
-            items={[
-              { value: 'standard', label: 'Standard Templates' },
-              { value: 'staff', label: 'Staff Created Templates' },
-            ]}
-          />
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={2}
-            sx={{ alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between' }}
+        </Stack>
+        {tab === 'standard' && (
+          <Button
+            variant="contained"
+            color="brand"
+            startIcon={<AddCircleOutline />}
+            onClick={() => setDialog({ mode: 'create' })}
+            sx={(theme) => ({ borderRadius: `${theme.tokens.radius.pill}px`, px: 3 })}
           >
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <PersonOutline aria-hidden sx={{ color: 'primary.main' }} />
-              <Typography component="h3" sx={{ fontSize: 16, fontWeight: 600, color: 'text.primary' }}>
-                {tabLabel} ({tab === 'standard' ? totals.standard : totals.staff})
-              </Typography>
-            </Stack>
-            {tab === 'standard' && (
-              <Button
-                variant="contained"
-                color="brand"
-                startIcon={<AddCircleOutline />}
-                onClick={() => setDialog({ mode: 'create' })}
-                sx={(theme) => ({ borderRadius: `${theme.tokens.radius.pill}px`, px: 3 })}
-              >
-                Add Template
-              </Button>
-            )}
-          </Stack>
-          <FilterBar
-            hideLabel
-            filters={[
-              {
-                id: 'type',
-                label: 'Type',
-                allLabel: 'All Types',
-                options: (['MESSAGE', 'EMAIL', 'NOTE'] as const).map((value) => ({ value, label: TYPE_LABEL[value] })),
-              },
-              ...(tab === 'staff'
-                ? [
-                    {
-                      id: 'created_by',
-                      label: 'Created By',
-                      allLabel: 'Anyone',
-                      options: (data?.authors ?? []).map((author) => ({ value: author, label: author })),
-                    },
-                  ]
-                : []),
-              {
-                id: 'status',
-                label: 'Status',
-                allLabel: 'All Statuses',
-                options: (['ACTIVE', 'INACTIVE', 'DRAFT'] as const).map((value) => ({
-                  value,
-                  label: STATUS_LABEL[value],
-                })),
-              },
-            ]}
-            values={filters}
-            onChange={(id, value) => {
-              setLoading(true);
-              setFilters((current) => ({ ...current, [id]: value }));
-            }}
-            search={{
-              value: search,
-              onChange: (value) => {
-                setLoading(true);
-                setSearch(value);
-              },
-              placeholder: 'Search templates by name...',
-              label: 'Search',
-            }}
-            onClear={() => {
-              setLoading(true);
-              setSearch('');
-              setFilters(EMPTY_FILTERS);
-            }}
-          />
-          <TextField
-            select
-            label="Template Categories"
-            value={category}
-            onChange={(event) => {
-              setLoading(true);
-              setCategory(event.target.value);
-            }}
-            slotProps={{ select: { displayEmpty: true }, inputLabel: { shrink: true } }}
-          >
-            <MenuItem value="">All Categories</MenuItem>
-            {TEMPLATE_CATEGORIES.map((name) => (
-              <MenuItem key={name} value={name}>
-                {name}
-              </MenuItem>
-            ))}
-          </TextField>
+            Add Template
+          </Button>
+        )}
+      </Stack>
+      <FilterBar
+        hideLabel
+        filters={[
+          {
+            id: 'type',
+            label: 'Type',
+            allLabel: 'All Types',
+            options: (['MESSAGE', 'EMAIL', 'NOTE'] as const).map((value) => ({ value, label: TYPE_LABEL[value] })),
+          },
+          ...(tab === 'staff'
+            ? [
+                {
+                  id: 'created_by',
+                  label: 'Created By',
+                  allLabel: 'Anyone',
+                  options: (data?.authors ?? []).map((author) => ({ value: author, label: author })),
+                },
+              ]
+            : []),
+          {
+            id: 'status',
+            label: 'Status',
+            allLabel: 'All Statuses',
+            options: (['ACTIVE', 'INACTIVE', 'DRAFT'] as const).map((value) => ({
+              value,
+              label: STATUS_LABEL[value],
+            })),
+          },
+        ]}
+        values={filters}
+        onChange={(id, value) => {
+          setLoading(true);
+          setFilters((current) => ({ ...current, [id]: value }));
+        }}
+        search={{
+          value: search,
+          onChange: (value) => {
+            setLoading(true);
+            setSearch(value);
+          },
+          placeholder: 'Search templates by name...',
+          label: 'Search',
+        }}
+        onClear={() => {
+          setLoading(true);
+          setSearch('');
+          setFilters(EMPTY_FILTERS);
+        }}
+      />
+      <TextField
+        select
+        label="Template Categories"
+        value={category}
+        onChange={(event) => {
+          setLoading(true);
+          setCategory(event.target.value);
+        }}
+        slotProps={{ select: { displayEmpty: true }, inputLabel: { shrink: true } }}
+      >
+        <MenuItem value="">All Categories</MenuItem>
+        {TEMPLATE_CATEGORIES.map((name) => (
+          <MenuItem key={name} value={name}>
+            {name}
+          </MenuItem>
+        ))}
+      </TextField>
 
-          {loading ? (
-            <Grid container spacing={2} aria-busy="true" aria-label="Loading templates">
-              {Array.from({ length: 4 }, (_, index) => (
-                <Grid key={index} size={{ xs: 12, md: 6 }}>
-                  <Skeleton variant="rounded" height={150} />
+      {loading ? (
+        <Grid container spacing={2} aria-busy="true" aria-label="Loading templates">
+          {Array.from({ length: 4 }, (_, index) => (
+            <Grid key={index} size={{ xs: 12, md: 6 }}>
+              <Skeleton variant="rounded" height={150} />
+            </Grid>
+          ))}
+        </Grid>
+      ) : error ? (
+        <Stack spacing={1.5} sx={{ alignItems: 'center', py: 6 }}>
+          <Typography variant="body2" sx={{ color: 'error.main' }}>
+            Could not load templates.
+          </Typography>
+          <Button variant="outlined" onClick={reload}>
+            Try again
+          </Button>
+        </Stack>
+      ) : groups.length === 0 ? (
+        <Typography variant="body2" sx={{ textAlign: 'center', py: 6 }}>
+          No templates found. Try another search.
+        </Typography>
+      ) : (
+        groups.map((group) => (
+          <Box
+            key={group.name}
+            component="section"
+            aria-label={`${group.name} (${group.items.length})`}
+            sx={(theme) => ({
+              p: { xs: 1.5, md: 2 },
+              border: `1px solid ${theme.tokens.border.medium}`,
+              borderRadius: `${theme.tokens.radius.base}px`,
+            })}
+          >
+            <Typography component="h3" sx={{ fontSize: 16, fontWeight: 600, color: 'text.primary', mb: 1.5 }}>
+              {group.name} ({group.items.length})
+            </Typography>
+            <Grid container spacing={2}>
+              {group.items.map((template) => (
+                <Grid key={template.id} size={{ xs: 12, md: 6 }}>
+                  <TemplateCard template={template} actions={actionsFor(template)} />
                 </Grid>
               ))}
             </Grid>
-          ) : error ? (
-            <Stack spacing={1.5} sx={{ alignItems: 'center', py: 6 }}>
-              <Typography variant="body2" sx={{ color: 'error.main' }}>
-                Could not load templates.
-              </Typography>
-              <Button variant="outlined" onClick={reload}>
-                Try again
-              </Button>
-            </Stack>
-          ) : groups.length === 0 ? (
-            <Typography variant="body2" sx={{ textAlign: 'center', py: 6 }}>
-              No templates found. Try another search.
-            </Typography>
-          ) : (
-            groups.map((group) => (
-              <Box
-                key={group.name}
-                component="section"
-                aria-label={`${group.name} (${group.items.length})`}
-                sx={(theme) => ({
-                  p: { xs: 1.5, md: 2 },
-                  border: `1px solid ${theme.tokens.border.medium}`,
-                  borderRadius: `${theme.tokens.radius.base}px`,
-                })}
-              >
-                <Typography component="h3" sx={{ fontSize: 16, fontWeight: 600, color: 'text.primary', mb: 1.5 }}>
-                  {group.name} ({group.items.length})
-                </Typography>
-                <Grid container spacing={2}>
-                  {group.items.map((template) => (
-                    <Grid key={template.id} size={{ xs: 12, md: 6 }}>
-                      <TemplateCard template={template} actions={actionsFor(template)} />
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
-            ))
-          )}
-        </Stack>
-      </Box>
+          </Box>
+        ))
+      )}
+    </Stack>
+  );
 
+  const dialogs = (
+    <>
       <TemplateFormDialog
         open={Boolean(dialog)}
         mode={dialog?.mode ?? 'create'}
@@ -403,6 +405,31 @@ export function TemplateLibraryPage() {
         onClose={() => setConfirm(null)}
         onConfirm={runConfirm}
       />
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <>
+        {library}
+        {dialogs}
+      </>
+    );
+  }
+  return (
+    <HubManagementLayout>
+      <ModulePageHeader icon={<DescriptionOutlined />} title="Templates Library" />
+      <Box
+        sx={(theme) => ({
+          bgcolor: 'background.paper',
+          border: `1px solid ${theme.tokens.border.medium}`,
+          borderRadius: `${theme.tokens.radius.card}px`,
+          p: { xs: 2, md: 3 },
+        })}
+      >
+        {library}
+      </Box>
+      {dialogs}
     </HubManagementLayout>
   );
 }

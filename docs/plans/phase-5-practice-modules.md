@@ -66,6 +66,15 @@
 - Upload Policy: Formik + Yup, an MUI date picker, PDF or .docx up to 10 MB, and Upload disabled until valid (live: native date input, Upload enabled while empty). Buttons and headings use Title Case (live: "Upload policy", "Policy library").
 - Mock data: 6 fictional policies with numbered clauses, seeded per practice the first time its library is read (no database key change). Uploaded files are stored as names only, so the assistant can't quote them; a replaced file keeps the demo clauses.
 
+**Progress:** Practice Settings built (2026-11-04). Built notes:
+- The phase 4 `SettingsShell` with the 5 sections as path routes (`settings/{section}`), opening on the first. Breadcrumb `Settings / {Section}`. The vertical sections are reused with a `practiceId` prop; Templates reuses the Template Library with `embedded`.
+- Appointment Configuration: the vertical form with the practice's own values (captured: offered slots within 2 hours, no SMS reminder, email 2 hours before, same-day booking allowed). Saving changes this practice only. Subtitle "Manage appointment settings here." (live: capital A).
+- Competency: the vertical rows plus the practice's own (2 fictional ones seeded per practice: Respiratory, Childhood Immunisations). Practice users can't edit or delete vertical rows: ✎ and 🗑 are disabled with the captured tooltips, and the mock refuses them. Super-admins can still edit vertical rows from here (that changes them for the hub). The practice's own rows aren't listed in vertical Settings.
+- Pathway Configuration: a **Source** column (Same as Hub / Custom). Changing a channel saves an override for this practice and makes the row Custom; the hub row is untouched.
+- Templates: practice users can add, edit and delete standard templates, as live; a note on the page says the templates are shared by every practice.
+- Practice Profile stays the live placeholder.
+- Mock access: practice Settings calls, the template calls and the full role list (`is_paginated=false`, for role selects) are open to anyone who can see the practice; the paged Role Management list stays super-admin only. Practice settings are created the first time they're read (no database key change).
+
 Phase 5 replaces the 11 practice pages that still say "Rebuild in progress". The practice frame, dashboard banner, practice switcher, the 12 `coming-soon/*` pages and the 4 practice placeholders (Documents, Recruitment, Performance, Support, Notifications) were already built in phase 2 and stay as they are. It also fills in the four "rebuilt in phase 5" notes left in phase 4:
 - Assign Staff and shift click on the vertical ROTA
 - Create and Apply Rota Template

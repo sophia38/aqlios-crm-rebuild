@@ -48,3 +48,42 @@ export const settingsApi = {
       body: { [channel]: enabled },
     }),
 };
+
+// Practice Settings (docs/plans/phase-5-practice-modules.md §8), all inferred: the same shapes as
+// vertical Settings, scoped to the practice. Competencies include the vertical rows (`practice_id`
+// null); pathways carry `source`.
+const practiceBase = (subAppId: string, practiceId: string) => `${base(subAppId)}/practices/${practiceId}`;
+
+export const practiceSettingsApi = {
+  appointmentConfiguration: (subAppId: string, practiceId: string, signal?: AbortSignal) =>
+    crmRequest<GlobalAppointmentConfiguration>(`${practiceBase(subAppId, practiceId)}/appointment-configuration/`, {
+      signal,
+    }),
+  saveAppointmentConfiguration: (subAppId: string, practiceId: string, input: GlobalAppointmentConfiguration) =>
+    crmRequest<GlobalAppointmentConfiguration>(`${practiceBase(subAppId, practiceId)}/appointment-configuration/`, {
+      method: 'PUT',
+      body: input,
+    }),
+  competencies: (subAppId: string, practiceId: string, params: ListParams = {}, signal?: AbortSignal) =>
+    crmRequest<Paginated<Competency>>(`${practiceBase(subAppId, practiceId)}/competencies/`, { query: params, signal }),
+  createCompetency: (subAppId: string, practiceId: string, input: CompetencyInput) =>
+    crmRequest<Competency>(`${practiceBase(subAppId, practiceId)}/competencies/`, { method: 'POST', body: input }),
+  updateCompetency: (subAppId: string, practiceId: string, id: string, input: CompetencyInput) =>
+    crmRequest<Competency>(`${practiceBase(subAppId, practiceId)}/competencies/${id}/`, {
+      method: 'PATCH',
+      body: input,
+    }),
+  deleteCompetency: (subAppId: string, practiceId: string, id: string) =>
+    crmRequest<{ id: string }>(`${practiceBase(subAppId, practiceId)}/competencies/${id}/`, { method: 'DELETE' }),
+  pathways: (
+    subAppId: string,
+    practiceId: string,
+    params: { type?: string; status?: string; channel?: string; routing?: string; search?: string },
+    signal?: AbortSignal,
+  ) => crmRequest<Pathway[]>(`${practiceBase(subAppId, practiceId)}/pathways/`, { query: params, signal }),
+  setPathwayChannel: (subAppId: string, practiceId: string, id: string, channel: PathwayChannel, enabled: boolean) =>
+    crmRequest<Pathway>(`${practiceBase(subAppId, practiceId)}/pathways/${id}/channels/`, {
+      method: 'PATCH',
+      body: { [channel]: enabled },
+    }),
+};

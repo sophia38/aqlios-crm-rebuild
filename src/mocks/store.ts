@@ -43,6 +43,7 @@ import {
 } from './fixtures/settings';
 import { buildTemplates } from './fixtures/templates';
 import type { HrPolicyRecord } from './hrPolicyState';
+import type { PracticeSettingsRecord } from './practiceSettingsState';
 import type { LeaveRecord } from './leaveState';
 import type { RotaDemoState } from './rotaState';
 import { assignableStaff, buildTickets } from './fixtures/tickets';
@@ -95,6 +96,8 @@ export interface MockDb {
   leave: Record<string, LeaveRecord[]>;
   /** Practice id → HR policies, seeded the first time the practice's library is read (phase 5). */
   hrPolicies: Record<string, HrPolicyRecord[]>;
+  /** Practice id → its Settings (appointment configuration, own competencies, pathway overrides), created when first read (phase 5). */
+  practiceSettings: Record<string, PracticeSettingsRecord>;
 }
 
 function seed(): MockDb {
@@ -143,6 +146,7 @@ function seed(): MockDb {
     rota: { assignments: [], overrides: [], published: [], bids: {}, declines: {}, filled: {}, templates: [] },
     leave: {},
     hrPolicies: {},
+    practiceSettings: {},
     appointmentRequests: buildAppointmentRequests(
       practices.map((practice) => ({
         practice,
@@ -162,7 +166,12 @@ function load(): MockDb {
     // Copies saved before Leaves was built have no leave yet; it's seeded per practice when read.
     if (raw) {
       const saved = JSON.parse(raw) as MockDb;
-      return { ...saved, leave: saved.leave ?? {}, hrPolicies: saved.hrPolicies ?? {} };
+      return {
+        ...saved,
+        leave: saved.leave ?? {},
+        hrPolicies: saved.hrPolicies ?? {},
+        practiceSettings: saved.practiceSettings ?? {},
+      };
     }
   } catch {
     // Storage blocked or corrupt: fall back to fresh fixtures.

@@ -175,3 +175,10 @@ Base `/public/v1/sub-apps/{subAppId}/practices/{practiceId}/hr-policies/`. Types
 - `POST {title ≤120, category, owner_id?, effective_date?, description ≤500, file_name (.pdf/.docx), file_size ≤10 MB}` → the new policy, version 1. `POST {id}/replace/` (same body) → version + 1. `DELETE {id}/` → `{id}`. Managing is super-admin only in the mock.
 - `POST ask/ {question ≤1000}` → `{question, found, answer, sources: {policy_id, policy_title, section, heading, quote}[]}`.
 - The demo sends file names only (no upload).
+
+## Practice Settings (phase 5, all inferred)
+Base `/public/v1/sub-apps/{subAppId}/practices/{practiceId}/`. Client `practiceSettingsApi` in `src/lib/api/settings.ts`. Same shapes as vertical Settings.
+- `GET`/`PUT appointment-configuration/` → `GlobalAppointmentConfiguration` for the practice (same rules as the vertical one).
+- `GET competencies/?ordering&page&page_size` → the vertical rows (`practice_id: null`) and the practice's own (`practice_id` set). `POST competencies/` adds a practice row. `PATCH`/`DELETE competencies/{id}/`: practice rows by anyone with access; vertical rows by super-admins only (403 "Can be edited via vertical settings" / "Can be deleted via vertical settings").
+- `GET pathways/?type&status&channel&routing&search` → `Pathway[]` with `source: HUB|CUSTOM` and the practice's channels. `PATCH pathways/{id}/channels/ {channel: bool}` saves a practice override and returns the row as `CUSTOM`.
+- Templates use the vertical `templates/` endpoints (shared by every practice, as live).

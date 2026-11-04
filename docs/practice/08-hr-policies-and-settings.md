@@ -29,6 +29,9 @@ Centred dialog (~450px, 18px radius). **Upload policy** + ✕ (grey circle). "Ad
 - Footer: **Cancel** (outlined) · **Upload** (dark teal, **enabled even when the form is empty**).
 
 ## 2. Practice Settings
+
+> Rebuilt in phase 5 (2026-11-04): `src/features/settings/PracticeSettingsPage.tsx`, reusing the vertical sections. Built notes are in `docs/plans/phase-5-practice-modules.md` (Progress).
+
 Route `/settings` → **defaults to Competency**. Sections are **path routes** (`/settings/{section}`), unlike vertical Settings, which uses `?section=`.
 - No page header, breadcrumb or ⚙ title (the vertical Settings has them). Top bar "⚙ Settings".
 - Left nav card (white, floating shadow): Appointment Configuration · Competency · Pathway Configuration · Practice Profile · Templates. The active item is a bold pill with a light border.

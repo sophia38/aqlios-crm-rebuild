@@ -11,7 +11,7 @@ import { GroupedDataTable, type TableGroup } from '@/components/data/GroupedData
 import { StatusChip } from '@/components/data/StatusChip';
 import { AppSwitch } from '@/components/forms/AppSwitch';
 import { PUBLIC_SUB_APP_ID } from '@/lib/api/config';
-import { settingsApi } from '@/lib/api/settings';
+import { practiceSettingsApi, settingsApi } from '@/lib/api/settings';
 import type { Pathway, PathwayChannel } from '@/lib/api/types';
 
 const CHANNELS: { key: PathwayChannel; label: string }[] = [
@@ -25,8 +25,12 @@ const CHANNELS: { key: PathwayChannel; label: string }[] = [
 const STATUS_LABEL: Record<Pathway['status'], string> = { ACTIVE: 'Active', DRAFT: 'Draft', ARCHIVED: 'Archived' };
 const EMPTY_FILTERS = { type: '', status: '', channel: '', routing: '' };
 
-/** Pathway Configuration (docs/super-admin/09-settings.md §4). Channel switches save straight away. */
-export function PathwaySection() {
+/**
+ * Pathway Configuration (docs/super-admin/09-settings.md §4). Channel switches save straight away.
+ * With `practiceId` it's the practice's view (plan §8): a Source column (Same as Hub / Custom), and
+ * changing a channel makes that pathway Custom for this practice only.
+ */
+export function PathwaySection({ practiceId }: { practiceId?: string } = {}) {
   const { enqueueSnackbar } = useSnackbar();
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [search, setSearch] = useState('');
@@ -38,8 +42,11 @@ export function PathwaySection() {
 
   useEffect(() => {
     const controller = new AbortController();
-    settingsApi
-      .pathways(PUBLIC_SUB_APP_ID, { ...filters, search: search.trim() || undefined }, controller.signal)
+    const params = { ...filters, search: search.trim() || undefined };
+    (practiceId
+      ? practiceSettingsApi.pathways(PUBLIC_SUB_APP_ID, practiceId, params, controller.signal)
+      : settingsApi.pathways(PUBLIC_SUB_APP_ID, params, controller.signal)
+    )
       .then((result) => {
         setRows(result);
         setError(null);
@@ -51,7 +58,7 @@ export function PathwaySection() {
       })
       .finally(() => !controller.signal.aborted && setLoading(false));
     return () => controller.abort();
-  }, [filters, search, reloadKey, enqueueSnackbar]);
+  }, [practiceId, filters, search, reloadKey, enqueueSnackbar]);
 
   const setChannel = (pathway: Pathway, channel: PathwayChannel, enabled: boolean) => {
     const key = `${pathway.id}:${channel}`;
@@ -64,11 +71,16 @@ export function PathwaySection() {
     const label = CHANNELS.find((item) => item.key === channel)?.label ?? channel;
     apply(enabled);
     setSaving((current) => new Set(current).add(key));
-    settingsApi
-      .setPathwayChannel(PUBLIC_SUB_APP_ID, pathway.id, channel, enabled)
-      .then(() =>
-        enqueueSnackbar(`${label} turned ${enabled ? 'on' : 'off'} for ${pathway.name}`, { variant: 'success' }),
-      )
+    (practiceId
+      ? practiceSettingsApi.setPathwayChannel(PUBLIC_SUB_APP_ID, practiceId, pathway.id, channel, enabled)
+      : settingsApi.setPathwayChannel(PUBLIC_SUB_APP_ID, pathway.id, channel, enabled)
+    )
+      .then((saved) => {
+        // The practice view comes back as Custom.
+        if (practiceId)
+          setRows((current) => current.map((row) => (row.id === saved.id ? { ...row, source: saved.source } : row)));
+        enqueueSnackbar(`${label} turned ${enabled ? 'on' : 'off'} for ${pathway.name}`, { variant: 'success' });
+      })
       .catch(() => {
         apply(!enabled);
         enqueueSnackbar(`Failed to update ${label} for ${pathway.name}`, { variant: 'error' });
@@ -127,6 +139,21 @@ export function PathwaySection() {
         ),
     })),
     { id: 'routing', label: 'Routing', render: (row) => (row.routing === 'HUB' ? 'Hub' : 'Practice') },
+    ...(practiceId
+      ? [
+          {
+            id: 'source',
+            label: 'Source',
+            render: (row: Pathway) => (
+              <StatusChip
+                status={row.source === 'CUSTOM' ? 'Custom' : 'Same as Hub'}
+                tone={row.source === 'CUSTOM' ? 'info' : 'neutral'}
+                variant="outlined"
+              />
+            ),
+          },
+        ]
+      : []),
     {
       id: 'actions',
       label: 'Actions',

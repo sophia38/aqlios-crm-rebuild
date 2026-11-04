@@ -72,9 +72,12 @@ export const roleHandlers = [
 
   // ✔ Roles list (paged), or every role with `is_paginated=false`.
   http.get(roles(), ({ request }) => {
-    const denied = guard();
-    if (denied) return denied;
     const params = new URL(request.url).searchParams;
+    // Role selects need the names (practice users add competencies in practice Settings); the paged
+    // Role Management list stays super-admin only.
+    const denied =
+      params.get('is_paginated') === 'false' ? (getDb().session.signedIn ? null : unauthorized()) : guard();
+    if (denied) return denied;
     const search = params.get('search')?.trim().toLowerCase();
     const list = search
       ? rolesWithCounts().filter((role) => role.name.toLowerCase().includes(search))

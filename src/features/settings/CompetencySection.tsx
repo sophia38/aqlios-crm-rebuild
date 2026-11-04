@@ -21,10 +21,11 @@ import { DataTable, type DataTableColumn } from '@/components/data/DataTable';
 import { ConfirmDialog } from '@/components/modals/ConfirmDialog';
 import { FieldLabel, FormDrawer } from '@/components/modals/FormDrawer';
 import { PUBLIC_SUB_APP_ID } from '@/lib/api/config';
-import { settingsApi } from '@/lib/api/settings';
+import { practiceSettingsApi, settingsApi } from '@/lib/api/settings';
 import type { Competency, Role } from '@/lib/api/types';
 import { formatDate } from '@/lib/format';
 import { usePagedList, type PagedFetcher } from '@/lib/usePagedList';
+import { selectSession, useAppSelector } from '@/store';
 import { digits, useRoles } from './settingsShared';
 
 interface Values {
@@ -46,13 +47,22 @@ const schema = Yup.object({
     .test('one', 'Add at least one sub-type', (items) => Boolean(items?.some((item) => item?.trim()))),
 });
 
-/** Competency (docs/super-admin/09-settings.md §3): table, Add/Edit drawer and Delete confirm. */
-export function CompetencySection() {
+/**
+ * Competency (docs/super-admin/09-settings.md §3): table, Add/Edit drawer and Delete confirm. With
+ * `practiceId` it's the practice's Competency (plan §8): the vertical rows are listed too, and practice
+ * users can't edit or delete them (captured tooltips).
+ */
+export function CompetencySection({ practiceId }: { practiceId?: string } = {}) {
   const { enqueueSnackbar } = useSnackbar();
   const roles = useRoles();
+  const isAdmin = Boolean(useAppSelector(selectSession).user?.isAdmin);
+  const locked = (item: Competency) => Boolean(practiceId) && !item.practice_id && !isAdmin;
   const fetcher = useCallback<PagedFetcher<Competency>>(
-    (params, signal) => settingsApi.competencies(PUBLIC_SUB_APP_ID, params, signal),
-    [],
+    (params, signal) =>
+      practiceId
+        ? practiceSettingsApi.competencies(PUBLIC_SUB_APP_ID, practiceId, params, signal)
+        : settingsApi.competencies(PUBLIC_SUB_APP_ID, params, signal),
+    [practiceId],
   );
   const list = usePagedList(fetcher, {
     pageSize: 10,
@@ -83,25 +93,32 @@ export function CompetencySection() {
       align: 'center',
       render: (item) => (
         <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'center' }}>
-          <Tooltip title="Edit">
-            <IconButton
-              size="small"
-              aria-label={`Edit ${item.name}`}
-              onClick={() => setEditing({ competency: item })}
-              sx={{ color: 'primary.main' }}
-            >
-              <EditOutlined fontSize="small" />
-            </IconButton>
+          {/* The span lets the tooltip show on a disabled button. */}
+          <Tooltip title={locked(item) ? 'Can be edited via vertical settings' : 'Edit'}>
+            <span>
+              <IconButton
+                size="small"
+                aria-label={`Edit ${item.name}`}
+                disabled={locked(item)}
+                onClick={() => setEditing({ competency: item })}
+                sx={{ color: 'primary.main' }}
+              >
+                <EditOutlined fontSize="small" />
+              </IconButton>
+            </span>
           </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton
-              size="small"
-              aria-label={`Delete ${item.name}`}
-              onClick={() => setDeleting(item)}
-              sx={{ color: 'error.main' }}
-            >
-              <DeleteOutline fontSize="small" />
-            </IconButton>
+          <Tooltip title={locked(item) ? 'Can be deleted via vertical settings' : 'Delete'}>
+            <span>
+              <IconButton
+                size="small"
+                aria-label={`Delete ${item.name}`}
+                disabled={locked(item)}
+                onClick={() => setDeleting(item)}
+                sx={{ color: 'error.main' }}
+              >
+                <DeleteOutline fontSize="small" />
+              </IconButton>
+            </span>
           </Tooltip>
         </Stack>
       ),
@@ -112,7 +129,8 @@ export function CompetencySection() {
     if (!deleting) return;
     setBusy(true);
     try {
-      await settingsApi.deleteCompetency(PUBLIC_SUB_APP_ID, deleting.id);
+      if (practiceId) await practiceSettingsApi.deleteCompetency(PUBLIC_SUB_APP_ID, practiceId, deleting.id);
+      else await settingsApi.deleteCompetency(PUBLIC_SUB_APP_ID, deleting.id);
       enqueueSnackbar('Competency deleted successfully', { variant: 'success' });
       setDeleting(null);
       list.reload();
@@ -154,6 +172,7 @@ export function CompetencySection() {
       <CompetencyDrawer
         open={Boolean(editing)}
         competency={editing?.competency}
+        practiceId={practiceId}
         roles={roles}
         onClose={() => setEditing(null)}
         onSaved={() => {
@@ -177,12 +196,14 @@ export function CompetencySection() {
 function CompetencyDrawer({
   open,
   competency,
+  practiceId,
   roles,
   onClose,
   onSaved,
 }: {
   open: boolean;
   competency?: Competency;
+  practiceId?: string;
   roles: Role[];
   onClose: () => void;
   onSaved: () => void;
@@ -210,7 +231,11 @@ function CompetencyDrawer({
           sub_types: values.sub_types.map((item) => item.trim()).filter(Boolean),
         };
         try {
-          if (competency) await settingsApi.updateCompetency(PUBLIC_SUB_APP_ID, competency.id, input);
+          if (practiceId) {
+            if (competency)
+              await practiceSettingsApi.updateCompetency(PUBLIC_SUB_APP_ID, practiceId, competency.id, input);
+            else await practiceSettingsApi.createCompetency(PUBLIC_SUB_APP_ID, practiceId, input);
+          } else if (competency) await settingsApi.updateCompetency(PUBLIC_SUB_APP_ID, competency.id, input);
           else await settingsApi.createCompetency(PUBLIC_SUB_APP_ID, input);
           enqueueSnackbar(competency ? 'Competency updated successfully' : 'Competency created successfully', {
             variant: 'success',

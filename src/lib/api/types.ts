@@ -414,6 +414,8 @@ export interface Competency {
   sub_types: string[];
   staff_assigned: number;
   created_at: string;
+  /** Practice Settings only: set for the practice's own rows; null for rows defined in vertical Settings. */
+  practice_id?: string | null;
 }
 
 export type CompetencyInput = Pick<
@@ -431,6 +433,8 @@ export interface Pathway {
   status: 'ACTIVE' | 'DRAFT' | 'ARCHIVED';
   routing: 'HUB' | 'PRACTICE';
   channels: Record<PathwayChannel, boolean>;
+  /** Practice Settings only: `CUSTOM` once the practice changes a channel. */
+  source?: 'HUB' | 'CUSTOM';
 }
 
 // ---- ROTA (docs/super-admin/06-rota-management.md). URLs marked ✔ were captured; shapes inferred. ----

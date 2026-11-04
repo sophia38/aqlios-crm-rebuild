@@ -17,7 +17,7 @@ import { created, fail, forbidden, ok, order, paginate, unauthorized } from '../
 
 const settings = (path: string) => `*${CRM_API}/public/v1/sub-apps/:subAppId/${path}`;
 
-const CHANNELS: PathwayChannel[] = ['mobile_app', 'web_app', 'voice_agent', 'website', 'care_navigator'];
+export const CHANNELS: PathwayChannel[] = ['mobile_app', 'web_app', 'voice_agent', 'website', 'care_navigator'];
 
 function guard() {
   if (!getDb().session.signedIn) return unauthorized();
@@ -27,7 +27,7 @@ function guard() {
 
 const badHours = (days: DaySchedule[]) => days.some((day) => day.is_open && day.closing_time <= day.opening_time);
 
-function withRoleNames(competency: Competency): Competency {
+export function withRoleNames(competency: Competency): Competency {
   const { roles } = getDb();
   return {
     ...competency,
@@ -35,7 +35,7 @@ function withRoleNames(competency: Competency): Competency {
   };
 }
 
-function validateCompetency(input: Partial<CompetencyInput>) {
+export function validateCompetency(input: Partial<CompetencyInput>) {
   const errors: { field: string; message: string }[] = [];
   if (!String(input.name ?? '').trim()) errors.push({ field: 'name', message: 'Competency type name is required' });
   if (!input.role_ids?.length) errors.push({ field: 'role_ids', message: 'Select at least one role' });
@@ -46,6 +46,16 @@ function validateCompetency(input: Partial<CompetencyInput>) {
     errors.push({ field: 'sub_types', message: 'Add at least one sub-type' });
   }
   return errors;
+}
+
+/** The appointment configuration rules shared by vertical and practice Settings. */
+export function appointmentProblem(input: GlobalAppointmentConfiguration) {
+  if (input.offered_slot_hours < 1 || input.offered_slot_hours > 720) return 'Enter a number of hours from 1 to 720';
+  if (input.max_advance_booking_days < 1 || input.max_advance_booking_days > 365) {
+    return 'Enter a number of days from 1 to 365';
+  }
+  if (badHours(input.urgent_capacity)) return 'Closing time must be after opening time';
+  return null;
 }
 
 export const settingsHandlers = [
@@ -70,13 +80,8 @@ export const settingsHandlers = [
     const denied = guard();
     if (denied) return denied;
     const input = (await request.json()) as GlobalAppointmentConfiguration;
-    if (input.offered_slot_hours < 1 || input.offered_slot_hours > 720) {
-      return fail(400, 'Enter a number of hours from 1 to 720');
-    }
-    if (input.max_advance_booking_days < 1 || input.max_advance_booking_days > 365) {
-      return fail(400, 'Enter a number of days from 1 to 365');
-    }
-    if (badHours(input.urgent_capacity)) return fail(400, 'Closing time must be after opening time');
+    const problem = appointmentProblem(input);
+    if (problem) return fail(400, problem);
     getDb().globalAppointmentConfig = input;
     saveDb();
     return ok(input, 'Global appointment configuration updated successfully');

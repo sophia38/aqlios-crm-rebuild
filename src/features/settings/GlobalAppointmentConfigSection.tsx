@@ -26,7 +26,7 @@ import { RepeatableItemCard } from '@/components/forms/RepeatableItemCard';
 import { BOOKING_CHANNELS, EXTRA_APPOINTMENTS } from '@/features/practices/practiceForm';
 import { PUBLIC_SUB_APP_ID } from '@/lib/api/config';
 import { ApiError } from '@/lib/api/http';
-import { settingsApi } from '@/lib/api/settings';
+import { practiceSettingsApi, settingsApi } from '@/lib/api/settings';
 import type {
   AdditionalSlot,
   AdditionalSlotType,
@@ -107,17 +107,23 @@ const schema = Yup.object({
   ),
 });
 
-/** Global Appointment Configuration (docs/super-admin/09-settings.md §2). */
-export function GlobalAppointmentConfigSection() {
+/**
+ * Global Appointment Configuration (docs/super-admin/09-settings.md §2). With `practiceId` it's the
+ * practice's own Appointment Configuration (Practice Settings, phase 5 plan §8): same form, practice values.
+ */
+export function GlobalAppointmentConfigSection({ practiceId }: { practiceId?: string } = {}) {
   const { enqueueSnackbar } = useSnackbar();
+  const what = practiceId ? 'appointment configuration' : 'global appointment configuration';
   const [config, setConfig] = useState<GlobalAppointmentConfiguration | null>(null);
   const [failed, setFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
-    settingsApi
-      .appointmentConfiguration(PUBLIC_SUB_APP_ID, controller.signal)
+    (practiceId
+      ? practiceSettingsApi.appointmentConfiguration(PUBLIC_SUB_APP_ID, practiceId, controller.signal)
+      : settingsApi.appointmentConfiguration(PUBLIC_SUB_APP_ID, controller.signal)
+    )
       .then((result) => {
         setConfig(result);
         setFailed(false);
@@ -125,13 +131,13 @@ export function GlobalAppointmentConfigSection() {
       .catch(() => {
         if (controller.signal.aborted) return;
         setFailed(true);
-        enqueueSnackbar('Failed to load global appointment configuration', { variant: 'error' });
+        enqueueSnackbar(`Failed to load ${what}`, { variant: 'error' });
       });
     return () => controller.abort();
-  }, [reloadKey, enqueueSnackbar]);
+  }, [practiceId, what, reloadKey, enqueueSnackbar]);
 
   if (failed) {
-    return <LoadFailed what="global appointment configuration" onRetry={() => setReloadKey((key) => key + 1)} />;
+    return <LoadFailed what={what} onRetry={() => setReloadKey((key) => key + 1)} />;
   }
   if (!config) return <LoadingSpinner message="Loading configuration..." />;
 
@@ -141,16 +147,20 @@ export function GlobalAppointmentConfigSection() {
       validationSchema={schema}
       onSubmit={async (values, helpers) => {
         try {
-          const saved = await settingsApi.saveAppointmentConfiguration(PUBLIC_SUB_APP_ID, toConfig(values));
+          const saved = practiceId
+            ? await practiceSettingsApi.saveAppointmentConfiguration(PUBLIC_SUB_APP_ID, practiceId, toConfig(values))
+            : await settingsApi.saveAppointmentConfiguration(PUBLIC_SUB_APP_ID, toConfig(values));
           helpers.resetForm({ values: toValues(saved) });
-          enqueueSnackbar('Global appointment configuration updated successfully', { variant: 'success' });
-        } catch (error) {
           enqueueSnackbar(
-            error instanceof ApiError && error.code === 400
-              ? error.message
-              : 'Failed to save global appointment configuration',
-            { variant: 'error' },
+            practiceId
+              ? 'Appointment configuration updated successfully'
+              : 'Global appointment configuration updated successfully',
+            { variant: 'success' },
           );
+        } catch (error) {
+          enqueueSnackbar(error instanceof ApiError && error.code === 400 ? error.message : `Failed to save ${what}`, {
+            variant: 'error',
+          });
         }
       }}
     >

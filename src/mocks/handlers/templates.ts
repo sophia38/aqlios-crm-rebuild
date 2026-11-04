@@ -9,7 +9,7 @@ import {
 } from '@/lib/api/types';
 import { mockId } from '../fixtures/random';
 import { currentPersona, getDb, saveDb } from '../store';
-import { created, fail, forbidden, ok, unauthorized } from '../respond';
+import { created, fail, ok, unauthorized } from '../respond';
 
 // Template Library mocks (docs/plans/phase-4-vertical-modules.md §2). No template call was captured,
 // so every path and shape here is inferred.
@@ -19,9 +19,10 @@ const templates = (path = '') => `*${CRM_API}/public/v1/sub-apps/:subAppId/templ
 const MESSAGE_MAX = 300;
 const MOVE_BODY_MAX = 1000;
 
+// Practice users manage the same library from practice Settings → Templates, as live (REBUILD-PLAN.md
+// §8); the vertical Templates page itself is blocked for them by the frame.
 function guard() {
   if (!getDb().session.signedIn) return unauthorized();
-  if (!currentPersona().isAdmin) return forbidden();
   return null;
 }
 

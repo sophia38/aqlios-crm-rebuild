@@ -1,5 +1,6 @@
+import { Suspense } from 'react';
 import { PRACTICE_SETTINGS_SECTIONS } from '@/config/practiceSettings';
-import { PracticeSettingsInterim } from '@/features/shell/PracticeSettingsInterim';
+import { PracticeSettingsPage } from '@/features/settings/PracticeSettingsPage';
 
 export function generateStaticParams() {
   return PRACTICE_SETTINGS_SECTIONS.map(({ slug }) => ({ section: slug }));
@@ -7,5 +8,10 @@ export function generateStaticParams() {
 
 export default async function Page({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
-  return <PracticeSettingsInterim section={section} />;
+  // Templates keeps its tab in `?tab=`.
+  return (
+    <Suspense>
+      <PracticeSettingsPage section={section} />
+    </Suspense>
+  );
 }
