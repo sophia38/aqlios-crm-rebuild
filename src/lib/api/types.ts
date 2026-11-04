@@ -1297,3 +1297,101 @@ export interface RotaTemplateInput {
   end_date: string;
   include_bank_holidays: boolean;
 }
+
+// ---- Leaves (docs/practice/07-leaves-and-leaves-rota.md). Only the screens were captured. ----
+
+export const LEAVE_TYPES = [
+  'ANNUAL',
+  'SICK',
+  'MATERNITY',
+  'PATERNITY',
+  'BEREAVEMENT',
+  'EMERGENCY',
+  'COMPASSIONATE',
+  'TOIL',
+] as const;
+export type LeaveType = (typeof LEAVE_TYPES)[number];
+
+export const LEAVE_STATUSES = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'] as const;
+export type LeaveStatus = (typeof LEAVE_STATUSES)[number];
+
+export interface LeaveWarning {
+  kind: 'ROTA_CLASH' | 'LOW_BALANCE';
+  message: string;
+}
+
+/** Durations and balances are in hours; `day_hours` is the person's contracted day, for "X days (Y h)". */
+export interface LeaveRequest {
+  id: string;
+  practice_id: string;
+  staff_id: string;
+  staff_name: string;
+  role_id: string;
+  role_name: string;
+  leave_type: LeaveType;
+  start_date: string;
+  end_date: string;
+  duration_hours: number;
+  day_hours: number;
+  notes: string;
+  status: LeaveStatus;
+  requested_at: string;
+  updated_at: string;
+  decided_by: string | null;
+  rejection_reason: string | null;
+  /** What's left of this type in the leave year, before this request (null: no fixed entitlement). */
+  balance_hours: number | null;
+  warnings: LeaveWarning[];
+  /** The signed-in user's own request: they can't approve or reject it (phase 5 question 5). */
+  is_own: boolean;
+}
+
+export interface LeaveRequestListParams {
+  tab: 'requests' | 'history';
+  page: number;
+  page_size: number;
+  ordering?: string;
+  search?: string;
+  staff_id?: string;
+  role_id?: string;
+  leave_type?: string;
+  status?: string;
+}
+
+export interface MyLeaveListParams {
+  page: number;
+  page_size: number;
+  ordering?: string;
+  from?: string;
+  to?: string;
+  leave_type?: string;
+  status?: string;
+}
+
+export interface LeaveBalance {
+  leave_type: LeaveType;
+  /** null: no fixed entitlement. */
+  entitlement_hours: number | null;
+  taken_hours: number;
+  pending_hours: number;
+  remaining_hours: number | null;
+}
+
+/** Everything Apply For Leave needs to work out a duration from the dates. */
+export interface MyLeaveSummary {
+  day_hours: number;
+  /** Contracted hours on each weekday. */
+  schedule: Record<DayKey, number>;
+  bank_holidays: string[];
+  /** The leave year (1 January to 31 December). */
+  year: number;
+  balances: LeaveBalance[];
+}
+
+export interface LeaveApplyInput {
+  leave_type: LeaveType;
+  start_date: string;
+  end_date: string;
+  duration_hours: number;
+  notes: string;
+}

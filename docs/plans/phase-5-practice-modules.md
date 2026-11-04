@@ -50,6 +50,15 @@
 - Left out of the Assign Staff form: the Flexible Hrs. switch (no captured behaviour). Times use the browser's time input (24-hour in a UK locale).
 - Practice users can use the practice ROTA for their own practices (the phase 4 endpoints were admin-only).
 
+**Progress:** Leaves, and Leaves and ROTA built (2026-11-04). Built notes:
+- Leave Management keeps the tab in `?tab=history`. Leave Requests filters: Staff (searchable, everyone who can take leave here, including the super-admin) · Role · Leave Type · search. Leaves History: Staff · Role · Status (Approved, Rejected). Standard 10/25/50 rows per page.
+- Durations and balances are in hours and shown as "X days (Y h)" from the person's contracted day (question 3). A duration is the person's working hours between the dates, skipping bank holidays; Apply For Leave fills it in and it can be lowered for part days. The leave year is the calendar year; Balance is the entitlement minus approved leave of that type; types with no entitlement say "No fixed entitlement".
+- Warnings on pending requests: shifts the person has on the ROTA in the period (any practice), and going over the balance. Approving puts the leave on the ROTA: the person's shifts on those days become "{name} on leave" blocks at both levels.
+- Self-approval is blocked (question 5): Approve and Reject are disabled with a tooltip on your own requests, and the mock refuses them too.
+- Leaves and ROTA: 6 balance cards (days left, with hours, pending and "No fixed entitlement" underneath), From / To / Leave Type / Status filters (Cancelled added, since cancelled requests stay listed), the table with 👁 and Cancel request (captured copy), and **My Shifts** for this week and next with an Open ROTA link (question 8). Apply For Leave shows for practice users only, as live.
+- Apply For Leave: past start dates are allowed only for sick leave; overlapping your own pending or approved leave is refused.
+- Mock data: about 15 fictional requests per practice, seeded the first time a practice's leave is read (no database key change). Each practice's ROTA people can take leave there too, because the demo rota isn't tied to the staff lists. The practice-user persona works Tuesday and Thursday mornings at their first practice, so My Shifts has something to show.
+
 Phase 5 replaces the 11 practice pages that still say "Rebuild in progress". The practice frame, dashboard banner, practice switcher, the 12 `coming-soon/*` pages and the 4 practice placeholders (Documents, Recruitment, Performance, Support, Notifications) were already built in phase 2 and stay as they are. It also fills in the four "rebuilt in phase 5" notes left in phase 4:
 - Assign Staff and shift click on the vertical ROTA
 - Create and Apply Rota Template

@@ -1,5 +1,7 @@
 # Practice · HRM → Leaves, and Leaves and ROTA
 
+> Rebuilt in phase 5 (2026-11-04): `src/features/leave/`. Built notes are in `docs/plans/phase-5-practice-modules.md` (Progress).
+
 Captured 2026-10-27 in **Main Practice - Surgery** as super-admin. No leave was approved, rejected or requested.
 
 ## 1. Leaves (Leave Management): manager view

@@ -168,3 +168,15 @@ MUI defaults (xs 0, sm 600, md 900, lg 1200, xl 1536). Grid usage is mostly `xs:
 | `rota.practiceChip` | border `#C2410C`, bg `#FFEDD5` | Practice chip (rust outline, peach fill; approximated) |
 | `rota.activity` | Active Now `#2E7D32`, Inactive `#FFB400`, On Leave `#9C27B0`, strip `#F5F7FA` | Activity Tracker stats and chips |
 | `rota.shiftRadius` / `rota.swatchRadius` | `6` / `3` px | Shift card and legend swatch corners |
+
+## Leaves (`leave`, phase 5)
+| Token | Value | Use |
+|---|---|---|
+| `leave.type.ANNUAL` / `.TOIL` | `#2C7A7B` | Balance card value and icon (teal, captured) |
+| `leave.type.SICK` | `#DC2626` | Red, captured |
+| `leave.type.BEREAVEMENT` | `#6B7280` | Grey, captured |
+| `leave.type.COMPASSIONATE` | `#F97316` | Orange, captured |
+| `leave.type.MATERNITY` | `#9C27B0` | Purple, captured |
+| `leave.type.PATERNITY` / `.EMERGENCY` | `#0288D1` / `#C2410C` | Not captured; reuse the info and dark orange tones |
+| `leave.cardBg` | `#F5F5F5` | Grey balance card |
+

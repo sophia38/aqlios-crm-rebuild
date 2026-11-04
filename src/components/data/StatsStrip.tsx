@@ -5,9 +5,10 @@ import Typography from '@mui/material/Typography';
 
 export interface StatItem {
   label: string;
-  value: number;
+  /** Numbers are padded to two digits; text (leave balances) is shown as it is. */
+  value: number | string;
   color: string;
-  /** Small line under the label (CQC cards). */
+  /** Small line under the label (CQC cards, leave balances). */
   caption?: string;
   /** `pill` only: the icon in the white circle. */
   icon?: React.ReactNode;
@@ -72,11 +73,20 @@ export function StatsStrip({ items, variant = 'strip' }: { items: StatItem[]; va
                 {item.icon}
               </Box>
             )}
-            <Typography sx={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 500, color: 'text.primary' }}>
-              {item.label}
-            </Typography>
-            <Typography sx={{ fontSize: 28, fontWeight: 600, lineHeight: 1.2, color: item.color }}>
-              {String(item.value).padStart(2, '0')}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 500, color: 'text.primary' }}>{item.label}</Typography>
+              {item.caption && <Typography variant="caption">{item.caption}</Typography>}
+            </Box>
+            <Typography
+              sx={{
+                fontSize: typeof item.value === 'number' ? 28 : 20,
+                fontWeight: 600,
+                lineHeight: 1.2,
+                color: item.color,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {typeof item.value === 'number' ? String(item.value).padStart(2, '0') : item.value}
             </Typography>
           </Box>
         ))}
@@ -126,7 +136,7 @@ export function StatsStrip({ items, variant = 'strip' }: { items: StatItem[]; va
           <Box>
             <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>{item.label}</Typography>
             <Typography sx={{ fontSize: 34, fontWeight: 600, lineHeight: 1.2, color: 'text.primary' }}>
-              {String(item.value).padStart(2, '0')}
+              {typeof item.value === 'number' ? String(item.value).padStart(2, '0') : item.value}
             </Typography>
             {item.caption && <Typography variant="caption">{item.caption}</Typography>}
           </Box>

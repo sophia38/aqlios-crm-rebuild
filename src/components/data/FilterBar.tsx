@@ -39,6 +39,8 @@ export interface FilterBarProps {
   refreshing?: boolean;
   /** Custom filter controls after the selects, e.g. a server-searched practice picker. */
   children?: React.ReactNode;
+  /** Custom filter controls before the selects (Leaves: the searchable Staff filter comes first). */
+  leading?: React.ReactNode;
   /** Hide the "☰ Filters:" label (pages with only a search, e.g. the Roles List). */
   hideLabel?: boolean;
   /** Debounce for search, in ms (live CQC uses 400ms). */
@@ -59,6 +61,7 @@ export function FilterBar({
   refreshing = false,
   hideLabel = false,
   children,
+  leading,
   searchDebounceMs = 400,
 }: FilterBarProps) {
   const [draft, setDraft] = useState(search?.value ?? '');
@@ -100,6 +103,7 @@ export function FilterBar({
           Filters:
         </Typography>
       )}
+      {leading}
       {filters.map((filter) => (
         <TextField
           key={filter.id}

@@ -5,6 +5,7 @@ import { authHandlers } from './handlers/auth';
 import { complianceHandlers } from './handlers/compliance';
 import { crmHandlers } from './handlers/crm';
 import { failureHandlers } from './handlers/failures';
+import { leaveHandlers } from './handlers/leave';
 import { patientHandlers } from './handlers/patients';
 import { practiceHandlers } from './handlers/practices';
 import { roleHandlers } from './handlers/roles';
@@ -28,6 +29,7 @@ const handlers = [
   ...patientHandlers,
   ...ticketHandlers,
   ...appointmentHandlers,
+  ...leaveHandlers,
   ...staffHandlers,
   ...crmHandlers,
 ];

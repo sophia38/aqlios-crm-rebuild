@@ -14,7 +14,9 @@ import type {
   StaffType,
 } from '@/lib/api/types';
 import { BANK_HOLIDAYS, hoursBetween, rotaPeople, rotaWeek } from './fixtures/rota';
+import { roleForStaffType } from './fixtures/staff';
 import { PERSONAS } from './fixtures/users';
+import { approvedLeaveDays } from './leaveState';
 import { currentPersona, getDb } from './store';
 
 // Practice ROTA state (docs/plans/phase-5-practice-modules.md §5). The generated weekly rota stays
@@ -180,6 +182,42 @@ function publishedOccurrences(dates: string[]): RotaGap[] {
   );
 }
 
+/**
+ * The practice-user persona's own sessions, so Leaves and ROTA's "my shifts" has something to show:
+ * Tuesday and Thursday mornings at their first practice.
+ */
+function personaShifts(dates: string[]): Shift[] {
+  const persona = PERSONAS['practice-user'];
+  const { practices, roles } = getDb();
+  const practice = practices[persona.practiceIndexes?.[0] ?? -1];
+  if (!practice) return [];
+  const days: DayKey[] = ['TUESDAY', 'THURSDAY'];
+  return dates
+    .filter((date) => days.includes(dayKeyOf(date)) && !BANK_HOLIDAYS[date] && date >= SEED_SERIES_START)
+    .map((date) => ({
+      id: `shift-${persona.userId}-${date}`,
+      staff_id: persona.userId,
+      staff_name: `${persona.firstName} ${persona.lastName}`,
+      role_name: roleForStaffType(roles, 'GP').name,
+      staff_type: 'SALARIED' as const,
+      practice_id: practice.id,
+      practice_name: practice.practice_name,
+      date,
+      start_time: '08:30',
+      end_time: '13:00',
+      duty_type: 'AM_SESSION' as const,
+      series_id: `seed-${persona.userId}`,
+      recurring: true,
+      series_start_date: SEED_SERIES_START,
+      series_end_date: null,
+      repeat_days: days,
+      appointment_types: ['FACE_TO_FACE_SURGERY', 'TELEPHONE_OR_AUDIO'],
+      urgencies: ['ROUTINE', 'URGENT'],
+      break_start: '',
+      break_end: '',
+    }));
+}
+
 /** The week as shown: the generated rota with the demo's assignments, edits and slots laid over it. */
 export function weekWithChanges(weekStart: string): { shifts: Shift[]; gaps: RotaGap[] } {
   const { roles } = getDb();
@@ -198,9 +236,34 @@ export function weekWithChanges(weekStart: string): { shifts: Shift[]; gaps: Rot
     break_end: '',
   }));
   const added = rota().assignments.flatMap((record) => occurrences(record, dates));
-  const shifts = [...seedShifts, ...added].map(applyOverrides).filter((shift): shift is Shift => shift !== null);
+  const planned = [...seedShifts, ...personaShifts(dates), ...added]
+    .map(applyOverrides)
+    .filter((shift): shift is Shift => shift !== null);
+  // Approved leave (Leaves, phase 5 module 6) takes the person off the rota for those days.
+  const onLeave = approvedLeaveDays(dates);
+  const shifts = planned.filter((shift) => !onLeave.has(`${shift.staff_id}|${shift.date}`));
+  // The leave block shows at each practice the person would have worked that day.
+  const leaveGaps: RotaGap[] = planned
+    .filter((shift) => onLeave.has(`${shift.staff_id}|${shift.date}`))
+    .filter(
+      (shift, index, list) =>
+        list.findIndex(
+          (other) =>
+            other.staff_id === shift.staff_id && other.date === shift.date && other.practice_id === shift.practice_id,
+        ) === index,
+    )
+    .map((shift) => ({
+      id: `leave-request-${shift.staff_id}-${shift.practice_id}-${shift.date}`,
+      kind: 'leave' as const,
+      date: shift.date,
+      start_time: shift.start_time,
+      end_time: shift.end_time,
+      label: `${shift.staff_name} on leave`,
+      practice_id: shift.practice_id,
+      staff_id: shift.staff_id,
+    }));
   const { filled } = rota();
-  const gaps = [...seeded.gaps, ...publishedOccurrences(dates)]
+  const gaps = [...seeded.gaps, ...leaveGaps, ...publishedOccurrences(dates)]
     .filter((gap) => gap.kind !== 'published' || !filled[gap.id])
     .map((gap) =>
       gap.kind === 'published'

@@ -93,24 +93,5 @@ export function DateField<Values>({
   );
 }
 
-/** Weekly hours from the availability rows. */
-export function weeklyHours(availability: StaffDetail['account']['availability']) {
-  return Object.values(availability).reduce((total, day) => {
-    if (!day.open || !day.from || !day.to) return total;
-    const [fh, fm] = day.from.split(':').map(Number);
-    const [th, tm] = day.to.split(':').map(Number);
-    return total + Math.max(0, th * 60 + tm - (fh * 60 + fm)) / 60;
-  }, 0);
-}
-
-/** Hours in one working day, from the contracted week (7.5 when no hours are set). */
-export function dayLength(availability: StaffDetail['account']['availability']) {
-  const days = Object.values(availability).filter((day) => day.open && day.from && day.to).length;
-  const hours = weeklyHours(availability);
-  return days && hours ? hours / days : 7.5;
-}
-
-const round = (value: number) => Math.round(value * 100) / 100;
-
-/** "28 days (210 h)" (phase 5 question 3). */
-export const formatLeave = (hours: number, perDay: number) => `${round(hours / perDay)} days (${round(hours)} h)`;
+// Leave units live with the leave API, so the mocks and Leaves pages share them.
+export { dayLength, formatLeave, weeklyHours } from '@/lib/api/leave';

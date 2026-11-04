@@ -1,15 +1,12 @@
-'use client';
+import { Suspense } from 'react';
+import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
+import { LeaveManagementPage } from '@/features/leave/LeaveManagementPage';
 
-import AccessTimeOutlined from '@mui/icons-material/AccessTimeOutlined';
-import { InterimModulePage } from '@/features/shell/PlaceholderPages';
-
+// The tab lives in `?tab=`; reading search params needs a Suspense boundary in a static export.
 export default function Page() {
   return (
-    <InterimModulePage
-      title="Leave Management"
-      icon={AccessTimeOutlined}
-      phase={5}
-      spec="docs/practice/07-leaves-and-leaves-rota.md"
-    />
+    <Suspense fallback={<LoadingSpinner />}>
+      <LeaveManagementPage />
+    </Suspense>
   );
 }

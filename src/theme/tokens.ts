@@ -156,6 +156,23 @@ export const patient = {
   noteBorder: '#FFE7A3',
 } as const;
 
+// Leaves (docs/practice/07-leaves-and-leaves-rota.md): balance card value colours per leave type, on a
+// grey card. Captured: Annual/TOIL teal, Sick red, Bereavement grey, Compassionate orange, Maternity
+// purple; Paternity and Emergency weren't shown, so they reuse the info and dark orange tones.
+export const leave = {
+  type: {
+    ANNUAL: '#2C7A7B',
+    SICK: '#DC2626',
+    TOIL: '#2C7A7B',
+    BEREAVEMENT: '#6B7280',
+    COMPASSIONATE: '#F97316',
+    MATERNITY: '#9C27B0',
+    PATERNITY: '#0288D1',
+    EMERGENCY: '#C2410C',
+  },
+  cardBg: '#F5F5F5',
+} as const;
+
 export const radius = {
   base: 18, // theme.shape.borderRadius: paper, buttons, pickers
   input: 12,
@@ -193,6 +210,7 @@ export const tokens = {
   rota,
   template,
   patient,
+  leave,
   radius,
   shadow,
 } as const;

@@ -28,6 +28,7 @@ import {
   type StaffSeed,
 } from '../fixtures/staff';
 import { PERSONAS } from '../fixtures/users';
+import { people as rotaPeople } from '../rotaState';
 import { currentPersona, getDb, saveDb, visiblePractices } from '../store';
 import { created, fail, forbidden, ok, order, paginate, unauthorized } from '../respond';
 
@@ -232,6 +233,53 @@ function addInvite(practiceId: string, input: StaffInviteInput): StaffSeed {
   };
   db.staffSeeds.push(seed);
   return seed;
+}
+
+/** Someone who can take leave at a practice, with what the leave mocks need. */
+export interface LeavePerson {
+  id: string;
+  name: string;
+  role_id: string;
+  role_name: string;
+  availability: StaffDetail['account']['availability'];
+  entitlement: StaffDetail['leave'];
+}
+
+/**
+ * Who can take leave at a practice: its active staff, the people on its ROTA, and the super-admin
+ * (live: "aqlios admin" has leave requests, though super-admins aren't on the staff list).
+ */
+export function leavePeople(practiceId: string): LeavePerson[] {
+  const db = getDb();
+  const seen = new Set<string>();
+  const fromList = [...baseRecords(practiceId), personaRecord('super-admin', practiceId)]
+    .filter((base) => !seen.has(base.id) && Boolean(seen.add(base.id)))
+    .map((base) => ({ base, row: present(base) }))
+    .filter(({ base, row }) => row.status === 'ACTIVE' && !row.archived && !base.invitee)
+    .map(({ base, row }) => ({
+      id: base.id,
+      name: `${row.first_name} ${row.last_name}`.trim() || row.email,
+      role_id: row.role_id,
+      role_name: row.role_name,
+      account: base,
+    }));
+  const fromRota = rotaPeople()
+    .filter((person) => person.practice.id === practiceId && !seen.has(person.staff.id))
+    .map(({ staff }) => ({
+      id: staff.id,
+      name: `${staff.first_name} ${staff.last_name}`,
+      role_id: staff.role_id,
+      role_name: db.roles.find((role) => role.id === staff.role_id)?.name ?? '',
+      account: { ...staff, phone: phoneFor(staff.id) },
+    }));
+  return [...fromList, ...fromRota].map(({ account, ...person }) => {
+    const saved = db.staffProfiles[person.id] ?? {};
+    return {
+      ...person,
+      availability: saved.account?.availability ?? defaultAccount(account, true).availability,
+      entitlement: saved.leave ?? defaultLeave(),
+    };
+  });
 }
 
 export const staffHandlers = [
