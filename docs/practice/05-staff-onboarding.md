@@ -1,5 +1,7 @@
 # Practice · HRM → Staff on-boarding (Staff Management)
 
+> Rebuilt in phase 5 (2026-11-04): `src/features/staff/`. Built notes are in `docs/plans/phase-5-practice-modules.md` (Progress).
+
 Captured 2026-10-27 in **Main Practice - Surgery** as super-admin. No one was invited, imported, archived, locked or edited; both popups were cancelled.
 Route: `/verticals/public/practices/{slug}/staff` (sidebar label "Staff on-boarding"; top bar shows "👥 Staff").
 

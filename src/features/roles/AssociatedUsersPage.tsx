@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSnackbar } from 'notistack';
+import Link from 'next/link';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
@@ -20,6 +20,7 @@ import { GoBackLink } from '@/components/primitives/GoBackLink';
 import { PUBLIC_SUB_APP_ID } from '@/lib/api/config';
 import { ApiError } from '@/lib/api/http';
 import type { RoleUser, StaffStatus } from '@/lib/api/types';
+import { practiceSlug } from '@/lib/api/practiceManagement';
 import { usersApi } from '@/lib/api/users';
 import { usePagedList, type PagedFetcher } from '@/lib/usePagedList';
 import { ROLES_ICON } from './RolesListPage';
@@ -33,7 +34,6 @@ const STATUS_LABEL: Record<NonNullable<StaffStatus>, string> = {
 /** Associated Users List (docs/super-admin/05-roles-and-permissions.md §2). */
 export function AssociatedUsersPage({ roleId }: { roleId: string }) {
   const router = useRouter();
-  const { enqueueSnackbar } = useSnackbar();
   const [missing, setMissing] = useState(false);
   const [practice, setPractice] = useState<PracticeOption | null>(null);
 
@@ -111,20 +111,26 @@ export function AssociatedUsersPage({ roleId }: { roleId: string }) {
       id: 'actions',
       label: 'Actions',
       align: 'center',
-      render: (user) => (
-        <Tooltip title="View">
-          <IconButton
-            onClick={() =>
-              enqueueSnackbar('Staff details are rebuilt in phase 5, with Staff On-boarding.', { variant: 'info' })
-            }
-            aria-label={`View ${user.first_name} ${user.last_name}`}
-            size="small"
-            sx={{ color: 'primary.main' }}
-          >
-            <VisibilityOutlined fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      ),
+      // Opens the person's Staff Member Details in their first practice (phase 5, Staff on-boarding).
+      render: (user) => {
+        const home = user.practices[0];
+        return (
+          <Tooltip title={home ? 'View' : 'Not linked to a practice'}>
+            <span>
+              <IconButton
+                component={Link}
+                href={home ? `/verticals/public/practices/${practiceSlug(home.practice_name)}/staff/${user.id}` : '#'}
+                disabled={!home}
+                aria-label={`View ${user.first_name} ${user.last_name}`}
+                size="small"
+                sx={{ color: 'primary.main' }}
+              >
+                <VisibilityOutlined fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        );
+      },
     },
   ];
 

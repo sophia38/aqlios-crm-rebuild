@@ -31,6 +31,16 @@
 - Consultation Details is reused at `appointment/consultation-review/{id}` (crumb Appointment, Back returns to where it was opened). Previous Consultations from there stays under Tickets.
 - Date Range on Requests is a select (All dates, Today, Last 7 days, Last 30 days).
 
+**Progress:** Staff on-boarding and Profile built (2026-11-04). Built notes:
+- Each demo practice lists its existing staff plus 22 fictional people over all 9 statuses (mostly invites). Details and documents are worked out from the person's id until saved. Mock database key `aqlios-mock-db-v10`.
+- The CQC dashboard now takes each person's status from their compliance documents, so the two always agree.
+- Bulk Import uses **CSV for now** (question 2, option B): installing SheetJS was blocked by a permission check and needs your OK. The file format is in one module (`src/features/staff/staffImportFile.ts`), so switching to `.xlsx` is a small change.
+- New components `FileDropzone` (with `LogoUploadDropzone` as its logo look), `PasswordField` (also on the login page) and `ComplianceDocumentRow`. Status tone for Pending Profile. No new tokens.
+- Archive and Unarchive are enabled (question 4). Approve/Reject on Pending Approval rows; Resend invite is a labelled ↻ button. Practice users can invite, with a practice-scoped role list (the vertical roles list is admin-only), and can read the competency list.
+- Leave entitlements are entered in days and stored in hours, using the person's contracted day length (question 3). Read-only on your own profile.
+- Payroll Updates: an amount needs its reason and end date, and the other way round (live marks all six as required). Proof of Identity's "Choose Document" select isn't rebuilt.
+- Associated Users 👁 opens the person's Staff Member Details in their first practice.
+
 Phase 5 replaces the 11 practice pages that still say "Rebuild in progress". The practice frame, dashboard banner, practice switcher, the 12 `coming-soon/*` pages and the 4 practice placeholders (Documents, Recruitment, Performance, Support, Notifications) were already built in phase 2 and stay as they are. It also fills in the four "rebuilt in phase 5" notes left in phase 4:
 - Assign Staff and shift click on the vertical ROTA
 - Create and Apply Rota Template

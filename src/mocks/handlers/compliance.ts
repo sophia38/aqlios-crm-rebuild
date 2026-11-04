@@ -2,20 +2,14 @@ import { http } from 'msw/http';
 import { CRM_API } from '@/lib/api/config';
 import type { ComplianceRowApi, ComplianceStatus, ComplianceSummary } from '@/lib/api/types';
 import { isoDaysAgo } from '../fixtures/random';
+import { overallCompliance } from '../fixtures/staff';
+import { documentsFor } from './staff';
 import { currentPersona, getDb } from '../store';
 import { forbidden, ok, paginate, unauthorized } from '../respond';
 
 // CQC Compliance mock (docs/plans/phase-4-vertical-modules.md §5). The URL is from the live page's code;
-// the response shape is inferred. Rows are worked out from the staff, so nothing is stored.
-
-const STATUSES: [ComplianceStatus, number][] = [
-  ['ACTIVE', 45],
-  ['PENDING_UPLOAD', 20],
-  ['PENDING_VERIFICATION', 15],
-  ['REVERIFICATION_DUE', 8],
-  ['EXPIRED', 8],
-  ['REJECTED', 4],
-];
+// the response shape is inferred. Each row's status comes from that person's compliance documents
+// (phase 5, Staff on-boarding).
 
 function hash(text: string) {
   let value = 2166136261;
@@ -23,19 +17,11 @@ function hash(text: string) {
   return value >>> 0;
 }
 
-function statusFor(staffId: string): ComplianceStatus {
-  let roll = hash(`compliance:${staffId}`) % 100;
-  for (const [status, share] of STATUSES) {
-    if (roll < share) return status;
-    roll -= share;
-  }
-  return 'ACTIVE';
-}
-
 function rows(): ComplianceRowApi[] {
   const { staff, roles, practices } = getDb();
   return staff.map((member) => {
-    const status = statusFor(member.id);
+    // The same documents as the staff member's Compliance tab, so the two always agree.
+    const status = overallCompliance(documentsFor(member.id, member.status === 'PENDING_INVITE'));
     const roll = hash(`updated:${member.id}`);
     const practice = practices.find((item) => item.id === member.practice_ids[0]);
     return {

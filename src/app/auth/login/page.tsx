@@ -9,15 +9,12 @@ import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
-import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
 import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { PasswordField } from '@/components/forms/PasswordField';
 import { BrandLogo } from '@/components/primitives/BrandLogo';
 import { RETURN_TO_KEY } from '@/components/auth/AuthGate';
 import { DevRoleSwitcherSelect } from '@/components/dev/DevRoleSwitcher';
@@ -49,7 +46,6 @@ export default function LoginPage() {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const { status } = useAppSelector(selectSession);
-  const [showPassword, setShowPassword] = useState(false);
   const [persona, setPersona] = useState<DemoPersona>('super-admin');
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -132,29 +128,13 @@ export default function LoginPage() {
               helperText={fieldError('email')}
               disabled={formik.isSubmitting}
             />
-            <TextField
+            <PasswordField
               label="Password"
-              type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               {...formik.getFieldProps('password')}
               error={Boolean(fieldError('password'))}
               helperText={fieldError('password')}
               disabled={formik.isSubmitting}
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
-                        onClick={() => setShowPassword((value) => !value)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                },
-              }}
             />
             <Box sx={{ textAlign: 'right' }}>
               <Link

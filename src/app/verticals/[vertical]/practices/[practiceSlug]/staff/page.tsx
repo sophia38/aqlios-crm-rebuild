@@ -1,15 +1,12 @@
-'use client';
+import { Suspense } from 'react';
+import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
+import { StaffListPage } from '@/features/staff/StaffListPage';
 
-import PersonAddAltOutlined from '@mui/icons-material/PersonAddAltOutlined';
-import { InterimModulePage } from '@/features/shell/PlaceholderPages';
-
+// The tab lives in `?tab=`; reading search params needs a Suspense boundary in a static export.
 export default function Page() {
   return (
-    <InterimModulePage
-      title="Staff Management"
-      icon={PersonAddAltOutlined}
-      phase={5}
-      spec="docs/practice/05-staff-onboarding.md"
-    />
+    <Suspense fallback={<LoadingSpinner />}>
+      <StaffListPage />
+    </Suspense>
   );
 }

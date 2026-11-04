@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { Suspense, useSyncExternalStore } from 'react';
 import Box from '@mui/material/Box';
 import { AuthGate } from '@/components/auth/AuthGate';
 import { APPOINTMENT_CONSULTATION_PATH_PATTERN } from '@/features/appointments/appointmentRoutes';
@@ -13,6 +13,8 @@ import { AssociatedUsersPage } from '@/features/roles/AssociatedUsersPage';
 import { RoleFormPage } from '@/features/roles/RoleFormPage';
 import { ROLE_PATH_PATTERN } from '@/features/roles/rolesRoutes';
 import { HubFrame } from '@/features/shell/HubFrame';
+import { StaffDetailsPage } from '@/features/staff/StaffDetailsPage';
+import { STAFF_PATH_PATTERN } from '@/features/staff/staffRoutes';
 import { PracticeFrame } from '@/features/shell/PracticeFrame';
 import { ConsultationDetailsPage } from '@/features/tickets/ConsultationDetailsPage';
 import { PreviousConsultationsPage } from '@/features/tickets/PreviousConsultationsPage';
@@ -71,6 +73,19 @@ function fallbackFor(pathname: string): React.ReactNode | null {
       <AuthGate>
         <PracticeFrame vertical={vertical} slug={slug}>
           <ConsultationDetailsPage ticketId={ticketId} from="appointment" />
+        </PracticeFrame>
+      </AuthGate>
+    );
+  }
+  const staff = pathname.match(STAFF_PATH_PATTERN);
+  if (staff) {
+    const [, vertical, slug, staffId] = staff;
+    return (
+      <AuthGate>
+        <PracticeFrame vertical={vertical} slug={slug}>
+          <Suspense fallback={<LoadingSpinner />}>
+            <StaffDetailsPage staffId={staffId} />
+          </Suspense>
         </PracticeFrame>
       </AuthGate>
     );

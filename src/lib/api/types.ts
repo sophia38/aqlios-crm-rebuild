@@ -963,3 +963,210 @@ export interface AppointmentRequestSummary {
   approved_today: number;
   rejected_today: number;
 }
+
+// ---- Staff on-boarding and Profile (docs/practice/05-staff-onboarding.md). List URL captured; the rest inferred. ----
+
+/** The 9 captured Status filter values, in the live order. */
+export const PRACTICE_STAFF_STATUSES = [
+  'ACTIVE',
+  'INACTIVE',
+  'LOCKED',
+  'PENDING_INVITE',
+  'INVITATION_EXPIRED',
+  'RESENT_INVITE',
+  'PENDING_PROFILE',
+  'PENDING_APPROVAL',
+  'REJECTED',
+] as const;
+export type PracticeStaffStatus = (typeof PRACTICE_STAFF_STATUSES)[number];
+
+/** Invitations not yet accepted (Sent Invitations tab, Pending Invitations count). */
+export const STAFF_INVITE_STATUSES: PracticeStaffStatus[] = ['PENDING_INVITE', 'INVITATION_EXPIRED', 'RESENT_INVITE'];
+
+/** The 15 captured Staff Type options, as shown. */
+export const PRACTICE_STAFF_TYPES = [
+  'GP',
+  'ACP',
+  'FCP',
+  'Physiotherapist',
+  'ME',
+  'Nurse',
+  'NP',
+  'ANP',
+  'Pharmacist',
+  'Pharmacist technician',
+  'Prescription clerk',
+  'Reception',
+  'Administrative',
+  'MDT',
+  'Duty Team',
+] as const;
+export type PracticeStaffType = (typeof PRACTICE_STAFF_TYPES)[number];
+
+/** A Staff Management row. */
+export interface PracticeStaff {
+  id: string;
+  practice_id: string;
+  practice_name: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  role_id: string;
+  role_name: string;
+  staff_type: PracticeStaffType;
+  status: PracticeStaffStatus;
+  invited_at: string;
+  archived: boolean;
+  rota_group_names: string[];
+}
+
+export type StaffListTab = 'staff' | 'invitations' | 'archived';
+
+export interface StaffListParams {
+  page: number;
+  page_size: number;
+  tab?: StaffListTab;
+  status?: string;
+  staff_type?: string;
+  search?: string;
+  ordering?: string;
+}
+
+export interface StaffSummary {
+  total: number;
+  active: number;
+  pending_invitations: number;
+}
+
+export interface StaffInviteInput {
+  first_name: string;
+  last_name: string;
+  email: string;
+  role_id: string;
+  staff_type: PracticeStaffType;
+}
+
+/** `GET …/staff/bulk-import/` (URL captured; shape inferred). */
+export interface StaffImportInfo {
+  template_name: string;
+  roles: string[];
+  staff_types: string[];
+}
+
+export interface StaffImportResult {
+  created: number;
+  errors: { row: number; message: string }[];
+}
+
+export type DayKey = 'SUNDAY' | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY';
+
+export interface StaffEmergencyContact {
+  name: string;
+  relationship: string;
+  phone: string;
+}
+
+export interface StaffAccountDetails {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  date_of_birth: string;
+  spoken_language: string;
+  performers_list_number: string;
+  registration_number: string;
+  ppa_id: string;
+  smartcard_status: 'WAITING' | 'HAS_SMARTCARD' | '';
+  smartcard_number: string;
+  ni_number: string;
+  dbs_status: 'WAITING' | 'HAS_DBS' | '';
+  dbs_number: string;
+  dbs_issue_date: string;
+  dbs_level: 'STANDARD' | 'ENHANCED' | '';
+  dbs_update_service: 'YES' | 'NO' | '';
+  address_line_1: string;
+  address_line_2: string;
+  city: string;
+  postcode: string;
+  emergency_contacts: StaffEmergencyContact[];
+  rota_group_ids: string[];
+  contract_start: string;
+  contract_end: string;
+  ongoing_sla: boolean;
+  contract_type: 'LOCUM' | 'SALARIED' | '';
+  duty_types: DutyType[];
+  availability: Record<DayKey, { open: boolean; from: string; to: string }>;
+  employment_start: string;
+  employment_end: string;
+  leaving_reason: string;
+}
+
+/** Leave entitlements are stored in hours and shown as "X days (Y h)" (phase 5 question 3). */
+export interface StaffLeaveEntitlement {
+  annual_hours: number;
+  sick_hours: number;
+  other: { leave_type: string; hours: number }[];
+}
+
+export type StaffDocumentStatus = 'PENDING_UPLOAD' | 'PENDING_VERIFICATION' | 'VERIFIED' | 'REJECTED' | 'EXPIRED';
+
+export interface StaffDocument {
+  key: string;
+  group: string;
+  name: string;
+  required: boolean;
+  /** Training and indemnity certificates expire. */
+  has_expiry: boolean;
+  /** Registration documents are re-verified every year. */
+  reverification: boolean;
+  file_name: string | null;
+  added_at: string | null;
+  issue_date: string | null;
+  expiry_date: string | null;
+  reverification_due: string | null;
+  status: StaffDocumentStatus;
+  rejection_reason: string | null;
+}
+
+export interface StaffCompetencies {
+  inbox: string;
+  staff_type: string;
+  age_groups: string[];
+  items: { competency_id: string; date_completed: string; sub_types: string[] }[];
+}
+
+export type PayrollDocumentType = 'P45' | 'HMRC_STARTER_CHECKLIST' | 'TAX_CODE_UPDATE';
+export type PensionScheme = 'NONE' | 'NHS' | 'GP_SALARIED' | 'NEST';
+
+export interface StaffPayroll {
+  documents: {
+    type: PayrollDocumentType;
+    file_name: string | null;
+    added_at: string | null;
+    verified_at: string | null;
+    added_by: string | null;
+    status: 'PENDING_UPLOAD' | 'PENDING_VERIFICATION' | 'VERIFIED';
+  }[];
+  pension: PensionScheme | '';
+  deduction_amount: string;
+  deduction_reason: string;
+  deduction_end: string;
+  payment_amount: string;
+  payment_reason: string;
+  payment_end: string;
+}
+
+export interface StaffDetail extends PracticeStaff {
+  /** The signed-in user's own record (Profile). */
+  is_self: boolean;
+  account: StaffAccountDetails;
+  leave: StaffLeaveEntitlement;
+  competencies: StaffCompetencies;
+  payroll: StaffPayroll;
+  documents: StaffDocument[];
+}
+
+export type StaffDetailTab = 'account' | 'leave' | 'competencies' | 'payroll';
+
+export type StaffAction = 'lock' | 'unlock' | 'archive' | 'unarchive' | 'approve' | 'reject' | 'resend-invite';

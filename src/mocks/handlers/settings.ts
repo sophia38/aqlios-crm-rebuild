@@ -83,8 +83,8 @@ export const settingsHandlers = [
   }),
 
   http.get(settings('competencies/'), ({ request }) => {
-    const denied = guard();
-    if (denied) return denied;
+    // Anyone signed in can read the list (staff profiles show the Competency Mapping); only admins change it.
+    if (!getDb().session.signedIn) return unauthorized();
     const list = getDb().competencies.map(withRoleNames);
     return ok(paginate(request, order(request, list, '-created_at')));
   }),

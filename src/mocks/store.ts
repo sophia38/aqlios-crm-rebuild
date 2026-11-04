@@ -2,6 +2,9 @@ import type {
   AppointmentConfiguration,
   AppointmentRequest,
   AppointmentStatus,
+  PracticeStaffStatus,
+  StaffDetail,
+  StaffDocument,
   CommunicationTemplate,
   Competency,
   GlobalAppointmentConfiguration,
@@ -19,6 +22,7 @@ import type {
   TicketDetail,
   TicketLog,
 } from '@/lib/api/types';
+import { PRACTICE_STAFF_TYPES } from '@/lib/api/types';
 import {
   buildAppointmentConfiguration,
   buildOdsDirectory,
@@ -28,6 +32,7 @@ import {
 } from './fixtures/lookups';
 import { buildAppointmentRequests } from './fixtures/appointments';
 import { buildPatients } from './fixtures/patients';
+import { buildStaffSeeds, type StaffSeed } from './fixtures/staff';
 import { buildPractices, isUnconfiguredFixture } from './fixtures/practices';
 import { buildRotaGroupRecords, rotaPeople, type RotaGroupRecord } from './fixtures/rota';
 import {
@@ -43,7 +48,7 @@ import { buildRoles, buildStaff, PERSONAS, type PersonaId, type StaffMember } fr
 
 // In-browser mock database. Each visitor has their own copy in localStorage; "Reset demo data" restores the fixtures.
 // Bump the key when the shape changes so old copies are replaced instead of breaking.
-const STORAGE_KEY = 'aqlios-mock-db-v9';
+const STORAGE_KEY = 'aqlios-mock-db-v10';
 
 export interface MockDb {
   session: { signedIn: boolean; persona: PersonaId };
@@ -73,6 +78,14 @@ export interface MockDb {
   /** `{practiceId}:{appointmentId}` → a change made in the demo (appointments themselves are worked out per day). */
   appointmentChanges: Record<string, { status: AppointmentStatus; reason: string | null }>;
   appointmentRequests: AppointmentRequest[];
+  /** Staff-list people who aren't users elsewhere in the demo (fictional invites), plus new invites and imports. */
+  staffSeeds: StaffSeed[];
+  /** Staff id → list changes (lock, archive, approve, resend). */
+  staffChanges: Record<string, { status?: PracticeStaffStatus; archived?: boolean; invited_at?: string }>;
+  /** Staff id → saved tabs (details are worked out from the id until saved). */
+  staffProfiles: Record<string, Partial<Pick<StaffDetail, 'account' | 'leave' | 'competencies' | 'payroll'>>>;
+  /** Staff id → document key → saved document. */
+  staffDocuments: Record<string, Record<string, StaffDocument>>;
 }
 
 function seed(): MockDb {
@@ -114,6 +127,10 @@ function seed(): MockDb {
     tickets: ticketSeed.tickets,
     ticketLogs: ticketSeed.logs,
     appointmentChanges: {},
+    staffSeeds: buildStaffSeeds(practices, roles, PRACTICE_STAFF_TYPES),
+    staffChanges: {},
+    staffProfiles: {},
+    staffDocuments: {},
     appointmentRequests: buildAppointmentRequests(
       practices.map((practice) => ({
         practice,
