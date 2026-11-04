@@ -168,3 +168,10 @@ Base `/public/v1/sub-apps/{subAppId}/practices/{practiceId}/`. Types in `src/lib
 - `POST me/leave-requests/ {leave_type, start_date, end_date, duration_hours, notes ≤300}`: no past start except sick leave; the duration must fit the working hours in the dates; no overlap with your own pending or approved leave. `POST me/leave-requests/{id}/cancel/`: pending only.
 - The live app's paths weren't captured; the rebuild also scopes "my leave" to the practice (`…/practices/{id}/me/…`).
 
+## HR Policies (phase 5, all inferred)
+Base `/public/v1/sub-apps/{subAppId}/practices/{practiceId}/hr-policies/`. Types in `src/lib/api/types.ts`, client in `src/lib/api/hrPolicies.ts`.
+- `GET ?category&search&ordering&page&page_size` → paged `HrPolicy` `{id, title, category, owner_id, owner_name, effective_date, description, version, file_name, file_size, sections: {number, heading, text}[], uploaded_by, updated_at}`. Categories: STAFF_HANDBOOK, LEAVE, SICKNESS, FAMILY_LEAVE, EXPENSES, CONDUCT, GRIEVANCE, HEALTH_SAFETY, EQUALITY, OTHER.
+- `GET owners/` → `{id, name, role_name}[]` (the Owner select).
+- `POST {title ≤120, category, owner_id?, effective_date?, description ≤500, file_name (.pdf/.docx), file_size ≤10 MB}` → the new policy, version 1. `POST {id}/replace/` (same body) → version + 1. `DELETE {id}/` → `{id}`. Managing is super-admin only in the mock.
+- `POST ask/ {question ≤1000}` → `{question, found, answer, sources: {policy_id, policy_title, section, heading, quote}[]}`.
+- The demo sends file names only (no upload).

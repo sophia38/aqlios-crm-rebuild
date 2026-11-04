@@ -46,7 +46,7 @@ function useIsActive(basePath: string) {
   const pathname = usePathname().replace(/\/$/, '');
   const searchParams = useSearchParams();
   return (item: NavItem) => {
-    const target = `${basePath}${item.path}`;
+    const target = `${basePath}${item.activePath ?? item.path}`;
     const pathMatches = pathname === target || pathname.startsWith(`${target}/`);
     if (!pathMatches) return false;
     const [key, value] = item.query?.split('=') ?? [];

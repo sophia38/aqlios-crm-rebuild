@@ -3,6 +3,9 @@
 Captured 2026-10-27 in **Main Practice - Surgery** as super-admin. Nothing was uploaded, asked or saved.
 
 ## 1. HR Policies
+
+> Rebuilt in phase 5 (2026-11-04): `src/features/hr-policies/`. Built notes are in `docs/plans/phase-5-practice-modules.md` (Progress).
+
 Routes: `/hr-policies/ask` (default) and `/hr-policies/library`. **Tabs are real routes.**
 Breadcrumb `HRM / HR Policies / Ask HR` (or `/ Policy library`). Tab pills with icons: **Ask HR** · **Policy library** (active is dark teal).
 

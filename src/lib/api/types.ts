@@ -1395,3 +1395,80 @@ export interface LeaveApplyInput {
   duration_hours: number;
   notes: string;
 }
+
+// HR Policies (docs/practice/08-hr-policies-and-settings.md §1, plan §7). All inferred.
+
+/** The captured category chips, after "All". */
+export const HR_POLICY_CATEGORIES = [
+  'STAFF_HANDBOOK',
+  'LEAVE',
+  'SICKNESS',
+  'FAMILY_LEAVE',
+  'EXPENSES',
+  'CONDUCT',
+  'GRIEVANCE',
+  'HEALTH_SAFETY',
+  'EQUALITY',
+  'OTHER',
+] as const;
+export type HrPolicyCategory = (typeof HR_POLICY_CATEGORIES)[number];
+
+/** A numbered clause the assistant can quote. */
+export interface HrPolicySection {
+  number: string;
+  heading: string;
+  text: string;
+}
+
+export interface HrPolicy {
+  id: string;
+  practice_id: string;
+  title: string;
+  category: HrPolicyCategory;
+  owner_id: string | null;
+  owner_name: string | null;
+  /** YYYY-MM-DD. */
+  effective_date: string | null;
+  description: string;
+  version: number;
+  file_name: string;
+  file_size: number;
+  /** Empty for files uploaded in the demo: only the name is stored, so there's nothing to quote. */
+  sections: HrPolicySection[];
+  uploaded_by: string;
+  updated_at: string;
+}
+
+export interface HrPolicyListParams {
+  page: number;
+  page_size: number;
+  category?: string;
+  search?: string;
+  ordering?: string;
+}
+
+export interface HrPolicyInput {
+  title: string;
+  category: HrPolicyCategory;
+  owner_id: string | null;
+  effective_date: string | null;
+  description: string;
+  file_name: string;
+  file_size: number;
+}
+
+export interface HrAnswerSource {
+  policy_id: string;
+  policy_title: string;
+  section: string;
+  heading: string;
+  quote: string;
+}
+
+export interface HrAnswer {
+  question: string;
+  /** False when nothing in the practice's policies matched. */
+  found: boolean;
+  answer: string;
+  sources: HrAnswerSource[];
+}

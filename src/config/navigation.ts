@@ -49,6 +49,8 @@ export interface NavItem {
   path: string;
   /** Extra query string (Activity Tracker opens ROTA on its own tab). */
   query?: string;
+  /** Stays active anywhere under this path (HR Policies' tabs are routes under `/hr-policies`). Defaults to `path`. */
+  activePath?: string;
   status: ModuleStatus;
   /** Who sees the item. Defaults to everyone. */
   audience?: 'admin' | 'practice-user';
@@ -292,6 +294,7 @@ export const PRACTICE_NAV: NavSection[] = [
         label: 'HR Policies',
         icon: GavelOutlined,
         path: '/hr-policies/ask',
+        activePath: '/hr-policies',
         status: 'built',
         hiddenForPracticeUser: true,
       },

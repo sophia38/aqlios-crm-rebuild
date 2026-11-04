@@ -21,9 +21,15 @@ const toast = (page: Page, text: string) => page.getByText(text, { exact: true }
 const requests = (page: Page) => page.getByRole('table', { name: 'Leave Requests' });
 const rowWith = (page: Page, text: string) => requests(page).getByRole('row').filter({ hasText: text });
 
+/** Types into the date sections, and types again if a keystroke was lost (it happens under load). */
 async function typeDate(page: Page, label: RegExp, date: dayjs.Dayjs) {
-  await page.getByRole('group', { name: label }).getByRole('spinbutton', { name: 'Day' }).click();
-  await page.keyboard.type(date.format('DDMMYYYY'));
+  const group = page.getByRole('group', { name: label });
+  await expect(async () => {
+    // Focus rather than click: under load a click can land on the Year section.
+    await group.getByRole('spinbutton', { name: 'Day' }).focus();
+    await page.keyboard.type(date.format('DDMMYYYY'), { delay: 20 });
+    await expect(group.locator('input')).toHaveValue(date.format('DD/MM/YYYY'), { timeout: 1000 });
+  }).toPass({ timeout: 15_000 });
 }
 
 /** Monday next week: always in the future. */

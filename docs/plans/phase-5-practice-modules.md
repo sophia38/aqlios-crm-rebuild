@@ -59,6 +59,13 @@
 - Apply For Leave: past start dates are allowed only for sick leave; overlapping your own pending or approved leave is refused.
 - Mock data: about 15 fictional requests per practice, seeded the first time a practice's leave is read (no database key change). Each practice's ROTA people can take leave there too, because the demo rota isn't tied to the staff lists. The practice-user persona works Tuesday and Thursday mornings at their first practice, so My Shifts has something to show.
 
+**Progress:** HR Policies built (2026-11-04). Built notes:
+- Ask HR and Policy Library are routes (`hr-policies/ask`, `hr-policies/library`) under the breadcrumb `HRM / HR Policies / {tab}`. The sidebar's HR Policies stays highlighted on both (a new `activePath` on nav items). Still hidden from practice users, as live (question 9).
+- Ask HR (question 10): the suggested questions fill the composer; Enter sends and Shift+Enter adds a line; 0/1000; Send stays disabled while empty. The answer quotes the best one or two matching clauses and cites "Policy, section x.y" under the bubble. With no match: "I couldn't find this in your practice's policies." Matching is by keywords: at least half the question's words must appear in the clause. The conversation lasts until you leave the page.
+- Policy Library: the 11 category pills (single select), a table (Title with file name and size · Category · Owner · Effective Date · Version) with 👁 View, Replace and Delete. View lists the clauses Ask HR answers from. Replace takes a new file and raises the version. Delete uses the captured "Delete policy?" wording. Empty library and Ask HR use the captured empty states, with Upload Policy / Upload a Policy.
+- Upload Policy: Formik + Yup, an MUI date picker, PDF or .docx up to 10 MB, and Upload disabled until valid (live: native date input, Upload enabled while empty). Buttons and headings use Title Case (live: "Upload policy", "Policy library").
+- Mock data: 6 fictional policies with numbered clauses, seeded per practice the first time its library is read (no database key change). Uploaded files are stored as names only, so the assistant can't quote them; a replaced file keeps the demo clauses.
+
 Phase 5 replaces the 11 practice pages that still say "Rebuild in progress". The practice frame, dashboard banner, practice switcher, the 12 `coming-soon/*` pages and the 4 practice placeholders (Documents, Recruitment, Performance, Support, Notifications) were already built in phase 2 and stay as they are. It also fills in the four "rebuilt in phase 5" notes left in phase 4:
 - Assign Staff and shift click on the vertical ROTA
 - Create and Apply Rota Template

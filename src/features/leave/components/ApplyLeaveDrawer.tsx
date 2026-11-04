@@ -64,6 +64,9 @@ export function ApplyLeaveDrawer({
   const available = (start: string, end: string) =>
     workingHoursBetween(summary.schedule, summary.bank_holidays, start, end, perDay);
   const toHours = (duration: number | string, unit: Unit) => round(Number(duration) * (unit === 'DAYS' ? perDay : 1));
+  // While a year is typed the picker reports 0002, 0020, 0202: no duration until both years are complete.
+  const ready = (start: string, end: string) =>
+    Boolean(start && end && end >= start && dayjs(start).year() >= 1900 && dayjs(end).year() >= 1900);
 
   const schema = Yup.object({
     leave_type: Yup.string().required('Leave Type is required'),
@@ -84,7 +87,7 @@ export function ApplyLeaveDrawer({
       .moreThan(0, 'Duration must be more than 0')
       .test('fits', '', function check(value) {
         const { start_date: start, end_date: end, unit } = this.parent as Values;
-        if (!start || !end || end < start || value === undefined) return true;
+        if (!ready(start, end) || value === undefined) return true;
         const hours = available(start, end);
         if (!hours) return this.createError({ message: "You don't work on these dates" });
         return (
@@ -127,7 +130,7 @@ export function ApplyLeaveDrawer({
   const { start_date: start, end_date: end, unit } = values;
   const { setFieldValue } = formik;
   useEffect(() => {
-    if (!start || !end || end < start) return;
+    if (!ready(start, end)) return;
     const hours = workingHoursBetween(summary.schedule, summary.bank_holidays, start, end, perDay);
     void setFieldValue('duration', unit === 'DAYS' ? round(hours / perDay) : hours);
   }, [start, end, unit, summary, perDay, setFieldValue]);
@@ -146,10 +149,7 @@ export function ApplyLeaveDrawer({
   const requested = values.duration === '' ? 0 : toHours(values.duration, values.unit);
   const over = balance?.remaining_hours !== null && balance && requested > (balance.remaining_hours ?? 0);
   const durationError = fieldError(formik, 'duration');
-  const workable =
-    values.start_date && values.end_date && values.end_date >= values.start_date
-      ? available(values.start_date, values.end_date)
-      : null;
+  const workable = ready(values.start_date, values.end_date) ? available(values.start_date, values.end_date) : null;
   const close = () => {
     formik.resetForm();
     onClose();
