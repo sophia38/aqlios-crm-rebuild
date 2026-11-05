@@ -125,10 +125,17 @@ export const VERTICAL_NAV: NavSection[] = [
     title: 'COMPLIANCE',
     items: [
       {
-        id: 'cqc-compliance',
-        label: 'CQC Compliance',
+        id: 'compliance-dashboard',
+        label: 'Compliance Dashboard',
         icon: VerifiedOutlined,
         path: '/compliance-dashboard',
+        status: 'built',
+      },
+      {
+        id: 'cqc-compliance',
+        label: 'CQC Compliance',
+        icon: FactCheckOutlined,
+        path: '/cqc-compliance',
         status: 'built',
       },
     ],

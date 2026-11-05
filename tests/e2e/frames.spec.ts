@@ -21,7 +21,7 @@ test.describe('vertical frame', () => {
     await page.goto('/verticals/public/roles/');
     await page.getByRole('button', { name: 'Open menu' }).click();
     const nav = page.getByRole('navigation', { name: 'Main navigation' });
-    await expect(nav.getByRole('link')).toHaveCount(16);
+    await expect(nav.getByRole('link')).toHaveCount(17);
     await expect(nav.getByRole('link', { name: 'Role and Permissions' })).toHaveAttribute('aria-current', 'page');
 
     await page.keyboard.press('Escape');

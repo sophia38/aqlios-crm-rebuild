@@ -3,6 +3,7 @@ import { setupWorker } from 'msw/browser';
 import { appointmentHandlers } from './handlers/appointments';
 import { authHandlers } from './handlers/auth';
 import { complianceHandlers } from './handlers/compliance';
+import { cqcHandlers } from './handlers/cqc';
 import { crmHandlers } from './handlers/crm';
 import { failureHandlers } from './handlers/failures';
 import { hrPolicyHandlers } from './handlers/hrPolicies';
@@ -29,6 +30,7 @@ const handlers = [
   ...rotaHandlers,
   ...rotaPracticeHandlers,
   ...complianceHandlers,
+  ...cqcHandlers,
   ...patientHandlers,
   ...ticketHandlers,
   ...appointmentHandlers,

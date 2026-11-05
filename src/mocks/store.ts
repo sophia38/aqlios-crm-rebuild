@@ -42,6 +42,7 @@ import {
   buildPathways,
 } from './fixtures/settings';
 import { buildTemplates } from './fixtures/templates';
+import type { CqcRecord } from './cqcState';
 import type { HrPolicyRecord } from './hrPolicyState';
 import type { PracticeSettingsRecord } from './practiceSettingsState';
 import type { LeaveRecord } from './leaveState';
@@ -96,6 +97,8 @@ export interface MockDb {
   leave: Record<string, LeaveRecord[]>;
   /** Practice id → HR policies, seeded the first time the practice's library is read (phase 5). */
   hrPolicies: Record<string, HrPolicyRecord[]>;
+  /** Practice id → its CQC inspection-readiness tracker, seeded the first time it is read (phase 6). */
+  cqc: Record<string, CqcRecord>;
   /** Practice id → its Settings (appointment configuration, own competencies, pathway overrides), created when first read (phase 5). */
   practiceSettings: Record<string, PracticeSettingsRecord>;
 }
@@ -146,6 +149,7 @@ function seed(): MockDb {
     rota: { assignments: [], overrides: [], published: [], bids: {}, declines: {}, filled: {}, templates: [] },
     leave: {},
     hrPolicies: {},
+    cqc: {},
     practiceSettings: {},
     appointmentRequests: buildAppointmentRequests(
       practices.map((practice) => ({
@@ -170,6 +174,7 @@ function load(): MockDb {
         ...saved,
         leave: saved.leave ?? {},
         hrPolicies: saved.hrPolicies ?? {},
+        cqc: saved.cqc ?? {},
         practiceSettings: saved.practiceSettings ?? {},
       };
     }

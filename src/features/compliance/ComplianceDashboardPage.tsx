@@ -31,7 +31,7 @@ const EMPTY_SUMMARY: ComplianceSummary = {
 };
 
 /**
- * CQC Compliance dashboard (docs/super-admin/08-cqc-compliance.md). Built from the live page's code,
+ * Compliance Dashboard (docs/super-admin/08-cqc-compliance.md; the live app calls it CQC Compliance). Built from the live page's code,
  * which no role could open; super-admin can see it here, and a 401 never logs anyone out.
  */
 export function ComplianceDashboardPage() {
@@ -93,8 +93,8 @@ export function ComplianceDashboardPage() {
   ];
 
   return (
-    <HubManagementLayout hubManagementBreadcrumbs={[{ label: 'CQC Compliance' }, { label: 'Compliance Dashboard' }]}>
-      <ModulePageHeader icon={<VerifiedOutlined />} title="CQC Compliance" subtitle="Compliance Dashboard" />
+    <HubManagementLayout hubManagementBreadcrumbs={[{ label: 'Compliance' }, { label: 'Compliance Dashboard' }]}>
+      <ModulePageHeader icon={<VerifiedOutlined />} title="Compliance Dashboard" />
       <Stack spacing={2.5}>
         <StatsStrip
           variant="cards"

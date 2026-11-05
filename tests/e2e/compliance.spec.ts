@@ -14,11 +14,11 @@ async function logIn(page: Page, persona: 'super-admin' | 'practice-user' = 'sup
   await expect(page).toHaveURL(/\/verticals\//);
 }
 
-test.describe('cqc compliance dashboard', () => {
+test.describe('compliance dashboard', () => {
   test('super-admin sees the cards, table, filters and pagination', async ({ page }) => {
     await logIn(page);
     await page.goto(CQC);
-    await expect(page.getByRole('heading', { name: 'CQC Compliance' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Compliance Dashboard' })).toBeVisible();
     for (const label of [
       'Total Staff',
       'Compliant',

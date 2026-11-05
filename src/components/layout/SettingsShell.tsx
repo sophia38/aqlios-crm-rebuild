@@ -18,7 +18,8 @@ export interface SettingsShellProps {
   /** Section title and subtitle at the top of the content card. */
   title: string;
   subtitle?: string;
-  /** Regular weight for the title (live: Pathway Configuration). */
+  /** Accessible name of the left nav (default "Settings sections"). */
+  navLabel?: string;
   children: React.ReactNode;
 }
 
@@ -26,12 +27,20 @@ export interface SettingsShellProps {
  * Settings layout: left section nav and a white content card (COMPONENTS.md → SettingsShell,
  * docs/super-admin/09-settings.md). Below md the nav becomes a scrollable row of pills.
  */
-export function SettingsShell({ sections, active, hrefFor, title, subtitle, children }: SettingsShellProps) {
+export function SettingsShell({
+  sections,
+  active,
+  hrefFor,
+  title,
+  subtitle,
+  navLabel = 'Settings sections',
+  children,
+}: SettingsShellProps) {
   return (
     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2.5, alignItems: 'flex-start' }}>
       <Box
         component="nav"
-        aria-label="Settings sections"
+        aria-label={navLabel}
         sx={(theme) => ({
           width: { xs: '100%', md: 230 },
           flexShrink: 0,

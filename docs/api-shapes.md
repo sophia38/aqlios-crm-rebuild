@@ -182,3 +182,12 @@ Base `/public/v1/sub-apps/{subAppId}/practices/{practiceId}/`. Client `practiceS
 - `GET competencies/?ordering&page&page_size` → the vertical rows (`practice_id: null`) and the practice's own (`practice_id` set). `POST competencies/` adds a practice row. `PATCH`/`DELETE competencies/{id}/`: practice rows by anyone with access; vertical rows by super-admins only (403 "Can be edited via vertical settings" / "Can be deleted via vertical settings").
 - `GET pathways/?type&status&channel&routing&search` → `Pathway[]` with `source: HUB|CUSTOM` and the practice's channels. `PATCH pathways/{id}/channels/ {channel: bool}` saves a practice override and returns the row as `CUSTOM`.
 - Templates use the vertical `templates/` endpoints (shared by every practice, as live).
+
+## CQC Compliance (phase 6, all inferred)
+Base: `public/v1/sub-apps/{subAppId}/practices/{practiceId}/cqc/`. Admin only. Plan and rules: `docs/plans/phase-6-cqc-compliance.md`.
+- `GET summary/` → `{ areas: [{ area, label, total, complete, gaps, not_checked, high_risk, readiness, rating }], overall }`
+- `GET areas/{area}/checks/?page&page_size&ordering&group&status&risk&search` → paged checks plus `groups`. `PATCH checks/{id}/` (status, risk, evidence, due_date, completed_date, gap_action, owner, notes) returns the check; a Gap or In progress check gets or updates its `action_id`. 400 messages: "Risk is required", "Close action ACT-001 first…" and so on.
+- `GET survey-measures/` → paged measures plus `summary`; `PATCH survey-measures/{id}/` (practice_result, national_result, previous_result, action, owner). `difference`, `score`, `rating` and `change` are computed.
+- `GET/POST alerts/`, `PATCH alerts/{id}/` (the CAS register).
+- `GET actions/?status&priority&search&ordering`, `PATCH actions/{id}/`. Closing needs `completion_evidence` and `effectiveness_check`.
+
