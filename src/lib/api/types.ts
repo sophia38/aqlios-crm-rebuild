@@ -720,9 +720,21 @@ export interface HealthRecordFile {
   date_added: string;
 }
 
+/** Inferred: no medications call was captured. Fictional demo prescriptions. */
+export interface PatientMedication {
+  id: string;
+  name: string;
+  instructions: string;
+  /** e.g. "28 tablets", "1 inhaler". */
+  quantity: string;
+  last_issued: string;
+  status: 'ONGOING' | 'COMPLETED';
+}
+
 export interface PatientDetail extends Patient {
   notes: PatientNote[];
   health_records: HealthRecordFile[];
+  medications: PatientMedication[];
 }
 
 export interface PatientConsultation {

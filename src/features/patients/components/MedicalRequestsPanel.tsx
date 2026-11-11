@@ -13,66 +13,88 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
 import Close from '@mui/icons-material/Close';
-import FolderSharedOutlined from '@mui/icons-material/FolderSharedOutlined';
 import PictureAsPdfOutlined from '@mui/icons-material/PictureAsPdfOutlined';
-import QuestionAnswerOutlined from '@mui/icons-material/QuestionAnswerOutlined';
 import VisibilityOutlined from '@mui/icons-material/VisibilityOutlined';
 import { LabelValueList } from '@/components/data/LabelValueList';
 import { StatusChip } from '@/components/data/StatusChip';
 import { FormSectionCard } from '@/components/forms/FormSectionCard';
-import { SegmentedTabs } from '@/components/navigation/SegmentedTabs';
 import { usePracticeHref } from '@/features/practice/PracticeContext';
 import { PUBLIC_SUB_APP_ID } from '@/lib/api/config';
 import { patientsApi } from '@/lib/api/patients';
-import type { HealthRecordFile, PatientConsultation } from '@/lib/api/types';
+import type { HealthRecordFile, PatientConsultation, PatientMedication } from '@/lib/api/types';
 import { formatDate } from '@/lib/format';
-
-type RequestsTab = 'records' | 'consultations';
+import { MedicationList } from './MedicationList';
 
 /**
- * Medical Requests: Health Records (file rows with a viewer) and Consultations. Both are inferred:
- * the live calls failed or never returned during the capture (docs/practice/01-patients.md).
+ * Medical Requests tab of the patient profile: Consultations, Medications and Health Records as fixed cards. All
+ * three are inferred: the live calls failed or never returned during the capture (docs/practice/01-patients.md).
  */
-export function MedicalRequestsCard({
-  practiceId,
-  patientId,
+export function MedicalRequestsPanel({
+  consultations,
+  medications,
   records,
 }: {
-  practiceId: string;
-  patientId: string;
+  consultations: ConsultationsState;
+  medications: PatientMedication[];
   records: HealthRecordFile[];
 }) {
-  const [tab, setTab] = useState<RequestsTab>('records');
   const [viewing, setViewing] = useState<HealthRecordFile | null>(null);
-
   return (
-    <FormSectionCard title="Medical Requests">
-      <Stack spacing={2.5}>
-        <Box>
-          <SegmentedTabs<RequestsTab>
-            aria-label="Medical requests"
-            value={tab}
-            onChange={setTab}
-            items={[
-              { value: 'records', label: 'Health Records', icon: <FolderSharedOutlined /> },
-              { value: 'consultations', label: 'Consultations', icon: <QuestionAnswerOutlined /> },
-            ]}
+    <Stack spacing={2}>
+      <FormSectionCard
+        title={
+          <CountTitle
+            label="Consultations"
+            count={consultations.status === 'ready' ? consultations.items.length : null}
           />
-        </Box>
-        <Box role="tabpanel" aria-label={tab === 'records' ? 'Health Records' : 'Consultations'}>
-          {tab === 'records' ? (
-            <HealthRecordList records={records} onView={setViewing} />
-          ) : (
-            <ConsultationList practiceId={practiceId} patientId={patientId} />
-          )}
-        </Box>
-      </Stack>
+        }
+        collapsible={false}
+      >
+        <ConsultationList state={consultations} />
+      </FormSectionCard>
+      <FormSectionCard title={<CountTitle label="Medications" count={medications.length} />} collapsible={false}>
+        <MedicationList medications={medications} />
+      </FormSectionCard>
+      <FormSectionCard title={<CountTitle label="Health Records" count={records.length} />} collapsible={false}>
+        <HealthRecordList records={records} onView={setViewing} />
+      </FormSectionCard>
       <FileViewer file={viewing} onClose={() => setViewing(null)} />
-    </FormSectionCard>
+    </Stack>
   );
 }
 
-function HealthRecordList({
+function CountTitle({ label, count }: { label: string; count: number | null }) {
+  return (
+    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+      {label}
+      {count !== null && <StatusChip status={String(count)} tone="neutral" />}
+    </Box>
+  );
+}
+
+export type ConsultationsState =
+  { status: 'loading' } | { status: 'error' } | { status: 'ready'; items: PatientConsultation[] };
+
+/** Loads a patient's consultations once for the Overview and the Medical Requests tab. */
+export function usePatientConsultations(practiceId: string, patientId: string): ConsultationsState {
+  const { enqueueSnackbar } = useSnackbar();
+  const [state, setState] = useState<ConsultationsState>({ status: 'loading' });
+  useEffect(() => {
+    const controller = new AbortController();
+    patientsApi
+      .consultations(PUBLIC_SUB_APP_ID, practiceId, patientId, controller.signal)
+      .then((items) => setState({ status: 'ready', items }))
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        setState({ status: 'error' });
+        enqueueSnackbar('Failed to load consultations', { variant: 'error' });
+      });
+    return () => controller.abort();
+  }, [practiceId, patientId, enqueueSnackbar]);
+  return state;
+}
+
+export function HealthRecordList({
   records,
   onView,
 }: {
@@ -125,26 +147,9 @@ function HealthRecordList({
   );
 }
 
-function ConsultationList({ practiceId, patientId }: { practiceId: string; patientId: string }) {
-  const { enqueueSnackbar } = useSnackbar();
+/** Consultation rows linking to their tickets. `limit` shows only the most recent few (Overview). */
+export function ConsultationList({ state, limit }: { state: ConsultationsState; limit?: number }) {
   const practiceHref = usePracticeHref();
-  const [state, setState] = useState<
-    { status: 'loading' } | { status: 'error' } | { status: 'ready'; items: PatientConsultation[] }
-  >({ status: 'loading' });
-
-  useEffect(() => {
-    const controller = new AbortController();
-    patientsApi
-      .consultations(PUBLIC_SUB_APP_ID, practiceId, patientId, controller.signal)
-      .then((items) => setState({ status: 'ready', items }))
-      .catch(() => {
-        if (controller.signal.aborted) return;
-        setState({ status: 'error' });
-        enqueueSnackbar('Failed to load consultations', { variant: 'error' });
-      });
-    return () => controller.abort();
-  }, [practiceId, patientId, enqueueSnackbar]);
-
   if (state.status === 'loading') {
     return (
       <Box role="status" aria-label="Loading consultations" sx={{ display: 'grid', placeItems: 'center', py: 3 }}>
@@ -167,8 +172,8 @@ function ConsultationList({ practiceId, patientId }: { practiceId: string; patie
     );
   }
   return (
-    <Stack component="ul" spacing={1} sx={{ listStyle: 'none', m: 0, p: 0 }}>
-      {state.items.map((item) => (
+    <Stack component="ul" spacing={1.5} aria-label="Consultations" sx={{ listStyle: 'none', m: 0, p: 0 }}>
+      {state.items.slice(0, limit).map((item) => (
         <Stack key={item.id} component="li" direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box sx={{ flex: 1 }}>
             <Typography

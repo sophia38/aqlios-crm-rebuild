@@ -27,15 +27,20 @@ export function PatientNotesCard({
   notes,
   readOnly,
   onChange,
+  collapsible,
+  startAdding = false,
 }: {
   practiceId: string;
   patientId: string;
   notes: PatientNote[];
   readOnly: boolean;
   onChange: (notes: PatientNote[]) => void;
+  collapsible?: boolean;
+  /** Open the Add Note box on mount (Add Note on the profile Overview). */
+  startAdding?: boolean;
 }) {
   const { enqueueSnackbar } = useSnackbar();
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState(startAdding && !readOnly);
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<PatientNote | null>(null);
@@ -74,6 +79,7 @@ export function PatientNotesCard({
   return (
     <FormSectionCard
       title="Additional Notes"
+      collapsible={collapsible}
       actions={
         !readOnly && (
           <Button

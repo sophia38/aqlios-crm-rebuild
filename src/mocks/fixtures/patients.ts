@@ -4,11 +4,12 @@ import {
   type HealthRecordFile,
   type Patient,
   type PatientCarer,
+  type PatientMedication,
   type PatientNote,
   type Practice,
 } from '@/lib/api/types';
 import { DEMO_PRACTICE_INDEXES } from './practices';
-import { createRandom, isoDaysAgo, mockId, type Random } from './random';
+import { createRandom, DEMO_NOW, isoDaysAgo, mockId, type Random } from './random';
 
 // Fictional patients for the 3 demo practices (docs/plans/phase-5-practice-modules.md §1). NHS numbers
 // use the 999 test range, phone numbers the Ofcom drama range (07700 900xxx) and emails example.com,
@@ -276,4 +277,76 @@ export function buildPatients(practices: Practice[]): PatientSeed {
     }
   }
   return { patients, notes, healthRecords };
+}
+
+type MedicationSeed = Pick<PatientMedication, 'name' | 'instructions' | 'quantity'> & { course?: boolean };
+
+// Fictional prescriptions. Children get child formulations; a "course" is a finished one-off course.
+const CHILD_MEDICATIONS: MedicationSeed[] = [
+  {
+    name: 'Salbutamol 100micrograms/dose inhaler',
+    instructions: 'Two puffs when needed for wheeze, up to four times a day',
+    quantity: '1 inhaler',
+  },
+  {
+    name: 'Beclometasone 50micrograms/dose inhaler',
+    instructions: 'Two puffs twice a day, morning and evening',
+    quantity: '1 inhaler',
+  },
+  { name: 'Cetirizine 1mg/ml oral solution', instructions: 'Take 5ml once a day for hay fever', quantity: '200ml' },
+  { name: 'Emollient cream', instructions: 'Apply to dry skin twice a day', quantity: '500g' },
+  {
+    name: 'Amoxicillin 250mg/5ml oral suspension',
+    instructions: 'Take 5ml three times a day for 5 days',
+    quantity: '100ml',
+    course: true,
+  },
+];
+
+const ADULT_MEDICATIONS: MedicationSeed[] = [
+  {
+    name: 'Metformin 500mg tablets',
+    instructions: 'Take one tablet three times a day with meals',
+    quantity: '84 tablets',
+  },
+  { name: 'Atorvastatin 20mg tablets', instructions: 'Take one tablet at night', quantity: '28 tablets' },
+  { name: 'Ramipril 5mg capsules', instructions: 'Take one capsule once a day', quantity: '28 capsules' },
+  { name: 'Omeprazole 20mg capsules', instructions: 'Take one capsule before breakfast', quantity: '28 capsules' },
+  {
+    name: 'Levothyroxine 50micrograms tablets',
+    instructions: 'Take one tablet each morning before food',
+    quantity: '28 tablets',
+  },
+  { name: 'Sertraline 50mg tablets', instructions: 'Take one tablet once a day', quantity: '28 tablets' },
+  {
+    name: 'Amoxicillin 500mg capsules',
+    instructions: 'Take one capsule three times a day for 5 days',
+    quantity: '15 capsules',
+    course: true,
+  },
+];
+
+/** A patient's repeat and recent prescriptions, worked out from the id so they need no stored state. */
+export function medicationsFor(patient: Patient): PatientMedication[] {
+  let seed = 0;
+  for (const char of patient.id) seed = (Math.imul(seed, 31) + char.charCodeAt(0)) >>> 0;
+  const random = createRandom(seed);
+  const age = DEMO_NOW.getUTCFullYear() - new Date(patient.date_of_birth).getUTCFullYear();
+  const pool = age < 16 ? CHILD_MEDICATIONS : ADULT_MEDICATIONS;
+  // One in five patients has nothing on file.
+  const count = random.bool(0.2) ? 0 : random.int(2, 4);
+  const start = random.int(0, pool.length - 1);
+  return Array.from({ length: count }, (_, index): PatientMedication => {
+    const item = pool[(start + index) % pool.length];
+    return {
+      id: mockId(`medication:${patient.id}`, index),
+      name: item.name,
+      instructions: item.instructions,
+      quantity: item.quantity,
+      last_issued: isoDaysAgo(random.int(5, 90), 10),
+      status: item.course ? 'COMPLETED' : 'ONGOING',
+    };
+  }).sort((a, b) =>
+    a.status === b.status ? b.last_issued.localeCompare(a.last_issued) : a.status === 'ONGOING' ? -1 : 1,
+  );
 }

@@ -20,6 +20,11 @@ export interface SegmentedTabsProps<T extends string> {
   /** `primary`: dark-teal active tab (ROTA, Staff, HR Policies). `brand`: cyan active tab (Templates, Tickets). */
   tone?: 'primary' | 'brand';
   fullWidth?: boolean;
+  /**
+   * Links each tab to a panel with id `{idPrefix}-panel-{value}` (tab ids are `{idPrefix}-tab-{value}`), and turns
+   * on arrow-key switching with only the selected tab in the Tab order.
+   */
+  idPrefix?: string;
 }
 
 /** White pill container with pill tabs; the active tab is filled (COMPONENTS.md → SegmentedTabs). */
@@ -31,7 +36,16 @@ export function SegmentedTabs<T extends string>({
   size = 'medium',
   tone = 'primary',
   fullWidth = false,
+  idPrefix,
 }: SegmentedTabsProps<T>) {
+  const onKeyDown = (event: React.KeyboardEvent<HTMLElement>, index: number) => {
+    const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    if (!step || !idPrefix) return;
+    event.preventDefault();
+    const next = items[(index + step + items.length) % items.length];
+    onChange(next.value);
+    document.getElementById(`${idPrefix}-tab-${next.value}`)?.focus();
+  };
   return (
     <Box
       role="tablist"
@@ -47,13 +61,19 @@ export function SegmentedTabs<T extends string>({
         overflowX: 'auto',
       })}
     >
-      {items.map((item) => {
+      {items.map((item, index) => {
         const selected = item.value === value;
         return (
           <ButtonBase
             key={item.value}
             role="tab"
             aria-selected={selected}
+            {...(idPrefix && {
+              id: `${idPrefix}-tab-${item.value}`,
+              'aria-controls': `${idPrefix}-panel-${item.value}`,
+              tabIndex: selected ? 0 : -1,
+            })}
+            onKeyDown={(event) => onKeyDown(event, index)}
             onClick={() => onChange(item.value)}
             sx={(theme) => {
               const activeBg = tone === 'brand' ? theme.palette.brand.main : theme.palette.primary.main;

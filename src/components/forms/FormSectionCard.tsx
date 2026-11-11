@@ -20,6 +20,8 @@ export interface FormSectionCardProps {
   onExpandedChange?: (expanded: boolean) => void;
   /** Header actions next to the chevron, e.g. "Add Another POC". */
   actions?: React.ReactNode;
+  /** false: no chevron, always open (the tabbed patient profile). */
+  collapsible?: boolean;
   children: React.ReactNode;
 }
 
@@ -32,10 +34,11 @@ export function FormSectionCard({
   expanded,
   onExpandedChange,
   actions,
+  collapsible = true,
   children,
 }: FormSectionCardProps) {
   const [localOpen, setLocalOpen] = useState(defaultExpanded);
-  const open = expanded ?? localOpen;
+  const open = !collapsible || (expanded ?? localOpen);
   const contentId = useId();
   const toggle = () => {
     setLocalOpen(!open);
@@ -62,15 +65,17 @@ export function FormSectionCard({
           {title}
         </Typography>
         {actions}
-        <IconButton
-          onClick={toggle}
-          aria-expanded={open}
-          aria-controls={contentId}
-          aria-label={open ? 'Collapse section' : 'Expand section'}
-          size="small"
-        >
-          {open ? <ExpandLess /> : <ExpandMore />}
-        </IconButton>
+        {collapsible && (
+          <IconButton
+            onClick={toggle}
+            aria-expanded={open}
+            aria-controls={contentId}
+            aria-label={open ? 'Collapse section' : 'Expand section'}
+            size="small"
+          >
+            {open ? <ExpandLess /> : <ExpandMore />}
+          </IconButton>
+        )}
       </Box>
       <Collapse in={open} id={contentId}>
         <Divider />

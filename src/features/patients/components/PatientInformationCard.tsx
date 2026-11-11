@@ -55,12 +55,15 @@ export function PatientInformationCard({
   editing,
   onEditingChange,
   onSaved,
+  variant = 'field',
 }: {
   practiceId: string;
   patient: PatientDetail;
   editing: boolean;
   onEditingChange: (editing: boolean) => void;
   onSaved: (patient: PatientDetail) => void;
+  /** `text`: plain label and value pairs in a fixed card (tabbed profile). Editing still shows the form. */
+  variant?: 'field' | 'text';
 }) {
   const { enqueueSnackbar } = useSnackbar();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -86,14 +89,20 @@ export function PatientInformationCard({
 
   if (!editing) {
     const value = (name: FieldName) => patientFormValues(patient)[name];
+    const plain = variant === 'text';
+    // Plain pairs sit in a description list with only column gaps; each pair draws its own rule.
+    const list = plain
+      ? ({ component: 'dl', spacing: 0, columnSpacing: 3.5, sx: { m: 0 } } as const)
+      : ({ spacing: 2.5 } as const);
     return (
       <Box ref={cardRef} sx={{ scrollMarginTop: (theme) => theme.spacing(10) }}>
         <FormSectionCard
           title="Patient Information"
+          collapsible={!plain}
           actions={<Box sx={{ display: { xs: 'none', sm: 'block' } }}>{badge}</Box>}
         >
           <Box sx={{ display: { xs: 'block', sm: 'none' }, mb: 2 }}>{badge}</Box>
-          <Grid container spacing={2.5}>
+          <Grid container {...list}>
             {(
               [
                 ['First Name', value('first_name')],
@@ -111,12 +120,14 @@ export function PatientInformationCard({
               ] as const
             ).map(([label, text]) => (
               <Grid key={label} size={{ xs: 12, sm: 6, md: 4 }}>
-                <ReadOnlyField label={label} value={text} />
+                <ReadOnlyField label={label} value={text} variant={variant} />
               </Grid>
             ))}
-            <Grid size={12}>
-              <SubHeading>Address</SubHeading>
-            </Grid>
+          </Grid>
+          <Box sx={{ mt: 2.5 }}>
+            <SubHeading>Address</SubHeading>
+          </Box>
+          <Grid container {...list} sx={{ m: 0, mt: plain ? 0.5 : 2 }}>
             {(
               [
                 ['Street Address', value('street_address')],
@@ -126,7 +137,7 @@ export function PatientInformationCard({
               ] as const
             ).map(([label, text]) => (
               <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
-                <ReadOnlyField label={label} value={text} />
+                <ReadOnlyField label={label} value={text} variant={variant} />
               </Grid>
             ))}
           </Grid>
@@ -150,7 +161,15 @@ export function PatientInformationCard({
         }
       }}
     >
-      {(formik) => <EditForm formik={formik} cardRef={cardRef} badge={badge} onCancel={() => onEditingChange(false)} />}
+      {(formik) => (
+        <EditForm
+          formik={formik}
+          cardRef={cardRef}
+          badge={badge}
+          collapsible={variant === 'field'}
+          onCancel={() => onEditingChange(false)}
+        />
+      )}
     </Formik>
   );
 }
@@ -159,11 +178,13 @@ function EditForm({
   formik,
   cardRef,
   badge,
+  collapsible,
   onCancel,
 }: {
   formik: FormikProps<PatientFormValues>;
   cardRef: React.RefObject<HTMLDivElement | null>;
   badge: React.ReactNode;
+  collapsible: boolean;
   onCancel: () => void;
 }) {
   const error = (name: FieldName) => (formik.touched[name] && formik.errors[name]) || undefined;
@@ -211,6 +232,7 @@ function EditForm({
     >
       <FormSectionCard
         title="Patient Information"
+        collapsible={collapsible}
         hasError={formik.submitCount > 0 && !formik.isValid}
         actions={
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>

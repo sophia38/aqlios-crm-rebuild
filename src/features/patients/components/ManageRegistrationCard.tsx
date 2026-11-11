@@ -36,11 +36,13 @@ export function ManageRegistrationCard({
   patient,
   readOnly,
   onSaved,
+  collapsible,
 }: {
   practiceId: string;
   patient: PatientDetail;
   readOnly: boolean;
   onSaved: (patient: PatientDetail) => void;
+  collapsible?: boolean;
 }) {
   const { enqueueSnackbar } = useSnackbar();
   const initialValues = {
@@ -70,7 +72,7 @@ export function ManageRegistrationCard({
       }}
     >
       {(formik) => (
-        <FormSectionCard title="Manage Registration">
+        <FormSectionCard title="Manage Registration" collapsible={collapsible}>
           <Box component="form" noValidate onSubmit={formik.handleSubmit}>
             <Grid container spacing={2.5}>
               <Grid size={{ xs: 12, md: 4 }}>

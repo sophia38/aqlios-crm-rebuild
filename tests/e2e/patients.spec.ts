@@ -22,8 +22,16 @@ async function openFirstPatient(page: Page) {
   const view = page.getByRole('link', { name: /^View / }).first();
   const name = ((await view.getAttribute('aria-label')) ?? '').replace(/^View /, '');
   await view.click();
-  await expect(page.getByRole('heading', { name: 'Patient Details' })).toBeVisible();
+  await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
   return name;
+}
+
+/** Opens a section tab of the patient profile. */
+async function openTab(page: Page, name: string) {
+  await page
+    .getByRole('tablist', { name: 'Patient profile sections' })
+    .getByRole('tab', { name: new RegExp(`^${name}`) })
+    .click();
 }
 
 test.describe('patient management list', () => {
@@ -117,6 +125,8 @@ test.describe('patient details', () => {
   test('adds and deletes a note', async ({ page }) => {
     await logIn(page);
     await openFirstPatient(page);
+    await openTab(page, 'Notes');
+    await expect(page).toHaveURL(/#notes$/);
     await page.getByRole('button', { name: 'Add Note' }).click();
     const saveNote = page.getByRole('button', { name: 'Save Note' });
     await expect(saveNote).toBeDisabled();
@@ -151,14 +161,15 @@ test.describe('patient details', () => {
     await form.getByRole('button', { name: 'Save Changes' }).click();
     await expect(page.getByText('Patient details updated')).toBeVisible();
     await expect(form).toHaveCount(0);
-    await expect(page.getByLabel('First Name').first()).toHaveValue('Annabel');
-    await expect(page.getByRole('heading', { name: 'Patient Details' })).toBeVisible();
-    await expect(page.getByText(/^Annabel /).first()).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Personal Details' })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('definition').first()).toHaveText('Annabel');
+    await expect(page.getByRole('heading', { name: /^Annabel / })).toBeVisible();
   });
 
   test('saves call feedback; message and email stay disabled while empty', async ({ page }) => {
     await logIn(page);
     await openFirstPatient(page);
+    await openTab(page, 'Contact Patient');
     const tabs = page.getByRole('tablist', { name: 'Contact method' });
     const saveFeedback = page.getByRole('button', { name: 'Save Feedback' });
     await expect(saveFeedback).toBeDisabled();
@@ -197,9 +208,47 @@ test.describe('patient details', () => {
     await expect(page.getByRole('button', { name: 'Deregister Patient' })).toBeDisabled();
   });
 
-  test('opens a health record and shows the consultations tab', async ({ page }) => {
+  test('overview summarises each section and links to its tab', async ({ page }) => {
     await logIn(page);
     await openFirstPatient(page);
+    for (const heading of ['Patient Information', 'Recent Consultations', 'Medications', 'Latest Note']) {
+      await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+    }
+    await expect(page.getByRole('heading', { name: 'Contact Patient' })).toHaveCount(0);
+    // Overview lists ongoing prescriptions only.
+    const medications = page.getByRole('list', { name: 'Medications' }).or(page.getByText('No medications found.'));
+    await expect(medications.first()).toBeVisible();
+    await expect(page.getByRole('list', { name: 'Medications' }).getByText('Completed')).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'View all patient information' }).click();
+    await expect(page).toHaveURL(/#details$/);
+    await expect(page.getByRole('tabpanel')).toContainText('Street Address');
+
+    // Arrow keys move between tabs.
+    await page.getByRole('tab', { name: 'Personal Details' }).press('ArrowRight');
+    await expect(page.getByRole('tab', { name: 'Carer' })).toBeFocused();
+    await expect(page.getByRole('tab', { name: 'Carer' })).toHaveAttribute('aria-selected', 'true');
+
+    // A deep link opens its tab.
+    await page.reload();
+    await expect(page.getByRole('tab', { name: 'Carer' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('Add Note on the overview opens the note box on the Notes tab', async ({ page }) => {
+    await logIn(page);
+    await openFirstPatient(page);
+    await page.getByRole('button', { name: 'Add Note' }).click();
+    await expect(page.getByRole('tab', { name: /^Notes/ })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('textbox', { name: 'Note' })).toBeVisible();
+  });
+
+  test('opens a health record and lists consultations and medications', async ({ page }) => {
+    await logIn(page);
+    await openFirstPatient(page);
+    await openTab(page, 'Medical Requests');
+    for (const heading of [/^Consultations/, /^Medications/, /^Health Records/]) {
+      await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+    }
     await page
       .getByRole('button', { name: /^View .*\.pdf$/ })
       .first()
@@ -209,11 +258,14 @@ test.describe('patient details', () => {
     await viewer.getByRole('button', { name: 'Close' }).last().click();
     await expect(viewer).toHaveCount(0);
 
-    await page.getByRole('tablist', { name: 'Medical requests' }).getByRole('tab', { name: 'Consultations' }).click();
     // Filled in by Tickets (phase 5, module 2): the patient's tickets, each linking to its details.
-    const consultations = page.getByRole('tabpanel', { name: 'Consultations' });
+    const panel = page.getByRole('tabpanel');
     await expect(
-      consultations.getByRole('link').or(consultations.getByText('No consultations found.')).first(),
+      panel
+        .getByRole('list', { name: 'Consultations' })
+        .getByRole('link')
+        .or(panel.getByText('No consultations found.'))
+        .first(),
     ).toBeVisible();
   });
 

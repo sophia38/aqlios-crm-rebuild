@@ -10,6 +10,7 @@ import {
   type PatientMessageChannel,
   type PatientNote,
 } from '@/lib/api/types';
+import { medicationsFor } from '../fixtures/patients';
 import { mockId } from '../fixtures/random';
 import { currentPersona, getDb, saveDb, visiblePractices } from '../store';
 import { created, fail, forbidden, ok, paginate, unauthorized } from '../respond';
@@ -36,7 +37,12 @@ function findPatient(practiceId: string, patientId: string) {
 function detail(patientId: string): PatientDetail {
   const db = getDb();
   const patient = db.patients.find((item) => item.id === patientId)!;
-  return { ...patient, notes: db.patientNotes[patientId] ?? [], health_records: db.healthRecords[patientId] ?? [] };
+  return {
+    ...patient,
+    notes: db.patientNotes[patientId] ?? [],
+    health_records: db.healthRecords[patientId] ?? [],
+    medications: medicationsFor(patient),
+  };
 }
 
 const digits = (value: string) => value.replace(/\D/g, '');

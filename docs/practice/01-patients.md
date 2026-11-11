@@ -41,6 +41,8 @@ Captured 2026-10-27 as super-admin. Nothing was saved, archived, deregistered or
 ## 2. Patient Details — `/patient-management/{patientId}`
 Breadcrumb: `Dashboard › Patient Management › Patient Details`.
 
+> **Rebuild (Nov 2026, approved):** the same data is shown as a tabbed variation. The header shows initials, name, NHS number and date of birth with age. Manage Registration sits above tabs for Overview, Personal Details, Carer, Contact Patient, Medical Requests and Notes. `#tab` in the URL opens a tab. Medications (inferred, fictional) are added under Medical Requests. The live single-column capture below is unchanged.
+
 ### Header
 - `‹ Back` (white pill with shadow) · **Patient Details** · chips **Private** (grey) and **Carer Verified** (purple text, light purple bg).
 - Action row:

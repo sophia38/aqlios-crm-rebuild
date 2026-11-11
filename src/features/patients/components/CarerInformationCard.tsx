@@ -8,10 +8,18 @@ import { formatDate } from '@/lib/format';
 import { ReadOnlyField } from './ReadOnlyField';
 
 /** Carer Information card: read-only, with the Carer Verified badge (docs/practice/01-patients.md §2). */
-export function CarerInformationCard({ carer }: { carer: PatientCarer | null }) {
+export function CarerInformationCard({
+  carer,
+  variant = 'field',
+}: {
+  carer: PatientCarer | null;
+  /** `text`: plain label and value pairs in a fixed card (tabbed profile). */
+  variant?: 'field' | 'text';
+}) {
   return (
     <FormSectionCard
       title="Carer Information"
+      collapsible={variant === 'field'}
       actions={
         carer && (
           <StatusChip
@@ -22,7 +30,13 @@ export function CarerInformationCard({ carer }: { carer: PatientCarer | null }) 
       }
     >
       {carer ? (
-        <Grid container spacing={2.5}>
+        <Grid
+          container
+          component={variant === 'text' ? 'dl' : 'div'}
+          spacing={variant === 'text' ? 0 : 2.5}
+          columnSpacing={variant === 'text' ? 3.5 : undefined}
+          sx={{ m: 0 }}
+        >
           {(
             [
               ['First Name', carer.first_name],
@@ -39,7 +53,7 @@ export function CarerInformationCard({ carer }: { carer: PatientCarer | null }) 
             ] as const
           ).map(([label, value]) => (
             <Grid key={label} size={{ xs: 12, sm: 6, md: 4 }}>
-              <ReadOnlyField label={label} value={value} />
+              <ReadOnlyField label={label} value={value} variant={variant} />
             </Grid>
           ))}
         </Grid>

@@ -34,10 +34,12 @@ export function ContactPatientCard({
   practiceId,
   patient,
   readOnly,
+  collapsible,
 }: {
   practiceId: string;
   patient: Patient;
   readOnly: boolean;
+  collapsible?: boolean;
 }) {
   const { enqueueSnackbar } = useSnackbar();
   const phone = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
@@ -135,7 +137,7 @@ export function ContactPatientCard({
   }[tab];
 
   return (
-    <FormSectionCard title="Contact Patient">
+    <FormSectionCard title="Contact Patient" collapsible={collapsible}>
       <Stack spacing={2.5}>
         <Box>
           <SegmentedTabs<ContactTab>

@@ -222,8 +222,8 @@ test.describe('consultation details', () => {
       .getByRole('link', { name: new RegExp(`^View ${name}`) })
       .first()
       .click();
-    await page.getByRole('tab', { name: 'Consultations' }).click();
-    await page.getByRole('tabpanel', { name: 'Consultations' }).getByRole('link').first().click();
+    // The Overview lists the recent ones.
+    await page.getByRole('list', { name: 'Consultations' }).getByRole('link').first().click();
     await expect(page.getByRole('heading', { name: 'Consultation Details' })).toBeVisible();
   });
 });
