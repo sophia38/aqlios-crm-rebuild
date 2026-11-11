@@ -7,6 +7,8 @@ export interface SegmentedTab<T extends string> {
   value: T;
   label: string;
   icon?: React.ReactNode;
+  /** Small count badge after the label (practices grid tabs). */
+  count?: number;
 }
 
 export interface SegmentedTabsProps<T extends string> {
@@ -77,6 +79,24 @@ export function SegmentedTabs<T extends string>({
           >
             {item.icon}
             {item.label}
+            {item.count !== undefined && (
+              <Box
+                component="span"
+                sx={(theme) => ({
+                  minWidth: 22,
+                  px: 0.75,
+                  borderRadius: `${theme.tokens.radius.pill}px`,
+                  fontSize: 11,
+                  fontWeight: 500,
+                  lineHeight: '20px',
+                  textAlign: 'center',
+                  bgcolor: selected ? theme.tokens.shell.onPrimaryBadge : theme.tokens.shell.well,
+                  color: 'inherit',
+                })}
+              >
+                {item.count}
+              </Box>
+            )}
           </ButtonBase>
         );
       })}

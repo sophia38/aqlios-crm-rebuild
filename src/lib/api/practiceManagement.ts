@@ -1,6 +1,7 @@
 import { API_ORIGIN, CRM_API } from './config';
 import { ApiError, crmRequest } from './http';
 import type {
+  PracticeOverviewPage,
   AppointmentConfiguration,
   ListParams,
   Paginated,
@@ -18,6 +19,9 @@ const publicBase = (subAppId: string) => `/public/v1/sub-apps/${subAppId}`;
 export const practiceManagementApi = {
   practices: (subAppId: string, params: ListParams = {}, signal?: AbortSignal) =>
     crmRequest<Paginated<Practice>>(`${base(subAppId)}/practices`, { query: params, signal }),
+  /** Mock-only (inferred): practices with stage, staff, rota count and coverage for the grid. */
+  practiceOverview: (subAppId: string, params: ListParams & { stage?: string } = {}, signal?: AbortSignal) =>
+    crmRequest<PracticeOverviewPage>(`${base(subAppId)}/practices/overview`, { query: params, signal }),
   practice: (subAppId: string, practiceId: string, signal?: AbortSignal) =>
     crmRequest<Practice>(`${base(subAppId)}/practices/${practiceId}`, { signal }),
   createPractice: (subAppId: string, input: PracticeInput) =>

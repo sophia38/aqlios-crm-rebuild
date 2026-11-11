@@ -10,19 +10,21 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Link from '@mui/material/Link';
-import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import EventAvailableOutlined from '@mui/icons-material/EventAvailableOutlined';
+import GroupsOutlined from '@mui/icons-material/GroupsOutlined';
+import ScienceOutlined from '@mui/icons-material/ScienceOutlined';
+import VerifiedUserOutlined from '@mui/icons-material/VerifiedUserOutlined';
 import { PasswordField } from '@/components/forms/PasswordField';
 import { BrandLogo } from '@/components/primitives/BrandLogo';
 import { RETURN_TO_KEY } from '@/components/auth/AuthGate';
-import { DevRoleSwitcherSelect } from '@/components/dev/DevRoleSwitcher';
+import { DevRoleCards } from '@/components/dev/DevRoleSwitcher';
 import { authApi } from '@/lib/api/auth';
 import { API_MODE } from '@/lib/api/config';
 import { ApiError } from '@/lib/api/http';
 import { mockApi, type DemoPersona } from '@/lib/api/mock';
-import { asset } from '@/lib/basePath';
 import { fetchSession } from '@/store/sessionSlice';
 import { selectSession, useAppDispatch, useAppSelector } from '@/store';
 
@@ -30,6 +32,12 @@ const schema = Yup.object({
   email: Yup.string().trim().required('Email is required').email('Enter a valid email'),
   password: Yup.string().required('Password is required'),
 });
+
+const FEATURES = [
+  { icon: EventAvailableOutlined, text: 'Patients, appointments and tickets together' },
+  { icon: GroupsOutlined, text: 'Rotas, leave and HR policies for the whole team' },
+  { icon: VerifiedUserOutlined, text: 'CQC compliance tracked across every practice' },
+];
 
 function takeReturnTo() {
   try {
@@ -39,6 +47,87 @@ function takeReturnTo() {
   } catch {
     return null;
   }
+}
+
+/** Brand panel of the refined login: wordmark, headline, three feature lines and the copyright. */
+function BrandPanel() {
+  return (
+    <Box
+      component="aside"
+      sx={(theme) => ({
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        gap: 5,
+        px: { xs: 3, md: 7 },
+        py: { xs: 3.5, md: 5 },
+        background: theme.tokens.shell.login.brand,
+        color: theme.tokens.shell.login.onBrand,
+        // Decorative rings, bottom right.
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          width: 520,
+          height: 520,
+          right: -180,
+          bottom: -200,
+          borderRadius: '50%',
+          border: `1px solid ${theme.tokens.shell.login.ring}`,
+          boxShadow: theme.tokens.shell.login.ringGlow,
+          pointerEvents: 'none',
+        },
+      })}
+    >
+      {/* The wordmark is dark; shown white on the teal panel. */}
+      <BrandLogo height={36} sx={{ alignSelf: 'flex-start', filter: 'brightness(0) invert(1)' }} />
+      <Stack spacing={2}>
+        <Typography
+          component="p"
+          sx={{ fontSize: { xs: 24, md: 34 }, fontWeight: 500, lineHeight: 1.25, maxWidth: 460 }}
+        >
+          One place for your practices, your team and your patients.
+        </Typography>
+        <Typography sx={(theme) => ({ fontSize: 16, maxWidth: 420, color: theme.tokens.shell.login.onBrandMuted })}>
+          Public Primary Care, HR and compliance in a single workspace, built for UK general practice.
+        </Typography>
+        <Box
+          component="ul"
+          sx={{ display: { xs: 'none', md: 'grid' }, gap: 1.75, listStyle: 'none', m: 0, mt: 1, p: 0 }}
+        >
+          {FEATURES.map(({ icon: Icon, text }) => (
+            <Box component="li" key={text} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, fontSize: 15 }}>
+              <Box
+                aria-hidden
+                sx={(theme) => ({
+                  width: 36,
+                  height: 36,
+                  flexShrink: 0,
+                  display: 'grid',
+                  placeItems: 'center',
+                  borderRadius: `${theme.tokens.radius.iconTile}px`,
+                  bgcolor: theme.tokens.shell.login.onBrandTile,
+                })}
+              >
+                <Icon sx={{ fontSize: 18 }} />
+              </Box>
+              {text}
+            </Box>
+          ))}
+        </Box>
+      </Stack>
+      <Typography
+        sx={(theme) => ({
+          display: { xs: 'none', md: 'block' },
+          fontSize: 12,
+          color: theme.tokens.shell.login.onBrandFaint,
+        })}
+      >
+        © {new Date().getFullYear()} Aqlios. All rights reserved.
+      </Typography>
+    </Box>
+  );
 }
 
 export default function LoginPage() {
@@ -79,112 +168,112 @@ export default function LoginPage() {
 
   return (
     <Box
-      component="main"
-      sx={(theme) => ({
+      sx={{
         minHeight: '100dvh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2,
-        bgcolor: theme.tokens.surface.authPage,
-        backgroundImage: `url(${asset('/auth/auth_watermark.svg')})`,
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-        backgroundSize: 'min(520px, 80vw) auto',
-      })}
+        display: 'grid',
+        gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) minmax(0, 1.1fr)' },
+      }}
     >
-      <Paper
-        elevation={0}
+      <BrandPanel />
+      <Box
+        component="main"
         sx={(theme) => ({
-          width: '100%',
-          maxWidth: 880,
-          p: { xs: 3, md: 6 },
-          border: 'none',
-          boxShadow: theme.tokens.shadow.card,
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1fr 370px' },
-          gap: { xs: 4, md: 6 },
-          alignItems: 'center',
+          placeItems: 'center',
+          px: 3,
+          py: { xs: 4, md: 5 },
+          bgcolor: theme.tokens.surface.authPage,
         })}
       >
-        <Box>
-          <BrandLogo height={48} sx={{ mb: 3 }} />
-          <Typography component="h1" sx={{ fontSize: { xs: 28, md: 34 }, fontWeight: 600, lineHeight: 1.2, mb: 1 }}>
-            Portal Login
-          </Typography>
-          <Typography sx={(theme) => ({ fontSize: 16, color: theme.tokens.text.muted })}>
-            Sign in with your credentials to access your dashboard.
-          </Typography>
-        </Box>
-
-        <Box component="form" noValidate onSubmit={formik.handleSubmit}>
-          <Stack spacing={2.5}>
-            <TextField
-              label="Email"
-              type="email"
-              autoComplete="username"
-              {...formik.getFieldProps('email')}
-              error={Boolean(fieldError('email'))}
-              helperText={fieldError('email')}
-              disabled={formik.isSubmitting}
-            />
-            <PasswordField
-              label="Password"
-              autoComplete="current-password"
-              {...formik.getFieldProps('password')}
-              error={Boolean(fieldError('password'))}
-              helperText={fieldError('password')}
-              disabled={formik.isSubmitting}
-            />
-            <Box sx={{ textAlign: 'right' }}>
-              <Link
-                component="button"
-                type="button"
-                underline="hover"
-                onClick={() =>
-                  enqueueSnackbar('Password reset is handled by the 31G sign-in service. Contact your administrator.', {
-                    variant: 'info',
-                  })
-                }
-                sx={{ fontSize: 14, color: 'brand.main' }}
-              >
-                Forgot Password?
-              </Link>
-            </Box>
-            {submitError && <Alert severity="error">{submitError}</Alert>}
-            <Button
-              type="submit"
-              variant="contained"
-              color="brand"
-              fullWidth
-              disabled={formik.isSubmitting}
-              sx={(theme) => ({
-                height: 48,
-                borderRadius: `${theme.tokens.radius.loginButton}px`,
-                fontSize: 15,
-                fontWeight: 500,
-              })}
+        <Box
+          component="form"
+          noValidate
+          onSubmit={formik.handleSubmit}
+          aria-labelledby="login-title"
+          sx={(theme) => ({
+            width: '100%',
+            maxWidth: 480,
+            p: { xs: 2.5, sm: 4 },
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            bgcolor: 'background.paper',
+            borderRadius: `${theme.tokens.radius.card}px`,
+            border: `1px solid ${theme.tokens.shell.login.cardBorder}`,
+            boxShadow: theme.tokens.shadow.e1,
+          })}
+        >
+          <Box>
+            <Typography id="login-title" component="h1" variant="h5" sx={{ fontWeight: 500 }}>
+              Welcome back
+            </Typography>
+            <Typography variant="body2" sx={(theme) => ({ color: theme.tokens.text.muted })}>
+              {API_MODE === 'mock'
+                ? 'Choose how you’re signing in today.'
+                : 'Sign in with your credentials to access your dashboard.'}
+            </Typography>
+          </Box>
+          <DevRoleCards value={persona} onChange={setPersona} />
+          <TextField
+            label="Email"
+            type="email"
+            autoComplete="username"
+            {...formik.getFieldProps('email')}
+            error={Boolean(fieldError('email'))}
+            helperText={fieldError('email')}
+            disabled={formik.isSubmitting}
+          />
+          <PasswordField
+            label="Password"
+            autoComplete="current-password"
+            {...formik.getFieldProps('password')}
+            error={Boolean(fieldError('password'))}
+            helperText={fieldError('password')}
+            disabled={formik.isSubmitting}
+          />
+          <Box sx={{ textAlign: 'right' }}>
+            <Link
+              component="button"
+              type="button"
+              underline="hover"
+              onClick={() =>
+                enqueueSnackbar('Password reset is handled by the 31G sign-in service. Contact your administrator.', {
+                  variant: 'info',
+                })
+              }
+              sx={{ fontSize: 14, fontWeight: 500, color: 'primary.main' }}
             >
-              {formik.isSubmitting ? <CircularProgress size={22} color="inherit" aria-label="Logging in" /> : 'Log In'}
-            </Button>
-            {API_MODE === 'mock' && (
-              <Box
-                sx={(theme) => ({
-                  p: 2,
-                  borderRadius: `${theme.tokens.radius.input}px`,
-                  bgcolor: theme.tokens.surface.subtleFill,
-                  border: `1px dashed ${theme.tokens.border.bold}`,
-                })}
-              >
-                <Typography variant="caption" component="p" sx={{ mb: 1.5 }}>
-                  Demo: use any email with the password <strong>demo</strong>.
-                </Typography>
-                <DevRoleSwitcherSelect value={persona} onChange={setPersona} />
-              </Box>
-            )}
-          </Stack>
+              Forgot Password?
+            </Link>
+          </Box>
+          {submitError && <Alert severity="error">{submitError}</Alert>}
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={formik.isSubmitting}
+            sx={(theme) => ({
+              height: 48,
+              borderRadius: `${theme.tokens.radius.pill}px`,
+              fontSize: 15,
+              fontWeight: 500,
+            })}
+          >
+            {formik.isSubmitting ? <CircularProgress size={22} color="inherit" aria-label="Logging in" /> : 'Log In'}
+          </Button>
+          {API_MODE === 'mock' && (
+            <Typography
+              variant="caption"
+              component="p"
+              sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, textAlign: 'center' }}
+            >
+              <ScienceOutlined sx={{ fontSize: 14 }} aria-hidden />
+              Demo: use any email with the password <strong>demo</strong>.
+            </Typography>
+          )}
         </Box>
-      </Paper>
+      </Box>
     </Box>
   );
 }

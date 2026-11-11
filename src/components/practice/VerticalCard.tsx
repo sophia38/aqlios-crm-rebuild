@@ -1,24 +1,24 @@
 'use client';
 
+import type { SvgIconComponent } from '@mui/icons-material';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
-import { asset } from '@/lib/basePath';
+
+export type VerticalTone = 'public' | 'private' | 'everyclinic';
 
 export interface VerticalCardProps {
   label: string;
+  description: string;
+  icon: SvgIconComponent;
+  tone: VerticalTone;
   onClick?: () => void;
-  logoSrc?: string;
+  /** Not available: a pale card with a "Coming soon" tag, not clickable. */
   disabled?: boolean;
 }
 
-/** Lightbulb card on /verticals; disabled cards are faded and not clickable (COMPONENTS.md → VerticalCard). */
-export function VerticalCard({
-  label,
-  onClick,
-  logoSrc = '/business_logos/business_svg.svg',
-  disabled = false,
-}: VerticalCardProps) {
+/** Vertical card on /verticals, refined design: icon tile, name and description (COMPONENTS.md → VerticalCard). */
+export function VerticalCard({ label, description, icon: Icon, tone, onClick, disabled = false }: VerticalCardProps) {
   return (
     <ButtonBase
       onClick={onClick}
@@ -26,27 +26,67 @@ export function VerticalCard({
       aria-disabled={disabled || undefined}
       focusRipple
       sx={(theme) => ({
+        position: 'relative',
         width: '100%',
-        minHeight: 220,
-        p: 3,
+        minHeight: { xs: 0, sm: 150 },
+        p: 2.25,
         flexDirection: 'column',
-        gap: 2,
-        borderRadius: '16px',
-        border: `1px solid ${theme.tokens.border.medium}`,
-        background: `linear-gradient(180deg, ${theme.tokens.surface.background} 0%, ${theme.tokens.surface.mintWash} 100%)`,
-        transition: theme.transitions.create(['box-shadow', 'border-color', 'transform']),
-        '&:hover': { boxShadow: theme.tokens.shadow.card, borderColor: theme.palette.brand.main },
+        alignItems: 'flex-start',
+        justifyContent: 'flex-start',
+        gap: 0.5,
+        textAlign: 'left',
+        borderRadius: `${theme.tokens.radius.tile}px`,
+        border: `1px solid ${theme.tokens.shell.line}`,
+        bgcolor: disabled ? theme.tokens.shell.vertical.soonBg : 'background.paper',
+        color: theme.tokens.shell.ink,
+        transition: theme.transitions.create('border-color'),
+        '&:hover, &.Mui-focusVisible': { borderColor: theme.tokens.shell.vertical.hoverBorder },
         '&.Mui-focusVisible': { outline: `2px solid ${theme.palette.primary.main}`, outlineOffset: 2 },
-        '&.Mui-disabled': { opacity: 0.45, filter: 'grayscale(1)' },
+        '&.Mui-disabled': { color: theme.tokens.shell.ink },
       })}
     >
-      <Box component="img" src={asset(logoSrc)} alt="" sx={{ width: 86, height: 100 }} />
-      <Typography
-        component="span"
-        sx={{ fontSize: 20, fontWeight: 600, lineHeight: 1.35, color: 'text.primary', maxWidth: 180 }}
+      <Box
+        aria-hidden
+        sx={(theme) => ({
+          width: 38,
+          height: 38,
+          mb: { xs: 1, sm: 1.75 },
+          display: 'grid',
+          placeItems: 'center',
+          borderRadius: '50%',
+          bgcolor: theme.tokens.shell.vertical[tone].bg,
+          color: theme.tokens.shell.vertical[tone].fg,
+        })}
       >
+        <Icon sx={{ fontSize: 19 }} />
+      </Box>
+      <Typography component="span" sx={{ mt: 'auto', fontSize: 15.5, fontWeight: 600 }}>
         {label}
       </Typography>
+      <Typography
+        component="span"
+        sx={(theme) => ({ fontSize: 13, lineHeight: 1.45, color: theme.tokens.shell.inkMuted })}
+      >
+        {description}
+      </Typography>
+      {disabled && (
+        <Box
+          component="span"
+          sx={(theme) => ({
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            px: 1,
+            py: 0.25,
+            fontSize: 11.5,
+            borderRadius: `${theme.tokens.radius.pill}px`,
+            bgcolor: theme.tokens.shell.well,
+            color: theme.tokens.shell.inkMuted,
+          })}
+        >
+          Coming soon
+        </Box>
+      )}
     </ButtonBase>
   );
 }

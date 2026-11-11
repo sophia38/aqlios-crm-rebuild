@@ -8,6 +8,12 @@ type Tone = 'success' | 'warning' | 'error' | 'info' | 'neutral' | 'primary' | '
 
 const STATUS_TONES: Record<string, Tone> = {
   active: 'success',
+  // Practices grid stages and the practice dashboard's shift cover.
+  live: 'success',
+  onboarding: 'primary',
+  review: 'error',
+  covered: 'success',
+  'needs cover': 'warning',
   approved: 'success',
   verified: 'success',
   compliant: 'success',
@@ -103,10 +109,12 @@ export interface StatusChipProps {
   variant?: 'soft' | 'outlined';
   icon?: React.ReactNode;
   size?: 'small' | 'medium';
+  /** A small dot in the chip's colour before the label (practices grid). */
+  dot?: boolean;
 }
 
 /** Small pill status (COMPONENTS.md → StatusChip). Shows "—" for an empty status. */
-export function StatusChip({ status, tone, variant = 'soft', icon, size = 'small' }: StatusChipProps) {
+export function StatusChip({ status, tone, variant = 'soft', icon, size = 'small', dot = false }: StatusChipProps) {
   const theme = useTheme();
   const label = status.trim() || '—';
   const color = toneColor(theme, tone ?? STATUS_TONES[label.toLowerCase()] ?? 'neutral');
@@ -127,6 +135,9 @@ export function StatusChip({ status, tone, variant = 'soft', icon, size = 'small
         bgcolor: alpha(color, variant === 'soft' ? 0.12 : 0.04),
         border: `1px solid ${variant === 'soft' ? 'transparent' : alpha(color, 0.5)}`,
         '& svg': { fontSize: 14 },
+        ...(dot && {
+          '&::before': { content: '""', width: 6, height: 6, borderRadius: '50%', bgcolor: 'currentColor' },
+        }),
       }}
     >
       {icon}

@@ -173,6 +173,76 @@ export const leave = {
   cardBg: '#F5F5F5',
 } as const;
 
+// Navigation shell, login and vertical picker from the team's refined prototype (docs/design-tokens.md →
+// "Refined shell"). Vertical level: white top bar, sidebar and main panel floating on a grey canvas.
+// Practice level: the prototype's business sidebar.
+export const shell = {
+  canvas: '#ECEEEE',
+  panelBorder: '#DDE2E2',
+  line: '#E3E7E7',
+  well: '#F4F6F6',
+  itemHover: '#F4F8F8',
+  ink: '#172322',
+  inkMuted: '#5B6766',
+  placeholder: '#808B8A',
+  accentSoft: '#E8F2F2',
+  accentInk: '#1F5D5E',
+  focusRing: 'rgba(44,122,123,0.12)',
+  danger: '#C2410C',
+  dangerHover: '#FDF1EB',
+  tooltip: '#172322',
+  // Count badge on a filled (teal) tab.
+  onPrimaryBadge: 'rgba(255,255,255,0.22)',
+  // Account menu (prototype "acct-menu").
+  menu: {
+    shadow: '0 16px 40px -18px rgba(23,35,34,0.28)',
+    divider: '#EEF1F1',
+    heading: '#8A9493',
+    selected: '#F2F9F9',
+    chevron: '#A6AFAE',
+    dangerBorder: '#F5D3C4',
+  },
+  // Practice dashboard charts (Figma "Public GP Flows" 9107:72525).
+  chart: {
+    covered: '#1F5D5E',
+    needsCover: '#E9B949',
+    booked: '#7FB2F0',
+    cancelled: '#B0B7B6',
+    bar: '#4FB3B5',
+    track: '#EEF1F1',
+    roles: ['#1F5D5E', '#4FB3B5', '#7FB2F0', '#9BD7DA', '#E9B949', '#B0B7B6'],
+  },
+  practiceNav: {
+    label: '#0F4C5C',
+    icon: '#525866',
+    hoverBg: 'rgba(44,122,123,0.08)',
+    activeBg: 'rgba(44,122,123,0.12)',
+    profileBg: 'rgba(44,122,123,0.08)',
+    divider: 'rgba(0,0,0,0.12)',
+  },
+  vertical: {
+    public: { bg: '#E8F0FB', fg: '#2563B0' },
+    private: { bg: '#E8F2F2', fg: '#2C7A7B' },
+    everyclinic: { bg: '#F7EEE3', fg: '#9A5B14' },
+    soonBg: '#FBFCFC',
+    hoverBorder: '#A9CBCB',
+  },
+  login: {
+    brand: 'linear-gradient(160deg, #2C7A7B 0%, #0F4C5C 100%)',
+    onBrand: '#FFFFFF',
+    onBrandMuted: 'rgba(255,255,255,0.8)',
+    onBrandFaint: 'rgba(255,255,255,0.6)',
+    onBrandTile: 'rgba(255,255,255,0.12)',
+    ring: 'rgba(255,255,255,0.12)',
+    ringGlow: '0 0 0 60px rgba(255,255,255,0.03), 0 0 0 120px rgba(255,255,255,0.02)',
+    roleBorder: 'rgba(0,0,0,0.12)',
+    roleHover: 'rgba(44,122,123,0.5)',
+    roleSelectedBg: 'rgba(44,122,123,0.04)',
+    roleIconBg: 'rgba(44,122,123,0.08)',
+    cardBorder: 'rgba(0,0,0,0.1)',
+  },
+} as const;
+
 export const radius = {
   base: 18, // theme.shape.borderRadius: paper, buttons, pickers
   input: 12,
@@ -182,6 +252,12 @@ export const radius = {
   switchTrack: 13,
   panel: 24,
   card: 20,
+  // Refined shell: floating panels, vertical cards and search results, role cards, icon tiles.
+  shellPanel: 28,
+  tile: 24,
+  roleCard: 14,
+  iconTile: 10,
+  menuItem: 16,
 } as const;
 
 export const shadow = {
@@ -192,6 +268,8 @@ export const shadow = {
   formModal: '0 10px 40px rgba(15,23,42,0.25)',
   menu: '0 8px 24px rgba(15,23,41,0.10)',
   drag: '0 8px 18px rgba(15,23,41,0.14)',
+  // MUI elevation 1 (refined login card).
+  e1: '0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12)',
 } as const;
 
 export const tokens = {
@@ -203,6 +281,7 @@ export const tokens = {
   status,
   tone,
   sidebar,
+  shell,
   userPill,
   rowState,
   control,

@@ -4,6 +4,7 @@ import type { AppointmentConfiguration, Practice, PracticeInput, SlaConfiguratio
 import { emptyAppointmentConfiguration, buildSlaConfiguration } from '../fixtures/lookups';
 import { mockId } from '../fixtures/random';
 import { currentPersona, getDb, practiceStatus, saveDb, visiblePractices } from '../store';
+import { practiceOverviews } from '../practiceOverview';
 import { created, fail, forbidden, ok, order, paginate, unauthorized } from '../respond';
 
 // Practice Management mocks. URLs marked ✔ in docs/plans/phase-3-reference-screens.md were captured
@@ -133,10 +134,36 @@ export const practiceHandlers = [
     const denied = guard();
     if (denied) return denied;
     const search = new URL(request.url).searchParams.get('search')?.trim().toLowerCase();
+    // Name match as captured live; ODS code and town (top-bar search) are inferred.
     const matching = search
-      ? visiblePractices().filter((practice) => practice.practice_name.toLowerCase().includes(search))
+      ? visiblePractices().filter((practice) =>
+          [practice.practice_name, practice.ods_code, practice.city].some((value) =>
+            value?.toLowerCase().includes(search),
+          ),
+        )
       : visiblePractices();
     return ok(paginate(request, order(request, matching)));
+  }),
+
+  // ~ Practice overview for the practices grid (not seen live; inferred). Search covers name, ODS code
+  // and town; `stage` filters; `stage_counts` ignores the stage so the tabs keep their totals.
+  http.get(pm('/practices/overview'), ({ request }) => {
+    const denied = guard();
+    if (denied) return denied;
+    const url = new URL(request.url);
+    const search = url.searchParams.get('search')?.trim().toLowerCase();
+    const stage = url.searchParams.get('stage');
+    const matching = practiceOverviews(visiblePractices()).filter(
+      (practice) =>
+        !search ||
+        [practice.practice_name, practice.ods_code, practice.city].some((value) =>
+          value?.toLowerCase().includes(search),
+        ),
+    );
+    const stage_counts = { LIVE: 0, ONBOARDING: 0, REVIEW: 0 };
+    matching.forEach((practice) => (stage_counts[practice.stage] += 1));
+    const rows = stage ? matching.filter((practice) => practice.stage === stage) : matching;
+    return ok({ ...paginate(request, order(request, rows)), stage_counts });
   }),
 
   http.get(pm('/practices/:practiceId'), ({ params }) => {

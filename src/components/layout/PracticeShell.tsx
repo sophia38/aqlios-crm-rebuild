@@ -7,26 +7,30 @@ import Badge from '@mui/material/Badge';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
-import Stack from '@mui/material/Stack';
 import MuiLink from '@mui/material/Link';
-import Tooltip from '@mui/material/Tooltip';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import type { Theme } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
 import NavigateNext from '@mui/icons-material/NavigateNext';
+import ContactPhoneOutlined from '@mui/icons-material/ContactPhoneOutlined';
 import NotificationsNoneOutlined from '@mui/icons-material/NotificationsNoneOutlined';
-import Search from '@mui/icons-material/Search';
+import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
 import { AppSidebar } from '@/components/layout/AppSidebar';
-import { PracticeSwitcher } from '@/components/layout/PracticeSwitcher';
+import { ShellCanvas } from '@/components/layout/ShellCanvas';
+import { ShellTopBar, shellRoundButton } from '@/components/layout/ShellTopBar';
+import { PracticeSearch, type SearchPage } from '@/components/navigation/PracticeSearch';
+import { UserMenu, type UserMenuPractice } from '@/components/layout/UserMenu';
 import { navForUser, PRACTICE_FOOTER_NAV, PRACTICE_NAV, type NavItem } from '@/config/navigation';
 import { togglePracticeSidebar } from '@/store/uiSlice';
 import { selectSession, selectUi, useAppDispatch, useAppSelector } from '@/store';
 
 export interface PracticeShellProps {
   basePath: string;
-  practiceName: string;
-  practicesHref: string;
+  vertical: string;
+  /** The current practice, shown in the account chip and menu. */
+  practice: UserMenuPractice;
   /** Unread notifications for the 🔔 dot. */
   hasUnread?: boolean;
   /**
@@ -124,23 +128,23 @@ function TopBarCrumbs({
   );
 }
 
-const squareButton = (theme: Theme) => ({
-  width: 36,
-  height: 36,
-  borderRadius: '8px',
-  border: `1px solid ${theme.tokens.border.medium}`,
-  boxShadow: theme.tokens.shadow.sm,
-  bgcolor: 'background.paper',
-});
+const BRAND_LABEL = (
+  <>
+    Public
+    <br />
+    Practice
+  </>
+);
 
 /**
- * Practice-level frame: persistent collapsible sidebar, flat top bar with page title, search,
- * notifications and the practice switcher (approved new component; docs/practice/00-…).
+ * Practice-level frame, refined design (same layout as the hub, COMPONENTS.md → PracticeShell): grey
+ * canvas, sticky top bar (page title or breadcrumbs, search, 🔔, account menu with the practice), the floating
+ * collapsible sidebar panel and a grey main panel for the pages' white cards. Phones get a ☰ drawer.
  */
 export function PracticeShell({
   basePath,
-  practiceName,
-  practicesHref,
+  vertical,
+  practice,
   hasUnread = false,
   crumbs = null,
   children,
@@ -150,93 +154,102 @@ export function PracticeShell({
   const { practiceSidebarCollapsed } = useAppSelector(selectUi);
   const sections = navForUser(PRACTICE_NAV, user);
   const allItems = [...sections.flatMap((section) => section.items), ...PRACTICE_FOOTER_NAV];
+  const pages: SearchPage[] = allItems.map((item) => ({
+    label: item.label,
+    href: `${basePath}${item.path}${item.query ? `?${item.query}` : ''}`,
+    icon: item.icon,
+  }));
+  // Quick links in the account menu, limited to pages this user's menu has.
+  const visibleIds = new Set(allItems.map((item) => item.id));
+  const accountLinks = [
+    { id: 'settings', label: 'Practice Settings', href: `${basePath}/settings`, icon: SettingsOutlined },
+    { id: 'notifications', label: 'Notifications', href: `${basePath}/notifications`, icon: NotificationsNoneOutlined },
+    { id: 'support', label: 'Support', href: `${basePath}/support`, icon: ContactPhoneOutlined },
+  ].filter((link) => visibleIds.has(link.id));
   const userName = user ? `${user.firstName} ${user.lastName}`.trim() : '';
-  // Below md the persistent sidebar would crowd the page, so it becomes a ☰ drawer.
+  // Below md the sidebar panel would crowd the page, so it becomes a ☰ drawer.
   const compact = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  const sidebarProps = {
+    sections,
+    footer: PRACTICE_FOOTER_NAV,
+    basePath,
+    user,
+    brandLabel: BRAND_LABEL,
+    showUserCard: true,
+  };
+
   return (
-    <Box sx={(theme) => ({ display: 'flex', minHeight: '100dvh', bgcolor: theme.tokens.surface.panel })}>
-      <Suspense fallback={null}>
-        {compact ? (
+    <ShellCanvas
+      collapsed={practiceSidebarCollapsed}
+      mainTone="panel"
+      topBar={
+        <ShellTopBar
+          sticky={!compact}
+          start={
+            <Box sx={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 1, pl: { xs: 0, md: 1.5 } }}>
+              {compact && (
+                <IconButton aria-label="Open menu" onClick={() => setDrawerOpen(true)} sx={shellRoundButton}>
+                  <MenuIcon />
+                </IconButton>
+              )}
+              {crumbs?.length ? (
+                <TopBarCrumbs basePath={basePath} crumbs={crumbs} compact={compact} />
+              ) : (
+                <Suspense fallback={null}>
+                  <TopBarTitle basePath={basePath} items={allItems} userName={userName} />
+                </Suspense>
+              )}
+            </Box>
+          }
+          middle={
+            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+              <PracticeSearch variant="global" pages={pages} />
+            </Box>
+          }
+          end={
+            <>
+              <IconButton
+                component={Link}
+                href={`${basePath}/notifications`}
+                aria-label="Notifications"
+                sx={[shellRoundButton, { display: { xs: 'none', sm: 'inline-flex' } }]}
+              >
+                <Badge color="error" variant="dot" invisible={!hasUnread}>
+                  <NotificationsNoneOutlined sx={{ fontSize: 20 }} />
+                </Badge>
+              </IconButton>
+              <UserMenu vertical={vertical} practice={practice} links={accountLinks} />
+            </>
+          }
+        />
+      }
+      sidebar={
+        !compact && (
+          <Suspense fallback={null}>
+            <AppSidebar
+              variant="panel"
+              {...sidebarProps}
+              collapsed={practiceSidebarCollapsed}
+              onToggleCollapsed={() => dispatch(togglePracticeSidebar())}
+            />
+          </Suspense>
+        )
+      }
+    >
+      {compact && (
+        <Suspense fallback={null}>
           <AppSidebar
             variant="drawer"
+            look="hub"
             open={drawerOpen}
             onClose={() => setDrawerOpen(false)}
-            sections={sections}
-            footer={PRACTICE_FOOTER_NAV}
-            basePath={basePath}
-            user={user}
+            {...sidebarProps}
           />
-        ) : (
-          <AppSidebar
-            variant="persistent"
-            sections={sections}
-            footer={PRACTICE_FOOTER_NAV}
-            basePath={basePath}
-            user={user}
-            collapsed={practiceSidebarCollapsed}
-            onToggleCollapsed={() => dispatch(togglePracticeSidebar())}
-          />
-        )}
-      </Suspense>
-      <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        <Box
-          component="header"
-          sx={(theme) => ({
-            position: 'sticky',
-            top: 0,
-            zIndex: theme.zIndex.appBar,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: { xs: 1, sm: 2 },
-            px: { xs: 1.5, md: 3 },
-            py: 1.5,
-            bgcolor: 'background.paper',
-            borderBottom: `1px solid ${theme.tokens.border.medium}`,
-          })}
-        >
-          <Box sx={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
-            {compact && (
-              <IconButton aria-label="Open menu" onClick={() => setDrawerOpen(true)} sx={squareButton}>
-                <MenuIcon fontSize="small" />
-              </IconButton>
-            )}
-            {crumbs?.length ? (
-              <TopBarCrumbs basePath={basePath} crumbs={crumbs} compact={compact} />
-            ) : (
-              <Suspense fallback={null}>
-                <TopBarTitle basePath={basePath} items={allItems} userName={userName} />
-              </Suspense>
-            )}
-          </Box>
-          <Stack direction="row" spacing={{ xs: 0.75, sm: 1.25 }} sx={{ alignItems: 'center', flexShrink: 0 }}>
-            {/* The live search button does nothing; disabled here until search is designed. */}
-            <Tooltip title="Search is coming soon">
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
-                <IconButton aria-label="Search" disabled sx={squareButton}>
-                  <Search fontSize="small" />
-                </IconButton>
-              </Box>
-            </Tooltip>
-            <IconButton
-              component={Link}
-              href={`${basePath}/notifications`}
-              aria-label="Notifications"
-              sx={squareButton}
-            >
-              <Badge color="error" variant="dot" invisible={!hasUnread}>
-                <NotificationsNoneOutlined fontSize="small" />
-              </Badge>
-            </IconButton>
-            <PracticeSwitcher practiceName={practiceName} practicesHref={practicesHref} />
-          </Stack>
-        </Box>
-        <Box component="main" sx={{ flex: 1, p: { xs: 2, md: 3 } }}>
-          {children}
-        </Box>
-      </Box>
-    </Box>
+        </Suspense>
+      )}
+      {children}
+    </ShellCanvas>
   );
 }

@@ -180,3 +180,29 @@ MUI defaults (xs 0, sm 600, md 900, lg 1200, xl 1536). Grid usage is mostly `xs:
 | `leave.type.PATERNITY` / `.EMERGENCY` | `#0288D1` / `#C2410C` | Not captured; reuse the info and dark orange tones |
 | `leave.cardBg` | `#F5F5F5` | Grey balance card |
 
+
+## Refined shell (`shell`, team prototype)
+
+From the team's refined prototype (`aqlios-prototype-export`, Refined interface): login, vertical picker and the navigation at both levels. Primary stays `#2C7A7B`.
+
+| Token | Value | Use |
+|---|---|---|
+| `shell.canvas` | `#ECEEEE` | Grey canvas behind the floating panels |
+| `shell.panelBorder` | `#DDE2E2` | Border of the top bar, sidebar panel and main panel |
+| `shell.line` / `shell.well` | `#E3E7E7` / `#F4F6F6` | Hairlines and control borders / search fill, hover |
+| `shell.itemHover` | `#F4F8F8` | Hub sidebar item hover |
+| `shell.ink` / `shell.inkMuted` / `shell.placeholder` | `#172322` / `#5B6766` / `#808B8A` | Text in the refined shell |
+| `shell.accentSoft` / `shell.accentInk` | `#E8F2F2` / `#1F5D5E` | Practice initials in search results |
+| `shell.focusRing` | `rgba(44,122,123,0.12)` | Focus halo on search boxes |
+| `shell.danger` / `shell.dangerHover` | `#C2410C` / `#FDF1EB` | Sign out in the hub sidebar |
+| `shell.practiceNav.*` | label `#0F4C5C`, icon `#525866`, hover `rgba(44,122,123,0.08)`, active `rgba(44,122,123,0.12)`, profile card `rgba(44,122,123,0.08)`, divider `rgba(0,0,0,0.12)` | Practice sidebar |
+| `shell.vertical.{public,private,everyclinic}` | `#E8F0FB`/`#2563B0`, `#E8F2F2`/`#2C7A7B`, `#F7EEE3`/`#9A5B14` | Vertical card icon tiles; `soonBg` `#FBFCFC`, `hoverBorder` `#A9CBCB` |
+| `shell.login.*` | brand `linear-gradient(160deg, #2C7A7B 0%, #0F4C5C 100%)`, white text at 80% / 60%, tiles 12%, role card border `rgba(0,0,0,0.12)`, hover 50% primary, selected 4% primary, card border `rgba(0,0,0,0.1)` | Login page |
+| `radius.shellPanel` / `tile` / `roleCard` / `iconTile` | 28 / 24 / 14 / 10 | Floating panels / vertical cards and search results / role cards / icon tiles |
+| `shadow.e1` | MUI elevation 1 | Login card |
+| `shell.menu.*` | shadow `0 16px 40px -18px rgba(23,35,34,0.28)`, divider `#EEF1F1`, heading `#8A9493`, selected `#F2F9F9`, chevron `#A6AFAE`, dangerBorder `#F5D3C4` | Account menu (`UserMenu`) |
+| `radius.menuItem` | 16 | Account menu items (the menu itself uses `radius.tile`) |
+| `shell.onPrimaryBadge` | `rgba(255,255,255,0.22)` | Count badge on a filled tab (`SegmentedTabs` `count`) |
+| `shell.chart.*` | covered `#1F5D5E`, needsCover `#E9B949`, booked `#7FB2F0`, cancelled `#B0B7B6`, bar `#4FB3B5`, track `#EEF1F1`, roles (6 colours) | Practice dashboard charts (Figma 9107:72525) |
+
+**Grid exception:** the practices grid (`/verticals/public/practices`) follows Figma 9107:73594 with up to 4 columns on wide screens (2 → 3 → 4), instead of the usual 3-column card grid.

@@ -8,8 +8,7 @@ async function logIn(page: Page, persona: 'super-admin' | 'practice-user' = 'sup
   await page.getByLabel('Email').fill('reviewer@aqlios.demo');
   await page.getByLabel('Password', { exact: true }).fill('demo');
   if (persona === 'practice-user') {
-    await page.getByLabel('Sign in as').click();
-    await page.getByRole('option', { name: 'Practice user (GP)' }).click();
+    await page.getByRole('radio', { name: 'Practice user (GP)' }).check();
   }
   await page.getByRole('button', { name: 'Log In' }).click();
   await expect(page).toHaveURL(/\/verticals\//);
@@ -20,7 +19,7 @@ test.describe('practice grid', () => {
     await logIn(page);
     await page.goto('/verticals/public/practices/');
     const grid = page.getByRole('list', { name: 'Practices' });
-    await expect(grid.getByRole('button', { name: /^Open business / })).toHaveCount(12);
+    await expect(grid.getByRole('button', { name: /^Open practice / })).toHaveCount(12);
     await expect(page.getByText('1–12 of 155')).toBeVisible();
     await page.getByRole('button', { name: 'Go to next page' }).click();
     await expect(page.getByText('13–24 of 155')).toBeVisible();
@@ -30,8 +29,35 @@ test.describe('practice grid', () => {
     await page.reload();
     await expect(page.getByRole('tab', { name: 'List view' })).toHaveAttribute('aria-selected', 'true');
     await page.getByRole('tab', { name: 'Grid view' }).click(); // the reload starts again on page 1
-    await grid.getByRole('button', { name: 'Open business Ashford Medical Centre' }).click();
+    await grid.getByRole('button', { name: 'Open practice Ashford Medical Centre' }).click();
     await expect(page).toHaveURL(/\/practices\/ashford-medical-centre\/dashboard\/$/);
+  });
+
+  test('status tabs, counts and sort', async ({ page }) => {
+    await logIn(page);
+    await page.goto('/verticals/public/practices/');
+    const tabs = page.getByRole('tablist', { name: 'Filter practices by status' });
+    await expect(tabs.getByRole('tab', { name: /All\s*155/ })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByText('155 of 155 practices')).toBeVisible();
+    const first = page.getByRole('list', { name: 'Practices' }).getByRole('button').first();
+    await expect(first).toContainText('Ashford Medical Centre');
+    await expect(first).toContainText('ODS Y10000');
+    await expect(first).toContainText('Live');
+    await expect(first).toContainText(/\d+%/);
+
+    await tabs.getByRole('tab', { name: /^Live/ }).click();
+    const live = page.getByRole('list', { name: 'Practices' }).getByRole('button');
+    await expect(live.first()).toContainText('Live');
+    await expect(page.getByText(/^\d+ of 155 practices$/)).toBeVisible();
+    await tabs.getByRole('tab', { name: /^Review/ }).click();
+    await expect(page.getByText(/No review practices found|of 155 practices/).first()).toBeVisible();
+
+    await tabs.getByRole('tab', { name: /^All/ }).click();
+    await page.getByRole('combobox', { name: 'Sort practices' }).click();
+    await page.getByRole('option', { name: 'Name Z–A' }).click();
+    await expect(page.getByRole('list', { name: 'Practices' }).getByRole('button').first()).not.toContainText(
+      'Ashford Medical Centre',
+    );
   });
 
   test('practice user sees only their practices and no Onboard button', async ({ page }) => {

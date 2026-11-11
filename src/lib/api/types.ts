@@ -145,6 +145,25 @@ export interface Practice {
 }
 
 // Inferred from the onboard form (docs/super-admin/03-onboard-new-practice.md).
+/** Where a practice is in its life on the platform (practices grid tabs; mock-only, inferred). */
+export type PracticeStage = 'LIVE' | 'ONBOARDING' | 'REVIEW';
+
+/**
+ * A practice with the figures its grid card shows. Not seen live: served by the mock
+ * `practices/overview` endpoint until the real API is known.
+ */
+export interface PracticeOverview extends Practice {
+  stage: PracticeStage;
+  staff_count: number;
+  rota_count: number;
+  /** Share of this week's rota slots with somebody on them, 0–100; null with no rota this week. */
+  rota_coverage: number | null;
+}
+
+export interface PracticeOverviewPage extends Paginated<PracticeOverview> {
+  stage_counts: Record<PracticeStage, number>;
+}
+
 export interface PointOfContact {
   name: string;
   phone_number: string;

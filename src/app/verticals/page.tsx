@@ -7,19 +7,15 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
+import { ShellTopBar } from '@/components/layout/ShellTopBar';
 import { UserMenu } from '@/components/layout/UserMenu';
+import { PracticeSearch } from '@/components/navigation/PracticeSearch';
 import { VerticalCard } from '@/components/practice/VerticalCard';
 import { BrandLogo } from '@/components/primitives/BrandLogo';
+import { VERTICALS } from '@/config/verticals';
 import { authApi } from '@/lib/api/auth';
 import type { SubApp } from '@/lib/api/types';
 import { selectSession, useAppSelector } from '@/store';
-
-// Card order and labels as on the live /verticals page. Everyclinic is always shown disabled.
-const VERTICALS = [
-  { slug: 'public', label: 'Public Primary Care', href: '/verticals/public/practices' },
-  { slug: 'private', label: 'Private Business', href: '/verticals/private' },
-  { slug: 'everyclinic', label: 'Everyclinic Business', href: null },
-] as const;
 
 type LoadState = { status: 'loading' } | { status: 'error' } | { status: 'ready'; subApps: SubApp[] };
 
@@ -60,82 +56,103 @@ export default function VerticalsPage() {
     state.status === 'ready' && state.subApps.some((subApp) => subApp.slug === slug && subApp.is_active);
 
   return (
-    <Box
-      sx={(theme) => ({
-        minHeight: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-        background: `linear-gradient(180deg, ${theme.tokens.surface.background} 40%, ${theme.tokens.surface.mintWash} 100%)`,
-      })}
-    >
+    <Box sx={(theme) => ({ minHeight: '100dvh', p: { xs: 1.25, md: 1.75 }, bgcolor: theme.tokens.shell.canvas })}>
       <Box
-        component="header"
-        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: { xs: 2, md: 5 }, py: 3 }}
+        sx={(theme) => ({
+          minHeight: { xs: 'calc(100dvh - 20px)', md: 'calc(100dvh - 28px)' },
+          display: 'flex',
+          flexDirection: 'column',
+          bgcolor: 'background.paper',
+          borderRadius: `${theme.tokens.radius.shellPanel}px`,
+          border: `1px solid ${theme.tokens.shell.panelBorder}`,
+        })}
       >
-        <BrandLogo height={36} />
-        <UserMenu />
-      </Box>
+        <ShellTopBar
+          start={<BrandLogo height={32} sx={{ ml: 1 }} />}
+          end={<UserMenu />}
+          sx={(theme) => ({ m: { xs: 1, md: 1.75 }, mb: 0, borderColor: theme.tokens.shell.line })}
+        />
 
-      <Box component="main" sx={{ flex: 1, px: { xs: 2, md: 5 }, py: { xs: 4, md: 8 } }}>
-        <Typography component="h1" sx={{ textAlign: 'center', fontSize: { xs: 24, md: 32 }, fontWeight: 400, mb: 6 }}>
-          Welcome back{' '}
-          <Box component="strong" sx={{ fontWeight: 700 }}>
-            {user.firstName} {user.lastName}
-          </Box>{' '}
-          <span aria-hidden>👋</span>
-        </Typography>
-
-        {state.status === 'loading' && <LoadingSpinner message="Loading verticals..." />}
-
-        {state.status === 'error' && (
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              Failed to load verticals.
-            </Typography>
-            <Button variant="outlined" onClick={retry}>
-              Try again
-            </Button>
-          </Box>
-        )}
-
-        {state.status === 'ready' && state.subApps.length === 0 && (
-          <Typography variant="body2" sx={{ textAlign: 'center' }}>
-            No verticals available for your account.
-          </Typography>
-        )}
-
-        {state.status === 'ready' && state.subApps.length > 0 && (
-          <Box
-            component="nav"
-            aria-label="Verticals"
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-              gap: 3,
-              maxWidth: 840,
-              mx: 'auto',
-            }}
+        <Box
+          component="main"
+          sx={{
+            flex: 1,
+            width: 'min(860px, 100%)',
+            mx: 'auto',
+            px: 3,
+            pt: { xs: 4, md: '8vh' },
+            pb: 6,
+            textAlign: 'center',
+          }}
+        >
+          <Typography
+            component="h1"
+            sx={(theme) => ({ fontSize: { xs: 24, md: 30 }, fontWeight: 600, color: theme.tokens.shell.ink })}
           >
-            {VERTICALS.map((vertical) => {
-              const enabled = vertical.href !== null && isEnabled(vertical.slug);
-              return (
-                <VerticalCard
-                  key={vertical.slug}
-                  label={vertical.label}
-                  disabled={!enabled}
-                  onClick={enabled && vertical.href ? () => router.push(vertical.href) : undefined}
-                />
-              );
-            })}
-          </Box>
-        )}
-      </Box>
+            Welcome back, {user.firstName}
+          </Typography>
+          <Typography sx={(theme) => ({ mt: 0.75, mb: 4, fontSize: 15, color: theme.tokens.shell.inkMuted })}>
+            Choose where you want to work today.
+          </Typography>
 
-      <Box
-        component="footer"
-        sx={(theme) => ({ borderTop: `1px solid ${theme.tokens.border.medium}`, py: 2.5, textAlign: 'center' })}
-      >
-        <Typography variant="body2">Copyright © {new Date().getFullYear()} Aqlios. All rights reserved.</Typography>
+          {state.status === 'loading' && <LoadingSpinner message="Loading verticals..." />}
+
+          {state.status === 'error' && (
+            <Box>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                Failed to load verticals.
+              </Typography>
+              <Button variant="outlined" onClick={retry}>
+                Try again
+              </Button>
+            </Box>
+          )}
+
+          {state.status === 'ready' && state.subApps.length === 0 && (
+            <Typography variant="body2">No verticals available for your account.</Typography>
+          )}
+
+          {state.status === 'ready' && state.subApps.length > 0 && (
+            <>
+              <Box
+                component="nav"
+                aria-label="Verticals"
+                sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, minmax(0, 1fr))' }, gap: 1.5 }}
+              >
+                {VERTICALS.map((vertical) => {
+                  const enabled = vertical.href !== null && isEnabled(vertical.slug);
+                  return (
+                    <VerticalCard
+                      key={vertical.slug}
+                      label={vertical.label}
+                      description={vertical.description}
+                      icon={vertical.icon}
+                      tone={vertical.slug}
+                      disabled={!enabled}
+                      onClick={enabled && vertical.href ? () => router.push(vertical.href) : undefined}
+                    />
+                  );
+                })}
+              </Box>
+              {isEnabled('public') && (
+                <Box sx={{ mt: 3.5, textAlign: 'left' }}>
+                  <PracticeSearch variant="jump" />
+                  <Typography
+                    variant="caption"
+                    component="p"
+                    sx={(theme) => ({ mt: 1.25, px: 0.75, color: theme.tokens.shell.inkMuted })}
+                  >
+                    Search Public Primary Care practices by name
+                  </Typography>
+                </Box>
+              )}
+            </>
+          )}
+        </Box>
+
+        <Box component="footer" sx={{ py: 2.5, textAlign: 'center' }}>
+          <Typography variant="caption">Copyright © {new Date().getFullYear()} Aqlios. All rights reserved.</Typography>
+        </Box>
       </Box>
     </Box>
   );

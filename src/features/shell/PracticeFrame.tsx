@@ -53,8 +53,13 @@ export function PracticeFrame({
     <PracticeProvider practice={state.practice} basePath={basePath} onCrumbsChange={setCrumbs}>
       <PracticeShell
         basePath={basePath}
-        practiceName={state.practice.practice_name}
-        practicesHref={practicesHref}
+        vertical={vertical}
+        practice={{
+          id: state.practice.id,
+          name: state.practice.practice_name,
+          city: state.practice.city,
+          odsCode: state.practice.ods_code,
+        }}
         crumbs={blocked ? null : crumbs}
       >
         {blocked ? <AccessDenied backHref={`${basePath}/dashboard`} backLabel="Go to dashboard" /> : children}

@@ -7,41 +7,78 @@ async function logIn(page: Page, persona: 'super-admin' | 'practice-user' = 'sup
   await page.getByLabel('Email').fill('reviewer@aqlios.demo');
   await page.getByLabel('Password', { exact: true }).fill('demo');
   if (persona === 'practice-user') {
-    await page.getByLabel('Sign in as').click();
-    await page.getByRole('option', { name: 'Practice user (GP)' }).click();
+    await page.getByRole('radio', { name: 'Practice user (GP)' }).check();
   }
   await page.getByRole('button', { name: 'Log In' }).click();
   await expect(page).toHaveURL(/\/verticals\//);
 }
 
 test.describe('vertical frame', () => {
-  test('drawer lists every module, marks the current page and closes', async ({ page, isMobile }) => {
-    test.skip(isMobile, 'Drawer layout is checked on desktop');
+  test('sidebar panel lists every module, marks the current page and collapses', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'The sidebar panel is desktop only');
     await logIn(page);
     await page.goto('/verticals/public/roles/');
-    await page.getByRole('button', { name: 'Open menu' }).click();
     const nav = page.getByRole('navigation', { name: 'Main navigation' });
     await expect(nav.getByRole('link')).toHaveCount(17);
     await expect(nav.getByRole('link', { name: 'Role and Permissions' })).toHaveAttribute('aria-current', 'page');
 
-    await page.keyboard.press('Escape');
-    await expect(nav).toBeHidden();
-
-    await page.getByRole('button', { name: 'Open menu' }).click();
+    // Groups fold away, except the one holding the current page.
+    await nav.getByRole('button', { name: 'FINANCE' }).click();
+    await expect(nav.getByRole('link', { name: 'Payroll' })).toBeHidden();
+    await nav.getByRole('button', { name: 'FINANCE' }).click();
     await nav.getByRole('link', { name: 'Payroll' }).click();
     await expect(page).toHaveURL(/\/coming-soon\/payroll\/$/);
     await expect(page.getByText('We are currently building Payroll. It will be available here soon.')).toBeVisible();
-    await expect(nav).toBeHidden();
+
+    // The icon rail keeps every link (named for screen readers) and is remembered after reload.
+    await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+    await expect(nav.getByRole('link', { name: 'Payroll' })).toHaveAttribute('aria-current', 'page');
+    await page.reload();
+    await expect(page.getByRole('button', { name: 'Expand sidebar' })).toBeVisible();
+    await page.getByRole('button', { name: 'Expand sidebar' }).click();
   });
 
   test('bell opens hub notifications and Back to Verticals returns', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'The bell and Back to Verticals move into the ☰ menu on phones');
     await logIn(page);
     await page.goto('/verticals/public/templates/');
-    await page.getByRole('link', { name: 'Notifications' }).click();
+    await page.getByRole('banner').getByRole('link', { name: 'Notifications' }).click();
     await expect(page).toHaveURL(/\/verticals\/public\/notifications\/$/);
-    test.skip(isMobile, 'Back to Verticals is hidden on phones, as space is short');
     await page.getByRole('link', { name: 'Back to Verticals' }).click();
     await expect(page).toHaveURL(/\/verticals\/$/);
+  });
+
+  test('top-bar search finds pages and practices', async ({ page }) => {
+    await logIn(page);
+    await page.goto('/verticals/public/templates/');
+    const search = page.getByRole('combobox', { name: 'Find practices and pages' });
+    await search.fill('rota');
+    await page.getByRole('option', { name: /ROTA Management/ }).click();
+    await expect(page).toHaveURL(/\/verticals\/public\/rota\/$/);
+
+    await search.fill('ashford medical');
+    await page.getByRole('option', { name: /Ashford Medical Centre/ }).click();
+    await expect(page).toHaveURL(/\/practices\/ashford-medical-centre\/dashboard\/?$/);
+  });
+
+  test('Sign out at the foot of the sidebar', async ({ page, isMobile }) => {
+    await logIn(page);
+    await page.goto('/verticals/public/templates/');
+    if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
+    await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Sign out' }).click();
+    await expect(page).toHaveURL(/\/auth\/login\/$/);
+  });
+
+  test('phones open the hub menu from ☰', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'Phone-only layout');
+    await logIn(page);
+    await page.goto('/verticals/public/roles/');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+    await page.getByRole('button', { name: 'Open menu' }).click();
+    const nav = page.getByRole('navigation', { name: 'Main navigation' });
+    await nav.getByRole('link', { name: 'Template Library' }).click();
+    await expect(page).toHaveURL(/\/templates\/$/);
+    await expect(nav).toBeHidden();
   });
 });
 
@@ -50,7 +87,7 @@ test.describe('practice frame', () => {
     test.skip(isMobile, 'Sidebar layout is checked on desktop');
     await logIn(page);
     await page.goto(`${PRACTICE}/dashboard/`);
-    await expect(page.getByRole('heading', { name: 'Welcome, Aqlios!' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'The rota week' })).toBeVisible();
     const nav = page.getByRole('navigation', { name: 'Main navigation' });
     await expect(nav.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('aria-current', 'page');
     await expect(nav.getByRole('link', { name: 'Profile' })).toHaveCount(0);
@@ -60,9 +97,24 @@ test.describe('practice frame', () => {
     await expect(nav.getByRole('link', { name: 'Activity Tracker' })).toHaveAttribute('aria-current', 'page');
     await expect(nav.getByRole('link', { name: 'ROTA Management' })).not.toHaveAttribute('aria-current', 'page');
 
-    await page.getByRole('button', { name: /Current practice: Ashford Medical Centre/ }).click();
-    await page.getByRole('menuitem', { name: 'Switch Practice' }).click();
+    await page.getByRole('button', { name: /Account menu for Aqlios Admin, in Ashford Medical Centre/ }).click();
+    await page.getByRole('menuitem', { name: 'All practices' }).click();
     await expect(page).toHaveURL(/\/verticals\/public\/practices\/$/);
+  });
+
+  test('account menu switches to another practice', async ({ page }) => {
+    await logIn(page);
+    await page.goto(`${PRACTICE}/dashboard/`);
+    const chip = page.getByRole('button', { name: /Account menu for Aqlios Admin, in Ashford Medical Centre/ });
+    await chip.click();
+    const menu = page.getByRole('menu');
+    await expect(menu.getByRole('menuitemradio', { name: /Ashford Medical Centre/ })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    await menu.getByRole('menuitemradio', { name: /Barnwell Medical Centre/ }).click();
+    await expect(page).toHaveURL(/\/practices\/barnwell-medical-centre\/dashboard\/$/);
+    await expect(page.getByRole('button', { name: /in Barnwell Medical Centre/ })).toBeVisible();
   });
 
   test('sidebar collapse is remembered after reload', async ({ page, isMobile }) => {
@@ -119,7 +171,7 @@ test.describe('phone layout', () => {
     test.skip(!isMobile, 'Phone-only layout');
     await logIn(page);
     await page.goto(`${PRACTICE}/dashboard/`);
-    await expect(page.getByRole('heading', { name: 'Welcome, Aqlios!' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'The rota week' })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
     await page.getByRole('button', { name: 'Open menu' }).click();
     const nav = page.getByRole('navigation', { name: 'Main navigation' });

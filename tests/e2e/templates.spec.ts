@@ -7,8 +7,7 @@ async function logIn(page: Page, persona: 'super-admin' | 'practice-user' = 'sup
   await page.getByLabel('Email').fill('reviewer@aqlios.demo');
   await page.getByLabel('Password', { exact: true }).fill('demo');
   if (persona === 'practice-user') {
-    await page.getByLabel('Sign in as').click();
-    await page.getByRole('option', { name: 'Practice user (GP)' }).click();
+    await page.getByRole('radio', { name: 'Practice user (GP)' }).check();
   }
   await page.getByRole('button', { name: 'Log In' }).click();
   await expect(page).toHaveURL(/\/verticals\//);

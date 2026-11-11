@@ -282,6 +282,18 @@ export function leavePeople(practiceId: string): LeavePerson[] {
   });
 }
 
+/** Staff counts for a practice (Staff summary, and the practice overview cards). */
+export function staffSummaryFor(practiceId: string) {
+  const rows = baseRecords(practiceId)
+    .map(present)
+    .filter((row) => !row.archived);
+  return {
+    total: rows.length,
+    active: rows.filter((row) => row.status === 'ACTIVE').length,
+    pending_invitations: rows.filter((row) => STAFF_INVITE_STATUSES.includes(row.status)).length,
+  };
+}
+
 export const staffHandlers = [
   http.get(staffPath(), ({ request, params }) => {
     const practiceId = String(params.practiceId);
@@ -307,14 +319,7 @@ export const staffHandlers = [
     const practiceId = String(params.practiceId);
     const denied = guard(practiceId);
     if (denied) return denied;
-    const rows = baseRecords(practiceId)
-      .map(present)
-      .filter((row) => !row.archived);
-    return ok({
-      total: rows.length,
-      active: rows.filter((row) => row.status === 'ACTIVE').length,
-      pending_invitations: rows.filter((row) => STAFF_INVITE_STATUSES.includes(row.status)).length,
-    });
+    return ok(staffSummaryFor(practiceId));
   }),
 
   http.get(staffPath('bulk-import/'), ({ params }) => {

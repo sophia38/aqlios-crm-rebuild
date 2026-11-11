@@ -8,8 +8,7 @@ async function logIn(page: Page, persona: 'super-admin' | 'practice-user' = 'sup
   await page.getByLabel('Email').fill('reviewer@aqlios.demo');
   await page.getByLabel('Password', { exact: true }).fill('demo');
   if (persona === 'practice-user') {
-    await page.getByLabel('Sign in as').click();
-    await page.getByRole('option', { name: 'Practice user (GP)' }).click();
+    await page.getByRole('radio', { name: 'Practice user (GP)' }).check();
   }
   await page.getByRole('button', { name: 'Log In' }).click();
   await expect(page).toHaveURL(/\/verticals\//);
@@ -200,10 +199,11 @@ test.describe('cqc compliance', () => {
     await expect(page.getByText("You don't have access to this page")).toBeVisible();
   });
 
-  test('the sidebar lists Compliance Dashboard above CQC Compliance', async ({ page }) => {
+  test('the sidebar lists Compliance Dashboard above CQC Compliance', async ({ page, isMobile }) => {
     await logIn(page);
     await page.goto(CQC);
-    await page.getByRole('button', { name: 'Open menu' }).click();
+    // The hub sidebar is a panel on desktop and a ☰ drawer on phones.
+    if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click();
     const nav = page.getByRole('navigation', { name: 'Main navigation' });
     await expect(nav.getByRole('link', { name: 'CQC Compliance' })).toBeVisible();
     const labels = await nav.getByRole('link').allInnerTexts();
